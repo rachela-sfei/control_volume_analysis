@@ -165,23 +165,6 @@ def spring_neap_filter(y, dt_days = 1.0, fcut = 1/36., N = 6):
     # return fitlered signal
     return yf
 
-def pos_neg(array):
-
-    '''returns two arrays with shape array, one with positive entries, other with negative,
-    all other entries are zero'''
-
-    shape = np.shape(array)
-    pos = np.zeros(shape)
-    neg = np.zeros(shape)
-
-    ind = array>0
-    pos[ind] = array[ind]
-
-    ind = array<0
-    neg[ind] = array[ind]
-
-    return pos, neg
-
 #########################################################################################
 ## main
 #########################################################################################

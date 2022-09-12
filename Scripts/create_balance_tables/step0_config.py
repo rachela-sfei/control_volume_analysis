@@ -11,7 +11,12 @@ alliek august 2022
 ##############################
 
 # this is the run you want to process
-runid = 'G141_13to18_230'
+# skip 210, runs 224-226, and run 228
+# 197, 
+# 207,208,209,
+# 211,212,213,214,215,216,217,218,219,220,221,222,223
+# 227,229,230
+runid = 'G141_13to18_233'
 
 # base level substances to process. set to string 'all' or a list of substance strings -- warning, processing 
 # all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py)
@@ -38,7 +43,7 @@ float_format = '%1.6e'
 error_tol_percent = 0.001
 
 # abort if error tolerance is exceeded? set to False for troubleshooting only. (this is used in step4_check_mass_conservation.py)
-abort_for_mass_cons_error = False
+abort_for_mass_cons_error = True
 
 # delete all balance tables before re-running step1_create_balance_tables?
 delete_balance_tables = True
@@ -166,15 +171,15 @@ composite_reaction_dict = {
                   'EACH IS ZERO: Zoopl_E,dZ_Emor' : ['Zoopl_E,dZ_Emor'],
                   'EACH IS ZERO: Zoopl_R,dZ_Rmor' : ['Zoopl_R,dZ_Rmor']},
      'DIN' : {
-             'NH4,dMinDetN' : ['NH4,dMinDetNS1', 'NH4,dMinDetNS2'], # this is a source
-             'DIN,dDINUpt'  : ['NO3,dNO3Upt', 'NH4,dNH4Upt', # uptake is a sink, uptake for diatoms and greens is lumped together
-                               'NH4,dNH4UptS1', 'NH4,dNH4US1D', 'NO3,dNO3UptS1'], # there are three additional uptake terms for benthic algae       
+             'NH4,dMinTotalDetNS' : ['NH4,dMinDetNS1', 'NH4,dMinDetNS2', 'NH4,dMinOONS1', 'NH4,dMinOONS2'], # this is a source
+             'DIN,dDINUpt'  : ['NO3,dNO3Upt', 'NH4,dNH4Upt'], # uptake is a sink, uptake for diatoms and greens is lumped together
+             'DIN,dDINUptS1' : ['NH4,dNH4UptS1', 'NH4,dNH4US1D', 'NO3,dNO3UptS1'], # there are three additional uptake terms for benthic algae       
              'NO3,dDenit'   : ['NO3,dDenitWat', 'NO3,dDenitSed'], # this is a sink
              'NO3,dNiDen'     : ['NO3,dNiDen'],    # this is a sink that is usually zero but sometimes has very large spikes
-             'NH4,dMinPON1' : ['NH4,dMinPON1'], # this is a source
+             'NH4,dMinPON' : ['NH4,dMinPON1', 'NH4,dMinPON2'], # this is a source
              'NH4,dMinDON' : ['NH4,dMinDON'], # this is a source
              'NH4,dZ_NRes' : ['NH4,dZ_NRes'], # this is a source
-             'NH4,dNH4Aut'  : ['NH4,dNH4Aut','NH4,dNH4AUTS1'], # this is a source
+             'NH4,dNH4Aut'  : ['NH4,dNH4Aut', 'NH4,dNH4AUTS1'], # this is a source
              'SUMS TO ZERO: NH4,dNitrif + NO3,dNitrif'  : ['NO3,dNitrif', 'NH4,dNitrif'],     # these should cancel out    
              },
     'TN' : { 'NO3,dDenit' : ['NO3,dDenitWat', 'NO3,dDenitSed'], # this should be a SINK for TN
@@ -182,10 +187,9 @@ composite_reaction_dict = {
              'Algae,dSedAlgae' : ['Diat,dSedDiat', 'Green,dSedGreen'],  # this should be a SINK for TN
              'PON,dSedPON' : ['PON1,dSedPON1','PON2,dSedPON2'], # this should be a SINK for TN 
              'DiatS1,dMrtDiatS1' : ['DiatS1,dMrtDiatS1'], # dead benthic algae turn into detritus through the 'DetNS1,dMrtDetNS1' term, so this is a water column sink
-             'NH4,dNH4AUTS1' : ['NH4,dNH4AUTS1'], # part of the dead algae from DiatS1,dMrtDiatS1 get returned to the water column via autolysis, so this is a water column source
              'DiatS1,dBurS1Diat' : ['DiatS1,dBurS1Diat'], # burial of benthic algae appears to be a true sink -- it leaves the model completely!
-             'NH4,dMinDetNS' : ['NH4,dMinDetNS1', 'NH4,dMinDetNS2'], # this should be a SOURCE for TN
-             'NH4,dMinOONS' : ['NH4,dMinOONS1','NH4,dMinOONS2'], # this should be a SOURCE for TN
+             'NH4,dMinTotalDetNS' : ['NH4,dMinDetNS1', 'NH4,dMinDetNS2','NH4,dMinOONS1', 'NH4,dMinOONS2'], # this is a source
+             'NH4,dNH4AUTS1' : ['NH4,dNH4AUTS1'], # part of the dead algae from DiatS1,dMrtDiatS1 get returned to the water column via autolysis, so this is a water column source
              'NH4,dClam_NRes' : ['NH4,dM_NRes','NH4,dG4_NRes'], # this is a SOURCE for TN (clam pee)
              'PON1,dClam_NDef' : ['PON1,dM_NDef','PON1,dG4_NDef'], # this is a SOURCE for TN (clam poo)
              'Algae,dClam_Algae' : ['Diat,dM_Diat','Diat,dG4_Diat','Green,dM_Green','Green,dG4_Green'], # this is a SINK for TN (clams eat algae)
@@ -246,12 +250,13 @@ composite_reaction_dict = {
              'EACH IS ZERO: DiatS1,dResS1Diat + DiatS1,dSWBuS1Dia + DiatS1,dDigS1Diat' : ['DiatS1,dResS1Diat',      # new benthic algae terms, each one is zero, for now
                                                                                       'DiatS1,dSWBuS1Dia', 
                                                                                       'DiatS1,dDigS1Diat'], 
-             'EACH IS ZERO: PON2,dMortOON + PON2,dResS1OON + PON2,dResS2OON' : ['PON2,dMortOON','PON2,dResS1OON','PON2,dResS2OON'], #### NEW #### each is zero for now 
+             'EACH IS ZERO: PON2,dCnvDPON2 + PON2,dMortOON + PON2,dResS1OON + PON2,dResS2OON' : ['PON2,dCnvDPON2','PON2,dMortOON','PON2,dResS1OON','PON2,dResS2OON'], #### NEW #### each is zero for now 
             },
     'TN_include_sediment' : {
              'NO3,dDenit' : ['NO3,dDenitWat','NO3,dDenitSed'], # this should be a SINK for TN
              'NO3,dNiDen'     : ['NO3,dNiDen'],    # this is a very small sink
              'DetNS2,dBurS2DetN' : ['DetNS2,dBurS2DetN'], # this appears to act as a true SINK for TN as well
+             'OONS2,dBurS2OON' : ['OONS2,dBurS2OON'], # true sink
              'DiatS1,dBurS1Diat' : ['DiatS1,dBurS1Diat'], # burial of benthic algae also seems to be a true sink
              # in the PRE August 2020 model this does NOT sum to zero but it should
              'SUMS TO ZERO: Diat,dPPDiat + Diat,dcPPDiat + Green,dPPGreen + Green,dcPPGreen + NH4,dNH4Upt + NO3,dNO3Upt' : 
@@ -366,8 +371,9 @@ composite_reaction_dict = {
              'EACH IS ZERO: DiatS1,dResS1Diat + DiatS1,dSWBuS1Dia + DiatS1,dDigS1Diat' : ['DiatS1,dResS1Diat', # new benthic algae terms, each one is zero
                                                                                                   'DiatS1,dSWBuS1Dia', 
                                                                                                   'DiatS1,dDigS1Diat'],              
+             'EACH IS ZERO: PON2,dCnvDPON2' : ['PON2,dCnvDPON2'], #### NEW #### each is zero
              'EACH IS ZERO: OONS1,dSWMnOONS1 + OONS1,dSWBuS1OON' : ['OONS1,dSWMnOONS1','OONS1,dSWBuS1OON'], #### NEW #### each is zero, and I can't find matches for them
-             'EACH IS ZERO: OONS2,dSWMnOONS2' : ['OONS2,dSWMnOONS2'],
+             'EACH IS ZERO: OONS2,dSWMnOONS2 + OONS2,dDigS2OON' : ['OONS2,dSWMnOONS2', 'OONS2,dDigS2OON'],             
     },
     'TotalDetNS' : {'DetNS1,dMrtDetNS1' : ['DetNS1,dMrtDetNS1'], # source
                     'DetNS1,dSedAlgN' : ['DetNS1,dSedAlgN'], # source
