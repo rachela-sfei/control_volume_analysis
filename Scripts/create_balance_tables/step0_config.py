@@ -16,7 +16,9 @@ alliek august 2022
 # 207,208,209,
 # 211,212,213,214,215,216,217,218,219,220,221,222,223
 # 227,229,230
-runid = 'G141_13to18_246'
+#runid = 'G141_13to18_247'
+#runid = 'G141_13to18_247'
+runid = 'FR13_003'
 
 # base level substances to process. set to string 'all' or a list of substance strings -- warning, processing 
 # all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py)

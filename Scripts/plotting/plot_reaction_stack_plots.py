@@ -55,7 +55,7 @@ param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae']
 # dictionary to map parameter to element corresponding to mass
 grams_of_what = {'DIN' : 'N', 'TN' : 'N', 'TN_include_sediment' : 'N', 'TotalDetNS' : 'N', 'Algae' : 'C', 'OXY' : 'O'}
 
-# list of panels to plot
+# list of panels to plot (a "panel" is a bad name for a plot of a collection of groups, each group in one subplot)
 panel_list = ['Whole_Bay_RMP', 'Whole_Bay_WB', 'South_Bay_6Part']
 
 # list of normalizations (divide by area, volume, or nothing)
@@ -121,7 +121,8 @@ minor_locator = mdates.MonthLocator(bymonth=(1,4,7,10))
 major_formatter = mdates.DateFormatter('%Y')
 
 # default color cycle
-colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+          'fuchsia','gold','lawngreen','aqua','lavender','navy','lightgray']
 
 #########################################################################################
 ## main

@@ -17,20 +17,15 @@ reload(CVPL)
 #########################
 
 # run name 
-runid = 'G141_13to18_230'
+runid = 'G141_13to18_242'
 #runid = 'FR13_025'
 #runid = 'FR17_018'
 #runid = 'FR18_006'
 #runid = 'FR13_003'
 #runid = 'FR17_003'
 
-# number of significant figures to include in the LARGEST reaction and transpor terms ... this
-# will set the format for writing the numbers on the map, note this will set sig figs for reaction
-# terms and fluxes will include one fewer sig figs, since they are generally bigger
-nsigfig = 4
-
 # list of parameters to make plots for
-param_list = ['DIN', 'TN', 'Algae', 'TN_include_sediment']
+param_list = ['TN', 'DIN', 'Algae', 'TN_include_sediment']
 
 # list of "domains" which are groups of groups to plot
 #domain_name_list = ['Whole_Bay_ABC','WB_South_Bay_ABC','WB_Subembayments','WB_Channel_Shoal','RMP_Subembayments',
@@ -44,6 +39,15 @@ averaging_period_list = ['Seasonal'] # can also add 'Annual', Monthly', and/or '
 #base_dir = r'X:\hpcshared'
 run_base_dir = '/richmondvol1/hpcshared'
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
+
+# number of significant figures to include in the LARGEST reaction and transpor terms ... this
+# will set the format for writing the numbers on the map, note this will set sig figs for reaction
+# terms and fluxes will include one fewer sig figs, since they are generally bigger
+nsigfig = 4
+
+# drop zero reactions?
+drop_zero_rx = True
+zero_tol = 0.001
 
 # use this function to define units, whether or not to include loading in the plot (set to false for 
 # algae, zoopl, or anything else that doesn't come in through point sources), whether or not to 
@@ -463,6 +467,14 @@ for param in param_list:
         for col in df.columns:
             if ',d' in col and not 'dMass/dt' in col and not 'ZERO' in col:
                 reaction_list.append(col)
+
+        # drop zero reaction terms 
+        if drop_zero_rx:
+            for rx in reaction_list.copy():
+                if (df[rx] == 0).all():
+                    reaction_list.remove(rx)
+
+        # trim units from reaction list for putting in legend (units are already in y axis label)
         reaction_list_trimmed = []
         for reaction in reaction_list:
             reaction1 = reaction.replace(' (Mg/d)','')
