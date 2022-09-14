@@ -87,9 +87,29 @@ def make_concise_runid_list_string(runid_list):
 	
 	return concise_runid_list_string
 
+def list_of_wy_str_2_list_of_int_wys(wystr_list):
+
+	''' given a list of strings describing water years (e.g. ['WY2013', 'WY13to18'])
+	compute the list of all integer water years included'''
+
+	wy_list = []
+	for wystr in wystr_list:
+		if 'to' in wystr:
+			wy0 = 2000 + int(wystr[2:4])
+			wyN = 2000 + int(wystr[6:])
+			for wy in range(wy0,wyN+1):
+				wy_list.append(wy)
+		else:
+			wy = int(wystr[2:])
+			wy_list.append(wy)
+	wy_list = np.sort(np.unique(wy_list))
+	wy_list = list(wy_list)
+
+	return wy_list
+
 def make_concise_water_year_list_string(wy_list):
 
-	''' given a list of integer water years (e.g. 2013, 2018) makes a string
+	''' given a list of integer water years (e.g. [2013, 2018]) makes a string
 	listing all the years concisely'''
 
 	# get sorted list of unique water years

@@ -25,12 +25,13 @@ import matplotlib.pylab as plt
 import datetime as dt
 import matplotlib.dates as mdates
 from scipy import signal
-from importlib import reload
+#plt.switch_backend("Agg")
 
 
 #########################################################################################
 ## user input
 #########################################################################################
+
 
 # list or runs to plot and water year to pick out of corresponding run (each is a column in the plot)
 run2plot_list = ['G141_13to18_197','G141_13to18_207']

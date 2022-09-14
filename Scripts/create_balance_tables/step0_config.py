@@ -16,7 +16,7 @@ alliek august 2022
 # 207,208,209,
 # 211,212,213,214,215,216,217,218,219,220,221,222,223
 # 227,229,230
-runid = 'G141_13to18_233'
+runid = 'G141_13to18_246'
 
 # base level substances to process. set to string 'all' or a list of substance strings -- warning, processing 
 # all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py)
@@ -43,7 +43,7 @@ float_format = '%1.6e'
 error_tol_percent = 0.001
 
 # abort if error tolerance is exceeded? set to False for troubleshooting only. (this is used in step4_check_mass_conservation.py)
-abort_for_mass_cons_error = True
+abort_for_mass_cons_error = True # change it to true later, set to false for troubleshooting
 
 # delete all balance tables before re-running step1_create_balance_tables?
 delete_balance_tables = True
@@ -147,9 +147,9 @@ composite_reaction_dict = {
                   'Zoopl_R,dZ_SpwDet' : ['Zoopl_R,dZ_SpwDet'], # sink
                   'Zoopl_V,dZ_Vgr' : ['Zoopl_V,dZ_Vgr'], # this can be a sink or a source!?
                   'Zoopl_R,dZ_Rgr' : ['Zoopl_R,dZ_Rgr'], # this can be a sink or a source!?
-                  'EACH IS ZERO: Zoopl_V,dZ_Vmor' : ['Zoopl_V,dZ_Vmor'], 
-                  'EACH IS ZERO: Zoopl_E,dZ_Emor' : ['Zoopl_E,dZ_Emor'],
-                  'EACH IS ZERO: Zoopl_R,dZ_Rmor' : ['Zoopl_R,dZ_Rmor']},
+                  'Zoopl_V,dZ_Vmor' : ['Zoopl_V,dZ_Vmor'], 
+                  'Zoopl_E,dZ_Emor' : ['Zoopl_E,dZ_Emor'],
+                  'Zoopl_R,dZ_Rmor' : ['Zoopl_R,dZ_Rmor']},
      'Algae' : {'Diat,dPPDiat' : ['Diat,dPPDiat', 'Diat,dcPPDiat'],
                   'Green,dPPGreen' : ['Green,dPPGreen', 'Green,dcPPGreen'], 
                   'DiatS1,dPPDiatS1' : ['DiatS1,dPPDiatS1'], 
@@ -167,9 +167,9 @@ composite_reaction_dict = {
                   'Zoopl_R,dZ_SpwDet' : ['Zoopl_R,dZ_SpwDet'], # sink
                   'Zoopl_V,dZ_Vgr' : ['Zoopl_V,dZ_Vgr'], # this can be a sink or a source!?
                   'Zoopl_R,dZ_Rgr' : ['Zoopl_R,dZ_Rgr'], # this can be a sink or a source!?
-                  'EACH IS ZERO: Zoopl_V,dZ_Vmor' : ['Zoopl_V,dZ_Vmor'], 
-                  'EACH IS ZERO: Zoopl_E,dZ_Emor' : ['Zoopl_E,dZ_Emor'],
-                  'EACH IS ZERO: Zoopl_R,dZ_Rmor' : ['Zoopl_R,dZ_Rmor']},
+                  'Zoopl_V,dZ_Vmor' : ['Zoopl_V,dZ_Vmor'], 
+                  'Zoopl_E,dZ_Emor' : ['Zoopl_E,dZ_Emor'],
+                  'Zoopl_R,dZ_Rmor' : ['Zoopl_R,dZ_Rmor']},
      'DIN' : {
              'NH4,dMinTotalDetNS' : ['NH4,dMinDetNS1', 'NH4,dMinDetNS2', 'NH4,dMinOONS1', 'NH4,dMinOONS2'], # this is a source
              'DIN,dDINUpt'  : ['NO3,dNO3Upt', 'NH4,dNH4Upt'], # uptake is a sink, uptake for diatoms and greens is lumped together
@@ -236,17 +236,16 @@ composite_reaction_dict = {
                                           'PON1,dResS2DetN', 
                                           'PON1,dResS1DiDN', 
                                           'PON1,dResS2DiDN'],   
-             'EACH IS ZERO: PON1,dZ_PON1 + PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet' : [
+             'EACH IS ZERO: PON1,dZ_PON1 + PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet + Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [
                                           'PON1,dZ_PON1',
                                           'PON1,dZ_NMrt',      
                                           'PON1,dM_NMrt',
                                           'PON1,dG4_NMrt',
                                           'PON1,dM_NSpDet',
-                                          'PON1,dG4_NSpDet'],    
-             'EACH IS ZERO: Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [                                        # each of these is zero
-                                         'Zoopl_V,dZ_Vmor',  
+                                          'PON1,dG4_NSpDet',
+                                          'Zoopl_V,dZ_Vmor',  
                                           'Zoopl_R,dZ_Rmor',  
-                                          'Zoopl_E,dZ_Emor'], 
+                                          'Zoopl_E,dZ_Emor'],    
              'EACH IS ZERO: DiatS1,dResS1Diat + DiatS1,dSWBuS1Dia + DiatS1,dDigS1Diat' : ['DiatS1,dResS1Diat',      # new benthic algae terms, each one is zero, for now
                                                                                       'DiatS1,dSWBuS1Dia', 
                                                                                       'DiatS1,dDigS1Diat'], 
@@ -341,17 +340,16 @@ composite_reaction_dict = {
                                           'PON1,dResS2DetN', 
                                           'PON1,dResS1DiDN', 
                                           'PON1,dResS2DiDN'],   
-             'EACH IS ZERO: PON1,dZ_PON1 + PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet' : [
+             'EACH IS ZERO: PON1,dZ_PON1 + PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet + Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [
                                           'PON1,dZ_PON1',
                                           'PON1,dZ_NMrt',      
                                           'PON1,dM_NMrt',
                                           'PON1,dG4_NMrt',
                                           'PON1,dM_NSpDet',
-                                          'PON1,dG4_NSpDet'],    
-             'EACH IS ZERO: Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor' : [                                        
-                                 'Zoopl_V,dZ_Vmor',  
-                                  'Zoopl_R,dZ_Rmor',  
-                                  'Zoopl_E,dZ_Emor'], 
+                                          'PON1,dG4_NSpDet',
+                                          'Zoopl_V,dZ_Vmor',  
+                                          'Zoopl_R,dZ_Rmor',  
+                                          'Zoopl_E,dZ_Emor'],    
              'EACH IS ZERO: DetNS1,dZ_NMrtS1 + DetNS1,dZ_DNS1 + DetNS1,dM_DNS1 + DetNS1,dG4_DNS1' :   [
                          'DetNS1,dZ_NMrtS1',
                          'DetNS1,dZ_DNS1',

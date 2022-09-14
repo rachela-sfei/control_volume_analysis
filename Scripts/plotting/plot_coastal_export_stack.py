@@ -1,17 +1,25 @@
 '''
 
-Use new "Whole_Bay" group to work up budget
+Use new "Whole_Bay" group to work up a mass budget for the whole bay
 
-This creates a four panel plot with the following panels
-- bay-wide DIN Loading
-- Delta influx (net flux in from the W)
-- assimilation (net Rx term)
-- outflux throguh Golden Gate (net flux in from the E)
+For the parameter specified (e.g. DIN, TN, Algae)
+creates a plot with 3xN subplots where N is the number of runs 
+you want to compare to each other (you can just plot one run if you want)
 
-Multiple water years are plotted together, based on full resoluation runs
+Row 1: stack plot comparing point source loading, delta influx, influx from 
+minor tributaries, storage (dM/dt), net reactions, and outflux through the golden gate
+for the parameter specified
 
-July 2020 update w/ new "Whole Bay" CV that includes fluxes in from SPB
+Row 2: stack plot showing each of the reactions for the parameter specified 
+(ignoring groups of terms that sum to zero) along with the net reaction and the
+storage term (dM/dt)
 
+Row 3: breaks outflux through golden gate into components of the parameter 
+specified (e.g. if parameter is DIN, breaks DIN export down into NH4 and NO3), 
+and also compares export to the net loading from the tribuaries (including delta)
+and the point sources
+
+Allie King Sept 2022
 '''
 
 ########################################################################################
@@ -26,6 +34,8 @@ import datetime as dt
 import matplotlib.dates as mdates
 from scipy import signal
 from importlib import reload
+import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
+reload(CVPL)
 
 
 #########################################################################################
@@ -33,28 +43,25 @@ from importlib import reload
 #########################################################################################
 
 # list or runs to plot and water year to pick out of corresponding run (each is a column in the plot)
-run2plot_list = ['G141_13to18_197','G141_13to18_207']
+runid_list = ['G141_13to18_223','G141_13to18_231']
 
-# this is the list of water years to zoom in on within each plot, should be the same length as run2plot_list
+# this is the list of water years to zoom in on within each plot, should be the same length as runid_list
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
 wystr_list = ['WY13to18', 'WY13to18']
 
 ## composite parameter (must match suffix of balance table)
 param_list = ['DIN','TN','TN_include_sediment']
 
-# base directory (depends if running from laptop or on an hpc)
-#base_dir = r'X:\hpcshared'
-#base_dir = '/richmondvol1/hpcshared'
-base_dir = '/chicagovol1/hpcshared'
+# list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
+tavg_list = ['Daily','Filtered','Cumulative']
 
-# output folder path
-if all(np.array(run2plot_list)==run2plot_list[0]):
-    out_dir = os.path.join(base_dir,'NMS_Projects','Control_Volume_Analysis','Plots',run2plot_list[0],'coastal_export')
-else:
-    out_dir = os.path.join(base_dir,'NMS_Projects','Control_Volume_Analysis','Plots','Compare_Water_Years','coastal_export')
+# base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
+#run_base_dir = r'X:\hpcshared'
+run_base_dir = '/richmondvol1/hpcshared'
+figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 
 # number of runs (corresponds to number of columns)
-nruns = len(run2plot_list)
+nruns = len(runid_list)
 assert nruns==len(wystr_list)
 
 # figure size for (3 rows) x (nruns columns) mass budget plot 
@@ -65,10 +72,12 @@ if 'WY13to18' in wystr_list:
 else:
     fs = (5*nruns,10)
 
-# default color cycle
-colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+# start with the default color cycle and add even more colors because the number of reactions is OUT OF CONTROL!
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+          'fuchsia','gold','lawngreen','aqua','lavender','navy','lightgray']
 
-# finction to list of components OF THE COASTAL EXPORT (need not include benthic components) given the parameter
+# finction to list of components OF THE COASTAL EXPORT (need not include benthic components, 
+# because they can't flow out of the bay as they are stuck to the bed) given the parameter
 def return_components_list(param):
 
     if param == 'DIN':
@@ -92,42 +101,6 @@ major_formatter = mdates.DateFormatter('%Y')
 ## functions
 #########################################################################################
 
-def spring_neap_filter(y, dt_days = 1.0, fcut = 1/36., N = 6):
-
-    """
-    Performs a spring-neap filter on the y series using a 6th order low pass
-    butterworth filter and constant padding
-   
-    Usage:
-       
-        yf = spring_neap_filter(y, dt_days=1.0, fcut = 1/36.)
-       
-    Input:
-       
-        y    = time series
-        dt_days   = time step (unit is days)
-        fcut = cutoff frequency in 1/days
-               
-    Output:
-   
-        yf   = tidally filtered signal
-   
-    """
-   
-    # compute sampling frequency from time step
-    fs = 1/dt_days
-   
-    # compute dimensionless cutoff frequency w.r.t. Nyquist frequency
-    Wn = fcut/(0.5*fs)
-    # compute filter coefficients
-    b, a = signal.butter(N, Wn, 'low')
-   
-    # filter the signal
-    yf = signal.filtfilt(b,a,y,padtype='constant')
-   
-    # return fitlered signal
-    return yf
-
 def pos_neg(array):
 
     '''returns two arrays with shape array, one with positive entries, other with negative,
@@ -149,27 +122,18 @@ def pos_neg(array):
 ## main
 #########################################################################################
 
-# make a kind of confusing figure prefix with list of runs and water years
-sameruns = all(run2plot_list[0]==np.array(run2plot_list))
-samewys = all(wystr_list[0]==np.array(wystr_list))
-if sameruns:
-    fig_pref = run2plot_list[0] + '_'
-    if not samewys:
-        for wystr in wystr_list:
-            fig_pref += wystr + '_'
-else:
-    fig_pref = ''
-    for (run_ID,wystr) in zip(run2plot_list,wystr_list):
-        fig_pref += run_ID + '_'
-        if not samewys:
-            fig_pref += wystr + '_'
-if samewys:
-    fig_pref += wystr_list[0] + '_'
-fig_pref = fig_pref[0:-1]
+# get string with concise list of runs 
+run_list_str = CVPL.make_concise_runid_list_string(runid_list)
 
-# check if plot directory exists and create it if not
-if not os.path.exists(out_dir):
-    os.makedirs(out_dir)
+# from the list of water year strings, get a list of integer water years, then convert back
+# to a concise list of water year strings for naming the figure
+wy_list = CVPL.list_of_wy_str_2_list_of_int_wys(wystr_list)   # note this variable gets overridden later
+wy_list_str = CVPL.make_concise_water_year_list_string(wy_list)
+
+# path to figures, create if it does not exist
+figure_path = os.path.join(figure_base_dir, run_list_str, 'coastal_export')
+if not os.path.exists(figure_path):
+    os.makedirs(figure_path)
 
 # loop through parameters
 for param in param_list:
@@ -178,7 +142,7 @@ for param in param_list:
     components_list, ncom = return_components_list(param)
     
     # loop through different time averages: daily, spring-neap filter, cumulative
-    for tavg in ['Filtered','Cumulative','Daily']:
+    for tavg in tavg_list:
     
         # initialize 3 panel figure with complete mass balance, reactions, and export composition
         fig, ax = plt.subplots(3,nruns,figsize=fs)
@@ -188,27 +152,89 @@ for param in param_list:
             tavg_str = 'Spring-Neap Filtered'
         else:
             tavg_str = tavg
+
+        # for loading balance tables
+        if tavg=='Daily':
+            tavg_BT_str = ''
+        else:
+            tavg_BT_str = '_' + tavg
+
+        # units
+        if tavg=='Cumulative':
+            units = 'Mg'
+        else:
+            units = 'Mg/d'
     
+        # before we plot the different runs, take a sneak peek to find a list of all the reactions
+        master_source_list = []
+        master_sink_list = []
+        master_reaction_list = []
+        for irun in range(nruns):
+
+            # get the run id
+            runid = runid_list[irun]
+    
+            # get path to the balance table folder in the run folder
+            run_dir = CVPL.get_run_dir(run_base_dir, runid)
+            balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+            
+            # load up the balance table data for the parameter of interest
+            input_fn = os.path.join(balance_table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_BT_str))
+            data = pd.read_csv(input_fn)
+
+            # get the reaction lists
+            source_list = []
+            sink_list = []
+            for col in data.columns:
+                if not 'ZERO' in col:
+                    if not ',dMass/' in col:
+                        if ',d' in col:
+                            if data[col].mean()>0:
+                                source_list.append(col)
+                            elif data[col].mean()<0:
+                                sink_list.append(col)
+
+            # add to master list
+            for rx in source_list:
+                if not rx in master_source_list:
+                    master_source_list.append(rx)
+            for rx in sink_list:
+                if not rx in master_sink_list:
+                    master_sink_list.append(rx)
+    
+        # combine master sources and sinks to get reactions
+        master_reaction_list = []
+        for rx in master_sink_list:
+            master_reaction_list.append(rx)
+        for rx in master_source_list:
+            master_reaction_list.append(rx)
+
+        # trim the units for concise legend
+        master_reaction_list_trimmed = []
+        for rx in master_reaction_list:
+            master_reaction_list_trimmed.append(rx.replace(' (%s)' % units,''))
+
         # loop through the runs, each one is a column in the figure
         for irun in range(nruns):
     
             # print run
-            print('run %d of %d' % (irun,nruns))
+            print('run %d of %d' % (irun+1,nruns))
         
             # get the run id
-            run2plot = run2plot_list[irun]
+            runid = runid_list[irun]
     
-            ## balance table folder
-            table_dir = os.path.join(base_dir,'NMS_Projects','Control_Volume_Analysis','Balance_Tables',run2plot)
+            # get path to the balance table folder in the run folder
+            run_dir = CVPL.get_run_dir(run_base_dir, runid)
+            balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             
             # load up the balance table data for the parameter of interest
-            input_fn = os.path.join(table_dir,'%s_Table_By_Group.csv' % param.lower())
+            input_fn = os.path.join(balance_table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_BT_str))
             data = pd.read_csv(input_fn)
     
             # also load up balance tables for the component parameters 
             data_components = []
             for ic in range(ncom):
-                input_fn = os.path.join(table_dir,'%s_Table_By_Group.csv' % components_list[ic].lower())
+                input_fn = os.path.join(balance_table_dir,'%s_Table_By_Group%s.csv' % (components_list[ic].lower(), tavg_BT_str))
                 data_components.append(pd.read_csv(input_fn))
     
             # select 'Whole_Bay' group
@@ -226,13 +252,9 @@ for param in param_list:
             deltat = (data['time'].iloc[1] - data['time'].iloc[0])/np.timedelta64(1,'h')/24
     
             # generate a list of water years to plot from this run, based on the water year string
-            # (this is confusing because for each item in the wystr_list we are generating another list, 
-            # also this won't work for any multi year run except WY13to18)
+            # (this is confusing because for each item in the wystr_list we are generating another list
             wystr = wystr_list[irun]
-            if wystr=='WY13to18':
-                wy_list = [2013,2014,2015,2016,2017,2018]
-            else:
-                wy_list = [int(wystr[2:])]
+            wy_list = CVPL.list_of_wy_str_2_list_of_int_wys([wystr]) 
     
             # get first and last date for time axis
             wymin = np.array(wy_list).min()
@@ -240,56 +262,6 @@ for param in param_list:
             tmin = np.datetime64('%d-10-01' % (wymin-1))
             tmax = np.datetime64('%d-10-01' % wymax)
         
-            # for the first run, get list of sources and sinks, and the list of columns we want to apply the tidal filter to
-            if irun == 0:
-                source_list = []
-                sink_list = []
-                for col in data.columns:
-                    if not 'ZERO' in col:
-                        if not ',dMass/' in col:
-                            if ',d' in col:
-                                if data[col].mean()>0:
-                                    source_list.append(col)
-                                elif data[col].mean()<0:
-                                    sink_list.append(col)
-                reaction_list = []
-                for rx in sink_list:
-                    reaction_list.append(rx)
-                for rx in source_list:
-                    reaction_list.append(rx)
-    
-                source_list_trimmed = []
-                for rx in source_list:
-                    source_list_trimmed.append(rx.replace(' (Mg/d)',''))
-                sink_list_trimmed = []
-                for rx in sink_list:
-                    sink_list_trimmed.append(rx.replace(' (Mg/d)',''))
-                reaction_list_trimmed = []
-                for rx in reaction_list:
-                    reaction_list_trimmed.append(rx.replace(' (Mg/d)',''))
-    
-                # get subset of column names we want to apply tidal filter and cumulative sum on
-                filt_cols = np.array(data.columns)
-                filt_cols = filt_cols[~('Area (m^2)' == filt_cols)]
-                filt_cols = filt_cols[~('time'==filt_cols)]
-                filt_cols = filt_cols[~('group'==filt_cols)]
-                filt_cols_components = []
-                for ic in range(ncom):
-                    filt_cols_components.append(data_components[ic].columns)
-                    filt_cols_components[ic] = filt_cols_components[ic][~('Area (m^2)' == filt_cols_components[ic])]
-                    filt_cols_components[ic] = filt_cols_components[ic][~('time'==filt_cols_components[ic])]
-                    filt_cols_components[ic] = filt_cols_components[ic][~('group'==filt_cols_components[ic])]
-        
-            # replace the first loading value (which is zero) with the second loading value ...
-            # this is because sometimes the loading starts out at zero and that messes with the tidal filter 
-            t0 = data['time'].iloc[0]
-            t1 = data['time'].iloc[1]
-            ind0 = data['time'].values==t0 
-            ind1 = data['time'].values==t1
-            data.loc[ind0,'%s,Net Load (Mg/d)' % param] = data.loc[ind1,'%s,Net Load (Mg/d)' % param].values[0]
-            for ic in range(ncom):
-                data_components[ic].loc[ind0,'%s,Net Load (Mg/d)' % components_list[ic]] = data_components[ic].loc[ind1,'%s,Net Load (Mg/d)' % components_list[ic]].values[0]
-    
             # loop through the water years we are to plot for this run
             nwy = len(wy_list)
             for iwy in range(nwy):
@@ -302,51 +274,14 @@ for param in param_list:
         
                 # water year string
                 water_year = 'WY%d' % wy
-    
-                # apply tidal filter or cumulative sum when called for
-                if tavg == 'Filtered':
-        
-                    # make a copy of the data
-                    dataf = data.copy(deep=True)
-                    dataf_components = []
-                    for ic in range(ncom):
-                        dataf_components.append(data_components[ic].copy(deep=True))
-        
-                    # tidally filter 
-                    for col in filt_cols:
-                        dataf[col] = spring_neap_filter(data[col].values)
-                    for ic in range(ncom):
-                        for col in filt_cols_components[ic]:
-                            dataf_components[ic][col] = spring_neap_filter(data_components[ic][col].values)
-        
-                    # trim in time after applying filter to 
-                    indt = np.logical_and(dataf['time']>=t_window[0], dataf['time']<t_window[1])
-                    dataf = dataf.loc[indt]
-                    for ic in range(ncom):
-                        dataf_components[ic] = dataf_components[ic].loc[indt]
-                
-                elif tavg =='Cumulative':
-        
-                    # trim in time before doing cumulative sum
-                    indt = np.logical_and(data['time']>=t_window[0], data['time']<t_window[1])
-                    dataf = data.loc[indt].copy(deep=True)
-                    dataf_components = []
-                    for ic in range(ncom):
-                        dataf_components.append(data_components[ic].loc[indt].copy(deep=True))
-        
-                    # then do cumulative sum
-                    for col in filt_cols:
-                        dataf[col] = np.cumsum(dataf[col]) * deltat    
-                    for ic in range(ncom):
-                        for col in filt_cols_components[ic]:
-                            dataf_components[ic][col] = np.cumsum(dataf_components[ic][col]) * deltat
-                else:   
-        
-                    indt = np.logical_and(data['time']>=t_window[0], data['time']<t_window[1])
-                    dataf = data.loc[indt].copy(deep=True)
-                    dataf_components = []
-                    for ic in range(ncom):
-                        dataf_components.append(data_components[ic].loc[indt].copy(deep=True))
+
+                # select the data in this time window (the "f" notation is a relic of when used to do the 
+                # spring-neap filtering in the plotting script)
+                ind = np.logical_and( data.time>=t_window[0], data.time<t_window[1])
+                dataf = data.loc[ind]
+                dataf_components = []
+                for ic in range(ncom):
+                    dataf_components.append(data_components[ic].loc[ind])
     
                 # get time
                 time = np.unique(dataf['time'].values)
@@ -357,20 +292,19 @@ for param in param_list:
                 ########################################
     
                 # get stats for whole bay
-                Delta_Influx = dataf['%s,Flux In from E (Mg/d)' % param].values
-                GG_Outflux = dataf['%s,Flux In from W (Mg/d)' % param].values
-                Minor_Trib_Influx = dataf['%s,Net Transport In (Mg/d)' % param].values - GG_Outflux - Delta_Influx
-                Storage = -dataf['%s,dMass/dt, Balance Check (Mg/d)' % param].values
-                Net_Rx = dataf['%s,Net Reaction (Mg/d)' % param].values
-                Net_Loading = dataf['%s,Net Load (Mg/d)' % param].values
-                Net_Rx_Check_Sum = dataf[reaction_list].values.sum(axis=1)
+                Delta_Influx = dataf['%s,Flux In from E (%s)' % (param,units)].values
+                GG_Outflux = dataf['%s,Flux In from W (%s)' % (param,units)].values
+                Minor_Trib_Influx = dataf['%s,Net Transport In (%s)' % (param,units)].values - GG_Outflux - Delta_Influx
+                Storage = -dataf['%s,dMass/dt, Balance Check (%s)' % (param,units)].values
+                Net_Rx = dataf['%s,Net Reaction (%s)' % (param,units)].values
+                Net_Loading = dataf['%s,Net Load (%s)' % (param,units)].values
                 Tribs_Plus_Loads = Delta_Influx + Minor_Trib_Influx + Net_Loading
     
                 # golden gate outflux by components
                 GG_Outflux_Com = np.zeros((ntime, ncom))
                 for icom in range(ncom):
                     ind = dataf_components[icom]['group'].values == 'Whole_Bay'
-                    GG_Outflux_Com[:,icom] = dataf_components[icom].loc[ind]['%s,Flux In from W (Mg/d)' % components_list[icom]].values
+                    GG_Outflux_Com[:,icom] = dataf_components[icom].loc[ind]['%s,Flux In from W (%s)' % (components_list[icom],units)].values
     
                 # make a dataframe to contain statistics for the whole bay
                 df = pd.DataFrame(index=time)
@@ -392,15 +326,24 @@ for param in param_list:
                 ax[0,irun].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
                 if iwy==0:
                     if irun==0:
-                        ax[0,irun].set_ylabel('Whole Bay Mass Balance (Mg/d)')
+                        ax[0,irun].set_ylabel('Whole Bay Mass Balance (%s)' % units)
                     elif irun==(nruns-1):
                         ax[0,irun].legend(loc='center left',bbox_to_anchor=(1, 0.5))
-    
+
                 # make dataframe with reactions for whole bay
-                df = dataf[reaction_list]
-                df.columns = reaction_list_trimmed
+                df = pd.DataFrame(columns=master_reaction_list)
+                for rx in master_reaction_list:
+                    if rx in dataf.columns:
+                        df[rx] = dataf[rx]
+                df = df.fillna(0)
+                df.columns = master_reaction_list_trimmed
+
+                # before adding storage, check reactions sum correctly
+                Net_Rx_Check_Sum = df.values.sum(axis=1)
+
+                # add storage
                 df['Storage (-dM/dt)'] = Storage.copy()
-    
+
                 # divide into positive and negative
                 df_pos = df.copy(deep=True)
                 df_neg = df.copy(deep=True)
@@ -415,7 +358,7 @@ for param in param_list:
                 ax[1,irun].plot(time, Net_Rx + Storage, 'b', label='Net Reaction - dM/dt')
                 if iwy==0:
                     if irun==0:
-                        ax[1,irun].set_ylabel('Whole Bay Reactions (Mg/d)')
+                        ax[1,irun].set_ylabel('Whole Bay Reactions (%s)' % units)
                     elif irun==(nruns-1):
                         ax[1,irun].legend(loc='center left',bbox_to_anchor=(1, 0.5))
             
@@ -437,12 +380,12 @@ for param in param_list:
                 ax[2,irun].plot(time, -GG_Outflux, 'k', label='%s Outflux Through GG' % param)
                 if iwy==0:
                     if irun==0:
-                        ax[2,irun].set_ylabel('Whole Bay Influx vs. Outflux (Mg/d)')
+                        ax[2,irun].set_ylabel('Whole Bay Influx vs. Outflux (%s)' % units)
                     elif irun==(nruns-1):
                         ax[2,irun].legend(loc='center left',bbox_to_anchor=(1, 0.5))
     
             # add label for run
-            ax[0,irun].set_title('Run %s' % run2plot)
+            ax[0,irun].set_title('Run %s' % runid)
     
             # format time axis for all 3 rows
             for ax1 in ax[:,irun]:
@@ -470,11 +413,11 @@ for param in param_list:
                 ymax = np.max([ymax,ymax1])
             for irun in range(nruns):
                 ax[irow,irun].set_ylim((0,ymax))
-    
+
         # add title and save the figure
         fig.suptitle('Whole Bay %s %s Budget' % (tavg_str, param))
         fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-        fig.savefig(os.path.join(out_dir, '%s_Whole_Bay_Budget_Stacked_%s_%s.png' % (fig_pref, tavg, param)),dpi=300)
+        fig.savefig(os.path.join(figure_path, '%s_%s_%s_Coastal_Export_Stackplot_%s.png' % (run_list_str, wy_list_str, param, tavg)),dpi=300)
     
         # close figures
         plt.close('all')
