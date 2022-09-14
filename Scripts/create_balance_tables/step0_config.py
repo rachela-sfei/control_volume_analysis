@@ -17,7 +17,6 @@ alliek august 2022
 # 211,212,213,214,215,216,217,218,219,220,221,222,223
 # 227,229,230
 #runid = 'G141_13to18_247'
-#runid = 'G141_13to18_247'
 runid = 'FR13_003'
 
 # base level substances to process. set to string 'all' or a list of substance strings -- warning, processing 
@@ -455,8 +454,8 @@ def get_shapefile_paths(model_inout_dir, runid, is_delta):
 	elif 'FR' in runid:
 
 	    ## path to the full res shapefile
-	    shpfn_tran =  os.path.join(model_inout_dir,'inputs','shapefiles','Agg_exchange_lines_plus_subembayments_shoal_channel.shp') 
-	    shpfn_poly = os.path.join(model_inout_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
+	    tran_path =  os.path.join(model_inout_dir,'inputs','shapefiles','Agg_exchange_lines_plus_subembayments_shoal_channel.shp') 
+	    poly_path = os.path.join(model_inout_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
 
 	elif 'G141' in runid:
 	    

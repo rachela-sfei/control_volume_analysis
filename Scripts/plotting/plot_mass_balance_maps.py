@@ -17,7 +17,7 @@ reload(CVPL)
 #########################
 
 # run name 
-runid = 'G141_13to18_242'
+runid = 'G141_13to18_207'
 #runid = 'FR13_025'
 #runid = 'FR17_018'
 #runid = 'FR18_006'

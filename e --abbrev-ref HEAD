@@ -1,0 +1,107 @@
+[33mcommit 08bea8c2c5f6d6567e2d407fd26ec68d9ae4542e[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Allie King <alliek@sfei.org>
+Date:   Wed Sep 14 09:38:21 2022 -0700
+
+    updated map style flow charts script
+
+[33mcommit 863fd73d93b9ce716dd6ea85554f435cbc361fc3[m
+Author: Allie King <alliek@sfei.org>
+Date:   Tue Sep 13 18:02:01 2022 -0700
+
+    updated mass balance map and coastal export plotting scripts
+
+[33mcommit 3cd7390bbee1686a5758625aef55d1d89bb4043b[m[33m ([m[1;32mshow-current[m[33m)[m
+Author: Allie King <alliek@sfei.org>
+Date:   Mon Sep 12 14:29:56 2022 -0700
+
+    some updates
+
+[33mcommit 271a702d8132eb225e7d55676a18710663275d65[m
+Author: Allie King <alliek@sfei.org>
+Date:   Wed Aug 24 17:47:26 2022 -0700
+
+    updated plot_rate_maps.py
+
+[33mcommit 122b3c26156e333974e1c0ea8a53ef9cb0a84a26[m
+Author: Allie King <alliek@sfei.org>
+Date:   Wed Aug 24 07:49:38 2022 -0700
+
+    pretty sure the create_balance_tables scripts are working, just used them to generate a bunch of balance tables for the recent G141 runs, did a bunch of work to match terms that cancel out for new refractory substances OONS1, OONS2, PON2, and also figured out what to do with nonzero autolysis of benthic aglae DiatS1
+
+[33mcommit 6e4658f4de92052425b16812afb7710091d9405e[m
+Author: Allie King <alliek@sfei.org>
+Date:   Mon Aug 22 16:00:09 2022 -0700
+
+    automatic CV generation scripts seem to work, about to run for a bunch of G141 simulations
+
+[33mcommit 3d5b42c63ca2cd02242cb0c0d6f9b013059214d1[m
+Author: Allie King <alliek@sfei.org>
+Date:   Mon Aug 22 08:46:51 2022 -0700
+
+    i think i'm done automating the create_balance_tables scripts
+
+[33mcommit 097ba1dde96870cf9aa0f4c8234bad2d3e536346[m
+Author: Allie King <alliek@sfei.org>
+Date:   Fri Aug 19 10:17:51 2022 -0700
+
+    before streamlining create_balance_table scripts so all directories are in step0_config.py
+
+[33mcommit 01bce7c98850204b8a018751c74cbd726aed5a6f[m
+Author: Allie King <alliek@sfei.org>
+Date:   Thu Aug 18 10:23:32 2022 -0700
+
+    many changes to plotting scripts, updated create_balance_table scripts to run all at once, added a time aggregation step, step6_
+
+[33mcommit 229267c345a7b95af693f23d81fc5ce3f45a7a0a[m
+Author: Allie King <alliek@hpc.sfei.org>
+Date:   Fri Jun 24 09:12:10 2022 -0700
+
+    a whole lot of updates
+
+[33mcommit 032ba0a274cf47fd34de7b57f0c66cea5a7fd99e[m
+Author: Allie King <alliek@hpc.sfei.org>
+Date:   Wed Apr 13 14:13:51 2022 -0700
+
+    in progress: updating balance table scritps to compute composite parameters at base control volume level
+
+[33mcommit 9a5a7bce686674b5182054d1927f1fcaee9fcaf4[m
+Author: Allie King <alliek@hpc.sfei.org>
+Date:   Thu Mar 17 16:03:24 2022 -0700
+
+    did some work on troubleshooting scripts, checking TN budget for mass conservation, before overhaul of balance table scripts to compute composite parameters before compiling into groups
+
+[33mcommit 27c0ad590b89e1ea330c337a7279aafa1c67e9e4[m
+Author: Allie King <alliek@hpc.sfei.org>
+Date:   Thu Mar 10 10:22:55 2022 -0800
+
+    many updates, biggest one is added script to make water board subembayment mass balance map plots
+
+[33mcommit 5d94495fb812305e883ebed7a01b630c2d22ca96[m
+Author: Allie King <alliek@hpc.sfei.org>
+Date:   Mon Mar 7 13:22:24 2022 -0800
+
+    updates to control volume definitions to include all subembayments, corrected some errors in connectivity
+
+[33mcommit 70e68906a002535ba3f3eb52bd2721a93f499e30[m
+Author: Allie King <alliek@hpc.sfei.org>
+Date:   Fri Mar 4 09:37:15 2022 -0800
+
+    created full bay mass balance plotting scripts
+
+[33mcommit f09a549b518e9dbd5b40dd7833bf178572597081[m
+Author: Allie King <alliek@hpc.sfei.org>
+Date:   Thu Mar 3 14:25:47 2022 -0800
+
+    updated _FR control volume definitions and connectivity to include whole bay
+
+[33mcommit 5eb62ff9f6cebb1486f99e01b329dde1a0272a03[m
+Author: Allie King <alliek@hpc.sfei.org>
+Date:   Thu Mar 3 13:52:43 2022 -0800
+
+    allie updated flow chart scripts to align text and improve time scale estimates
+
+[33mcommit cde02877908acc8689d852503862a4a912ab8865[m
+Author: root <root@hpc.sfei.org>
+Date:   Thu Mar 3 09:32:13 2022 -0800
+
+    sienna's repo, passing baton to allie

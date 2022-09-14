@@ -43,11 +43,13 @@ reload(CVPL)
 #########################################################################################
 
 # list or runs to plot and water year to pick out of corresponding run (each is a column in the plot)
-runid_list = ['G141_13to18_246','G141_13to18_207']
+#runid_list = ['G141_13to18_246','G141_13to18_207']
+runid_list = ['G141_13to18_246']
 
 # this is the list of water years to zoom in on within each plot, should be the same length as runid_list
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
-wystr_list = ['WY13to18','WY13to18']
+#wystr_list = ['WY13to18','WY13to18']
+wystr_list = ['WY13to18']
 
 ## composite parameter (must match suffix of balance table)
 param_list = ['DIN','TN','TN_include_sediment']
@@ -219,7 +221,13 @@ for param in param_list:
     
             # print run
             print('run %d of %d' % (irun+1,nruns))
-        
+    
+            # get the figure axis for this run
+            if nruns>1:
+                ax_run = ax[:,irun]
+            else:
+                ax_run = ax
+
             # get the run id
             runid = runid_list[irun]
     
@@ -322,13 +330,13 @@ for param in param_list:
                 df_neg[df>0] = 0
     
                 # add to figure
-                ax[0,irun].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
-                ax[0,irun].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
+                ax_run[0].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
+                ax_run[0].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
                 if iwy==0:
                     if irun==0:
-                        ax[0,irun].set_ylabel('Whole Bay Mass Balance (%s)' % units)
+                        ax_run[0].set_ylabel('Whole Bay Mass Balance (%s)' % units)
                     elif irun==(nruns-1):
-                        ax[0,irun].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+                        ax_run[0].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
                 # make dataframe with reactions for whole bay
                 df = pd.DataFrame(columns=master_reaction_list)
@@ -351,16 +359,16 @@ for param in param_list:
                 df_neg[df>0] = 0
     
                 # add to figure 1
-                ax[1,irun].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
-                ax[1,irun].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
-                ax[1,irun].plot(time, Net_Rx, 'k', label='Net Reaction')
-                ax[1,irun].plot(time, Net_Rx_Check_Sum, 'm--', label='Net Reaction, Check Sum')
-                ax[1,irun].plot(time, Net_Rx + Storage, 'b', label='Net Reaction - dM/dt')
+                ax_run[1].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
+                ax_run[1].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
+                ax_run[1].plot(time, Net_Rx, 'k', label='Net Reaction')
+                ax_run[1].plot(time, Net_Rx_Check_Sum, 'm--', label='Net Reaction, Check Sum')
+                ax_run[1].plot(time, Net_Rx + Storage, 'b', label='Net Reaction - dM/dt')
                 if iwy==0:
                     if irun==0:
-                        ax[1,irun].set_ylabel('Whole Bay Reactions (%s)' % units)
+                        ax_run[1].set_ylabel('Whole Bay Reactions (%s)' % units)
                     elif irun==(nruns-1):
-                        ax[1,irun].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+                        ax_run[1].legend(loc='center left',bbox_to_anchor=(1, 0.5))
             
                 # make a dataframe with GG outflux components
                 df = pd.DataFrame(index=time)
@@ -374,45 +382,52 @@ for param in param_list:
                 df_neg[df>0] = 0
     
                 # add to figure 3
-                ax[2,irun].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
-                ax[2,irun].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
-                ax[2,irun].plot(time,Tribs_Plus_Loads, 'k--', label='%s Loading from Tribs and Point Sources' % param)
-                ax[2,irun].plot(time, -GG_Outflux, 'k', label='%s Outflux Through GG' % param)
+                ax_run[2].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
+                ax_run[2].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
+                ax_run[2].plot(time,Tribs_Plus_Loads, 'k--', label='%s Loading from Tribs and Point Sources' % param)
+                ax_run[2].plot(time, -GG_Outflux, 'k', label='%s Outflux Through GG' % param)
                 if iwy==0:
                     if irun==0:
-                        ax[2,irun].set_ylabel('Whole Bay Influx vs. Outflux (%s)' % units)
+                        ax_run[2].set_ylabel('Whole Bay Influx vs. Outflux (%s)' % units)
                     elif irun==(nruns-1):
-                        ax[2,irun].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+                        ax_run[2].legend(loc='center left',bbox_to_anchor=(1, 0.5))
     
             # add label for run
-            ax[0,irun].set_title('Run %s' % runid)
+            ax_run[0].set_title('Run %s' % runid)
     
             # format time axis for all 3 rows
-            for ax1 in ax[:,irun]:
+            for ax1 in ax_run:
                 ax1.set_xlim((tmin,tmax))
                 ax1.xaxis.set_major_locator(major_locator)
                 ax1.xaxis.set_minor_locator(minor_locator)
                 ax1.xaxis.set_major_formatter(major_formatter)
                 ax1.grid(which='both')
-    
-    
+
         # set y axis limits the same across runs
         # ... for first and 2nd rows, make y axis symmetric around zero
         for irow in [0,1]:
-            ymax = 0
-            for irun in range(nruns):
-                ymax1 = np.abs(ax[irow,irun].get_ylim()).max()
-                ymax = np.max([ymax,ymax1])
-            for irun in range(nruns):
-                ax[irow,irun].set_ylim((-ymax,ymax))
+            if nruns==1:
+                ymax = np.abs(ax[irow].get_ylim()).max()
+                ax[irow].set_ylim((-ymax,ymax))
+            else:
+                ymax = 0
+                for irun in range(nruns):
+                    ymax1 = np.abs(ax[irow,irun].get_ylim()).max()
+                    ymax = np.max([ymax,ymax1])
+                for irun in range(nruns):
+                    ax[irow,irun].set_ylim((-ymax,ymax))
         # ... for 3rd row set min at zero
         for irow in [2]:
-            ymax = 0
-            for irun in range(nruns):
-                ymax1 = np.abs(ax[irow,irun].get_ylim()).max()
-                ymax = np.max([ymax,ymax1])
-            for irun in range(nruns):
-                ax[irow,irun].set_ylim((0,ymax))
+            if nruns==1:
+                ymax = np.abs(ax[irow].get_ylim()).max()
+                ax[irow].set_ylim((0,ymax))
+            else:
+                ymax = 0
+                for irun in range(nruns):
+                    ymax1 = np.abs(ax[irow,irun].get_ylim()).max()
+                    ymax = np.max([ymax,ymax1])
+                for irun in range(nruns):
+                    ax[irow,irun].set_ylim((0,ymax))
 
         # add title and save the figure
         fig.suptitle('Whole Bay %s %s Budget' % (tavg_str, param))
