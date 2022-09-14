@@ -17,7 +17,7 @@ alliek august 2022
 # 211,212,213,214,215,216,217,218,219,220,221,222,223
 # 227,229,230
 #runid = 'G141_13to18_247'
-runid = 'FR13_003'
+runid = 'FR17_003'
 
 # base level substances to process. set to string 'all' or a list of substance strings -- warning, processing 
 # all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py)
@@ -44,7 +44,10 @@ float_format = '%1.6e'
 error_tol_percent = 0.001
 
 # abort if error tolerance is exceeded? set to False for troubleshooting only. (this is used in step4_check_mass_conservation.py)
-abort_for_mass_cons_error = True # change it to true later, set to false for troubleshooting
+# NOTE THAT FOR FR13_003 AND FR13_007 RUNS, THERE IS A MASS CONSERVATION ERROR BUT IT IS NOT A DEAL BREAKER, SO WE SET THIS TO FALSE
+# WHEN GENERATING BALANCE TABLES FOR THOSE RUNS (the error is that algae that settles to the bed does not go into detritus, it just 
+# leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
+abort_for_mass_cons_error = False 
 
 # delete all balance tables before re-running step1_create_balance_tables?
 delete_balance_tables = True

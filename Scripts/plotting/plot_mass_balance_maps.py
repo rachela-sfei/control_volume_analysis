@@ -17,11 +17,11 @@ reload(CVPL)
 #########################
 
 # run name 
-runid = 'G141_13to18_207'
+#runid = 'G141_13to18_197'
 #runid = 'FR13_025'
 #runid = 'FR17_018'
 #runid = 'FR18_006'
-#runid = 'FR13_003'
+runid = 'FR13_003'
 #runid = 'FR17_003'
 
 # list of parameters to make plots for
