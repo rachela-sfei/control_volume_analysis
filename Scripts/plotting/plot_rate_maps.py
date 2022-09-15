@@ -25,6 +25,8 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from mpl_toolkits.axes_grid1 import ImageGrid
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 import os, sys
 import pandas as pd
@@ -56,8 +58,8 @@ reload(CVPL)
 #wy_list = [2013, 2017, 2018]
 
 # this example will make figures with 6 subplots, each corresponding to a different water year for the same run
-runid_list = ['G141_13to18_215','G141_13to18_215','G141_13to18_215','G141_13to18_215','G141_13to18_215','G141_13to18_215']
-wy_list = [2013, 2014, 2015, 2016, 2017, 2018]
+#runid_list = ['G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230']
+#wy_list = [2013, 2014, 2015, 2016, 2017, 2018]
 
 # this is like the previous example but also compares apples-to-apples full resolution and aggregated runs
 #runid_list = ['G141_13to18_197','FR13_025','G141_13to18_197','G141_13to18_197','G141_13to18_197','G141_13to18_197','FR17_018','G141_13to18_197','FR18_006']
@@ -66,8 +68,12 @@ wy_list = [2013, 2014, 2015, 2016, 2017, 2018]
 # in this example, provided that all_time_together = True (see below) a single 1xN figure is generated where N is the 
 # number of time averaging periods in 2013 (e.g. 4 for Seasonal, 12 for monthly). if all_time_together = False, this
 # example will generate N figures with one subplot each
-#runid_list = ['G141_13to18_215']
-#wy_list = [2013]
+runid_list = ['G141_13to18_230']
+wy_list = [2013]
+
+# if there is only ONE entry in runid_list and wy_list, there is an option to try and stuff all of the time steps onto a single
+# plot, instead of having one plot per time step, with each column being a time step (set this to True to activate that option)
+all_time_together = True
 
 
 ################################################################################################################
@@ -77,14 +83,18 @@ wy_list = [2013, 2014, 2015, 2016, 2017, 2018]
 
 # specify the rates you want to plot right now (see function get_rate_properties(rate_name) defined below to 
 # get their definitions)
-rate_list = ['oxycon-water','oxycon-sed','dpp','dpp-benthic','dpp-pelagic','denit','n-dpp','n-dpp-pelagic',
-             'n-dpp-benthic','din_recycling','dmin_water','dmin_sed','din_loss','tn_loss','n-algae-sed','pon-sed',
-             'diats1-loss','diats1-aut','tn_include_sediment_loss']
-rate_list = 
+#rate_list = ['oxycon-water','oxycon-sed','dpp','dpp-benthic','dpp-pelagic','denit','n-dpp','n-dpp-pelagic',
+#             'n-dpp-benthic','din_recycling','dmin_water','dmin_sed','din_loss','tn_loss','n-algae-sed','pon-sed',
+#             'diats1-loss','diats1-aut','tn_include_sediment_loss']
+rate_list = ['dpp-pelagic','dpp-benthic','denit']
 #rate_list = ['dpp']
 
-# do you want the rates to be plotted on the same figure???
-rates_on_same_figure = True
+# do you want the rates to be plotted on the same figure??? 
+# for example, if you want to put all the terms in the din budget in the same figure, set this to true
+# if you do set it to true, you need to provide a plot title and a string to label the figure
+multiple_rates_on_same_figure = True
+multiple_rates_figure_label = 'DIN_Budget'
+multiple_rates_figure_title = 'DIN Budget'
 
 # list of time averaging periods (choices are 'Annual','Seasonal','Monthly')
 #time_period_list = ['Annual','Seasonal','Monthly']
@@ -98,11 +108,6 @@ norm_list = ['Area']
 nruns = len(runid_list)
 assert nruns == len(wy_list)
 
-# if there is only ONE entry in runid_list and wy_list, there is an option to try and stuff all of the time steps onto a single
-# plot, instead of having one plot per time step -- the script will try to automatically tile the subplots so this fits, but it
-# may get ridiculous for something like monthly averages
-all_time_together = False
-
 # base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 #base_dir = r'X:\hpcshared'
 run_base_dir = '/richmondvol1/hpcshared'
@@ -113,7 +118,7 @@ cper = 97.5
 
 # set the approximate size of the figure subplots in inches (if there are N subplots the figure will be N x subplot_width wide)
 subplot_width = 4
-subplot_height = 5.5
+subplot_height = 5
 
 # set font size (may want to adjust)
 plt.rcParams['font.size'] = '16'
@@ -131,7 +136,7 @@ def get_rate_properties(rate_name):
     ''' 
     usage: 
     
-    rate_title, grams_of_what, balance_table_list, multiplier_list, reaction_list, cmap, cmap_diverging, log_scale = get_rate_properties(rate_name)
+    rate_title, grams_of_what, balance_table_list, multiplier_list, reaction_list, cmap, cmap_diverging = get_rate_properties(rate_name)
     
     '''
     if rate_name=='oxycon-water':
@@ -143,7 +148,6 @@ def get_rate_properties(rate_name):
         reaction_list = [['OXY,dOxCon']]                        # for each balance table, list of reactions to sum
         cmap = cmocean.cm.dense                                 # color map
         cmap_diverging = False                                  # center at zero (True if rate goes positive and negative)?
-        log_scale = False                                       # include a log scale plot?
 
     elif rate_name=='oxycon-sed':
     
@@ -154,7 +158,6 @@ def get_rate_properties(rate_name):
         reaction_list = [['OXY,dMinDetCS1', 'OXY,dMinDetCS2', 'OXY,dMinOOCS1', 'OXY,dMinOOCS2']]
         cmap = cmocean.cm.dense  
         cmap_diverging = False
-        log_scale = False  
 
     elif rate_name=='dpp':
     
@@ -165,7 +168,6 @@ def get_rate_properties(rate_name):
         reaction_list = [['Diat,dPPDiat','Green,dPPGreen','DiatS1,dPPDiatS1']]
         cmap = cmocean.cm.algae
         cmap_diverging = False
-        log_scale = False
 
     elif rate_name=='dpp-benthic':
     
@@ -176,7 +178,6 @@ def get_rate_properties(rate_name):
         reaction_list = [['DiatS1,dPPDiatS1']]
         cmap = cmocean.cm.algae
         cmap_diverging = False
-        log_scale = False
 
     elif rate_name=='dpp-pelagic':
     
@@ -187,7 +188,6 @@ def get_rate_properties(rate_name):
         reaction_list = [['Diat,dPPDiat','Green,dPPGreen']]
         cmap = cmocean.cm.algae
         cmap_diverging = False
-        log_scale = False
     
     elif rate_name=='denit':
         
@@ -197,8 +197,7 @@ def get_rate_properties(rate_name):
         multiplier_list = [-1]                              
         reaction_list = [["NO3,dDenit", "NO3,dNiDen"]]      
         cmap = cmocean.cm.dense                             
-        cmap_diverging = False                              
-        log_scale = False                                   
+        cmap_diverging = False                             
 
     elif rate_name=='n-dpp':
     
@@ -209,7 +208,6 @@ def get_rate_properties(rate_name):
         reaction_list = [['DIN,dDINUpt','DIN,dDINUptS1']]
         cmap = cmocean.cm.algae
         cmap_diverging = False
-        log_scale = False
 
     elif rate_name=='n-dpp-pelagic':
     
@@ -220,7 +218,6 @@ def get_rate_properties(rate_name):
         reaction_list = [['DIN,dDINUpt']]
         cmap = cmocean.cm.algae
         cmap_diverging = False
-        log_scale = False
 
     elif rate_name=='n-dpp-benthic':
     
@@ -231,7 +228,6 @@ def get_rate_properties(rate_name):
         reaction_list = [['DIN,dDINUptS1']]
         cmap = cmocean.cm.algae
         cmap_diverging = False
-        log_scale = False 
 
     elif rate_name=='din_recycling':
     
@@ -244,7 +240,6 @@ def get_rate_properties(rate_name):
         cmap = cmocean.cm.balance
         cmap = cmocean.cm.amp
         cmap_diverging = False
-        log_scale = False
 
     elif rate_name=='dmin_water':
     
@@ -255,7 +250,6 @@ def get_rate_properties(rate_name):
         reaction_list = [["NH4,dMinDON","NH4,dMinPON"]]
         cmap = cmocean.cm.matter
         cmap_diverging = False
-        log_scale = False
 
     elif rate_name=='dmin_sed':
     
@@ -266,7 +260,6 @@ def get_rate_properties(rate_name):
         reaction_list = [['NH4,dMinTotalDetNS']]
         cmap = cmocean.cm.turbid
         cmap_diverging = False
-        log_scale = False
 
     
     elif rate_name=='din_loss':
@@ -286,7 +279,6 @@ def get_rate_properties(rate_name):
                           'NH4,dNH4Aut']]
         cmap = cmocean.cm.balance
         cmap_diverging = True
-        log_scale = False
 
     elif rate_name=='tn_loss':
 
@@ -308,7 +300,6 @@ def get_rate_properties(rate_name):
                           'PON1,dClam_PON1']]
         cmap = cmocean.cm.balance
         cmap_diverging = True
-        log_scale = False
 
     elif rate_name=='n-algae-sed':
     
@@ -319,7 +310,6 @@ def get_rate_properties(rate_name):
         reaction_list = [["Algae,dSedAlgae"]]
         cmap = cmocean.cm.algae
         cmap_diverging = False
-        log_scale = False
 
     elif rate_name=='pon-sed':
 
@@ -330,7 +320,6 @@ def get_rate_properties(rate_name):
         reaction_list = [["PON,dSedPON"]]
         cmap = mpl.cm.Greys
         cmap_diverging = False
-        log_scale = False
 
     elif rate_name=='diats1-loss':
     
@@ -342,7 +331,6 @@ def get_rate_properties(rate_name):
                           'DiatS1,dBurS1Diat']]
         cmap = mpl.cm.Purples
         cmap_diverging = False
-        log_scale = False
 
     elif rate_name=='diats1-aut':
 
@@ -353,7 +341,6 @@ def get_rate_properties(rate_name):
         reaction_list = [['NH4,dNH4AUTS1']]
         cmap = mpl.cm.Oranges
         cmap_diverging = False
-        log_scale = False
 
     elif rate_name=='tn_include_sediment_loss':
     
@@ -368,9 +355,8 @@ def get_rate_properties(rate_name):
                           'DiatS1,dBurS1Diat']]
         cmap = mpl.cm.Spectral_r
         cmap_diverging = False
-        log_scale = False
     
-    return rate_title, grams_of_what, balance_table_list, multiplier_list, reaction_list, cmap, cmap_diverging, log_scale
+    return rate_title, grams_of_what, balance_table_list, multiplier_list, reaction_list, cmap, cmap_diverging
 
 # subset of polygons to include in plot (don't mess with this unless the shapefiles are drastically altered)
 iplot_FR = [0, 117, 139, 2, 113, 114, 115, 111, 1, 3, 116, 7, 4, 112, 5, 108, 109, 110, 9, 107, 
@@ -406,17 +392,18 @@ figure_path = os.path.join(figure_base_dir, run_list_str, 'rate_maps')
 if not os.path.exists(figure_path):
     os.makedirs(figure_path)
 
-# loop through rates to plot
-for rate_name in rate_list:
+# loop through averaging time periods (Annual, Seasonal, Monthly)
+for time_period in time_period_list:
 
-    # load up a bunch of variables specific to this rate_name (this function is defined in the user input section above)
-    rate_title, grams_of_what, balance_table_list, multiplier_list, reaction_list, cmap, cmap_diverging, log_scale = get_rate_properties(rate_name)
+    # loop through norms (Area, Volume, None)
+    for norm in norm_list:
 
-    # loop through averaging time periods (Annual, Seasonal, Monthly)
-    for time_period in time_period_list:
+        # loop through rates to plot
+        nrates = len(rate_list)
+        for irate, rate_name in enumerate(rate_list):
 
-        # loop through norms (Area, Volume, None)
-        for norm in norm_list:
+            # load up a bunch of variables specific to this rate_name (this function is defined in the user input section above)
+            rate_title, grams_of_what, balance_table_list, multiplier_list, reaction_list, cmap, cmap_diverging = get_rate_properties(rate_name)
 
             # units for normalized data and string for including in figure name
             if norm == 'Volume':
@@ -430,11 +417,11 @@ for rate_name in rate_list:
                 norm_name = ''
             else:
                 raise Exception("must specifiy normalization correctly")
-            norm_units_log = 'Log10 ' + norm_units
 
-            #####################
-            # here's the meat
-            #####################
+            #######################################################################################################################################
+            # here's phase 1 of the meat of this script
+            # loop through the runs, building up a the dictionary of lists of geodataframes for plotting, and tracking the color bar limits 
+            #######################################################################################################################################
             
             # check number of balance tables 
             ntables = len(balance_table_list)
@@ -442,16 +429,12 @@ for rate_name in rate_list:
             # initiliaze color bar limits, which will be calculated by looking across all the runs and all the time windows
             pmin_all = 0
             pmax_all = 0
-            if log_scale:
-                pmin_log_all = 1e30
-                pmax_log_all = -1e30
             
             # initialize dictionary containing geodataframes for plotting all the runs and time windows (this is confusing, sorry about that, but it works and is fast enough)
             gdf_all_dict = {}
-            gdf_log_all_dict = {}
             time_labels_dict = {}
             
-            # loop through the runs, building up a the dictionary of lists of geodataframes for plotting, and tracking the color bar limits 
+            # loop through the runs, 
             for irun in range(nruns):
             
                 # get run ID and water year
@@ -473,10 +456,6 @@ for rate_name in rate_list:
                 # load the shapefile and initialize Rate column
                 gdf = gpd.read_file(shp_fn)
                 gdf['Rate'] = np.nan
-            
-                # copy for plotting log
-                if log_scale:
-                    gdf_log = gdf.copy(deep=True)
             
                 # read the first balance table and sum up the reacitons, mutiplying by the appropriate stoichiometric multiplier
                 balance_table_name = balance_table_list[0].replace('.csv','_%s.csv' % time_period)
@@ -507,8 +486,6 @@ for rate_name in rate_list:
                 
                 # initialize list of geodataframes and a list of corresponding time window labels
                 gdf_all = []
-                if log_scale:
-                    gdf_log_all = []
 
                 # loop through time windows, building up list of geodataframes, and finding the max and min values
                 for itime in range(ntime):
@@ -534,70 +511,58 @@ for rate_name in rate_list:
                         
                         # take the average over this time window, normalize, and load into a geodataframe
                         gdf['Rate'].iloc[poly] = df.loc[ind]['Rate'].iloc[itime]/V
-                        if log_scale:
-                            gdf_log['Rate'].iloc[poly] = np.log10(df.loc[ind]['Rate'].iloc[itime]/V)
                             
                 
                     # get the max and min parameter value
                     pmax = np.nanpercentile(gdf['Rate'].iloc[iplot],cper)
                     pmin = np.nanpercentile(gdf['Rate'].iloc[iplot],100-cper)
-                    if log_scale:
-                        pmax_log = np.nanpercentile(gdf_log['Rate'].iloc[iplot],cper)
-                        pmin_log = np.nanpercentile(gdf_log['Rate'].iloc[iplot],100-cper)
                     
                     # keep track of the biggest limits across time windows AND across all runs
                     pmin_all = np.min([pmin,pmin_all])
                     pmax_all = np.max([pmax,pmax_all])
-                    if log_scale:
-                        pmin_log_all = np.min([pmin_log,pmin_log_all])
-                        pmax_log_all = np.max([pmax_log,pmax_log_all])
                     
                     # append geodataframes
                     gdf_all.append(copy.deepcopy(gdf))
-                    if log_scale:
-                        gdf_log_all.append(copy.deepcopy(gdf_log))
             
                 # now append list of geodataframes to the dictionary
                 time_labels_dict[irun] = time_labels.copy()
                 gdf_all_dict[irun] = gdf_all.copy()
-                if log_scale:
-                    gdf_log_all_dict[irun] = gdf_log_all.copy()
                 
             # if it's a diverging colormap, make the max and min the same amplitude
             if cmap_diverging:
                 pmax_all = np.max([pmax_all,-pmin_all])
                 pmin_all = -pmax_all
 
+            # ######################################################################################################################
+            # here is phase 2 of the meat of this script
             # now loop through time winodws and plot all the runs we are comparing in the same figure with the same color bar limits
+            ########################################################################################################################
 
             # make figure title
             cbar_title = '%s\n(%s)' % (rate_title, norm_units)
-            if log_scale:
-                cbar_title_log = '%s\n(%s)' % (rate_title, norm_units_log)
 
             # define a little function to make a figure and axis
             def make_figure(figsize, nrows, ncols):
-
+            
                 # set up figure subwindows with room for a colorbar 
-                fig = plt.figure(figsize=figsize)
-                ax = ImageGrid(fig, 111,          # as in plt.subplot(111)
-                             nrows_ncols=(nrows,ncols),
-                             axes_pad=0.15,
-                             share_all=True,
-                             cbar_location="right",
-                             cbar_mode="single",
-                             cbar_size="7%",
-                             cbar_pad=0.15,
-                             )
-
+                fig, ax = plt.subplots(nrows, ncols, figsize=figsize)
+                #fig = plt.figure(figsize=figsize)
+                #ax = ImageGrid(fig, 111,          # as in plt.subplot(111)
+                #             nrows_ncols=(nrows,ncols),
+                #             axes_pad=0.15,
+                #             share_all=True,
+                #             cbar_location="right",
+                #             cbar_mode="single",
+                #             cbar_size="7%",
+                #             cbar_pad=0.15,
+                #             )
+            
                 return fig, ax
 
             def add_subplot(iaxis, itime, irun):
 
                 # get geodataframe
                 gdf = gdf_all_dict[irun][itime]
-                if log_scale:
-                    gdf_log = gdf_log_all_dict[irun][itime]
     
                 # path to the shapefile w/ the base level control volumes
                 if 'FR' in runid_list[irun]:
@@ -614,88 +579,124 @@ for rate_name in rate_list:
                 outline.boundary.plot(ax=ax[iaxis],edgecolor='k')
                 ax[iaxis].axis(axlim)
                 
-                # turn off axis, set title 
+                # turn off axis 
                 ax[iaxis].axis('off')
-                ax[iaxis].set_title('%s' % time_labels_dict[irun][itime])
-                
-                # same for log plot
-                if log_scale:
-                    gdf_log.iloc[iplot].plot(ax=ax1[iaxis], column='Rate', cmap=cmap, vmin = pmin_log_all, vmax = pmax_log_all)
-                    outline.boundary.plot(ax=ax1[iaxis],edgecolor='k')
-                    ax1[iaxis].axis(axlim)
-                
-                    ax1[iaxis].axis('off')
-                    ax1[iaxis].set_title('%s' % time_labels_dict[irun][itime])
 
-            def finish_up_figure():
+                # set title (only put titles in first row)
+                title_str = ''
+                if (not multiple_rates_on_same_figure) or irate==0:
+                    if nruns>1:
+                        title_str += '%s\n' % runid
+                    title_str += time_labels_dict[irun][itime]
+                ax[iaxis].set_title(title_str)
+
+            def add_colorbar():
 
                 # add the colorbar
+                cax = inset_axes(ax[-1],
+                    width="5%",  
+                    height="90%",
+                    loc='center right',
+                    borderpad=-2
+                   )
                 norm1 = mpl.colors.Normalize(vmin=pmin_all, vmax=pmax_all)
-                mpl.colorbar.ColorbarBase(ax[-1].cax, cmap=cmap,norm=norm1, label=cbar_title)
-                if log_scale:
-                    norm1 = mpl.colors.Normalize(vmin=pmin_log_all, vmax=pmax_log_all)
-                    mpl.colorbar.ColorbarBase(ax1[-1].cax, cmap=cmap,norm=norm1, label=cbar_title_log)
+                mpl.colorbar.ColorbarBase(cax, cmap=cmap,norm=norm1, label=cbar_title, orientation='vertical')
                 
+            def finish_up_figure():
+
                 # save and close
-                fig.suptitle(runid_list[irun])
-                fig.tight_layout(rect=[0, 0.03, 1, 0.98])
+                fig.tight_layout(rect=rect)
                 fig.savefig(os.path.join(figure_path, figure_fn))
-                if log_scale:
-                    fig1.suptitle(runid_list[irun])
-                    fig1.tight_layout(rect=[0, 0.03, 1, 0.98])
-                    fig1.savefig(os.path.join(figure_path, figure_log_fn))
-                
                 plt.close('all') 
 
-            # if there is only one run, there's an option to plot all the time windows on the same figure -- this does that
+            # figure out number of rows, number of columns, and the figure size for the figures
             if nruns==1 and all_time_together:
-                
-                # subplot dimensions and figure size
-                nrows = 1
                 ncols = ntime
-                figsize = (subplot_width*ncols, subplot_height*nrows)
+            else: 
+                ncols = nruns
+            if multiple_rates_on_same_figure:
+                nrows = nrates
+                extra_height = 0.025 * subplot_height*nrows
+            else:
+                nrows = 1
+                extra_height = 0
+            voff = 0.025/nrows
+            hoff = 0.4/ncols
+            if multiple_rates_on_same_figure or (nruns==1 and all_time_together):
+                rect = [0, 0.03, 1-hoff, 1-voff]
+            else:
+                rect = [0, 0.03, 1-hoff, 1]
+            figsize = (subplot_width*ncols + 0.4*subplot_width, subplot_height*nrows + extra_height)
 
-                # make figure name
-                figure_fn = '%s_%s_%s_Map%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, rate_name, norm_name, time_period)
-                if log_scale:
-                    figure_log_fn = '%s_%s_log10_%s_Map%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, rate_name, norm_name, time_period)
+            #################################################################################################################
+            # if there is only one run, there's an option to plot all the time windows on the same figure -- this does that
+            #################################################################################################################
 
-                # set up figure subwindows with room for a colorbar 
-                fig, ax = make_figure(figsize, nrows, ncols)
-                if log_scale: 
-                    fig1, ax1 = make_figure(figsize, nrows, ncols)
+            if nruns==1 and all_time_together:
+
+                # if we are plotting one rate at a time, make the figure name and the figure for each rate
+                if not multiple_rates_on_same_figure:
+                
+                    # make figure name
+                    figure_fn = '%s_%s_%s_Map%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, rate_name, norm_name, time_period)
+               
+                    # set up figure subwindows with room for a colorbar 
+                    fig, ax = make_figure(figsize, nrows, ncols)
+
+                    # if all subplots have same runid, put runid in suptitle instead of each subplot title
+                    if nruns==1:
+                        fig.suptitle(runid)
+
+                # otherwise, if multiple rates are on the same figure, make the figure name and the figure only when we are
+                # working on the very first rate, the other times, grab the axis from the following row
+                else:
+
+                    if irate==0:
+
+                        # make figure name
+                        figure_fn = '%s_%s_%s_Map%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, multiple_rates_figure_label, norm_name, time_period)
+               
+                        # set up figure subwindows with room for a colorbar 
+                        fig, ax1 = make_figure(figsize, nrows, ncols)
+
+                        # add title 
+                        if nruns>1:
+                            fig.suptitle(multiple_rates_figure_title)
+                        else:
+                            fig.suptitle(multiple_rates_figure_title + ': ' + runid)
+
+                    # take the irate row of the axis
+                    ax = ax1[irate,:]
 
                 # loop through the times and add a subplot for each time
-                irun = 0
                 for itime in range(ntime):
                 
                     add_subplot(itime, itime, irun)
-                
-                finish_up_figure()            
 
+                # add a colorbar at the end of every ros
+                add_colorbar()        
+
+                # if plotting multiple rates on the same figure, save only on last rate, otherwise save for each rate
+                if (irate==(nrates-1)) or (not multiple_rates_on_same_figure):    
+                    finish_up_figure()
+
+            #####################################################################################################
             # otherwise make a separate plot for each time window, where the subplots are the different runs
+            #####################################################################################################
+
             else:
 
-                # set number of subplots and figure size
-                nrows = 1
-                ncols = nruns
-                figsize = (subplot_width*ncols, subplot_height*nrows)
-
                 for itime in range(ntime):
-                    
+
                     # make figure name
                     figure_fn = '%s_%s_%s_Map%s_%s_%04d.png' % (run_list_str, wy_list_str, rate_name, norm_name, time_period, itime)
-                    if log_scale:
-                        figure_log_fn = '%s_%s_log10_%s_Map%s_%s_%04d.png' % (run_list_str, wy_list_str, rate_name, norm_name, time_period, itime)
-                
+                   
                     # set up figure subwindows with room for a colorbar 
                     fig, ax = make_figure(figsize, nrows, ncols)
-                    if log_scale: 
-                        fig1, ax1 = make_figure(figsize, nrows, ncols)
     
                     # loop through the runs and plot
                     for irun in range(nruns):
                 
                         add_subplot(irun, itime, irun)
 
-                    finish_up_figure()                 
+                    add_colorbar()                 

@@ -8,6 +8,8 @@
 
 import numpy as np
 import os
+import matplotlib
+matplotlib.rcParams.update(matplotlib.rcParamsDefault)
 
 def make_concise_runid_list_string(runid_list):
 

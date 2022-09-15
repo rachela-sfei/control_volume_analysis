@@ -43,13 +43,14 @@ reload(CVPL)
 #########################################################################################
 
 # list or runs to plot and water year to pick out of corresponding run (each is a column in the plot)
-#runid_list = ['G141_13to18_246','G141_13to18_207']
-runid_list = ['G141_13to18_246']
+#runid_list = ['G141_13to18_247']
+runid_list = ['FR17_003']
 
 # this is the list of water years to zoom in on within each plot, should be the same length as runid_list
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
 #wystr_list = ['WY13to18','WY13to18']
-wystr_list = ['WY13to18']
+#wystr_list = ['WY13to18']
+wystr_list = ['WY2017']
 
 ## composite parameter (must match suffix of balance table)
 param_list = ['DIN','TN','TN_include_sediment']
@@ -69,10 +70,11 @@ assert nruns==len(wystr_list)
 # figure size for (3 rows) x (nruns columns) mass budget plot 
 # (make figure wider to accomodate multi-year run -- same plot 
 # window width will be used for each run in current version of code)
+# add one to number of runs to accomodate the legend, which is quite large
 if 'WY13to18' in wystr_list: 
-    fs = (7.5*nruns,10)
+    fs = (7.5*(nruns+1),10)
 else:
-    fs = (5*nruns,10)
+    fs = (5*(nruns+1),10)
 
 # start with the default color cycle and add even more colors because the number of reactions is OUT OF CONTROL!
 colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
@@ -85,9 +87,9 @@ def return_components_list(param):
     if param == 'DIN':
         components_list = ['NH4','NO3']
     elif param == 'TN':
-        components_list = ['NH4','NO3','PON1','DON','N-Zoopl','N-Algae'] 
+        components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae'] 
     elif param == 'TN_include_sediment':
-        components_list = ['NH4','NO3','PON1','DON','N-Zoopl','N-Algae'] 
+        components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae'] 
     else:
         components_list = [param]
     ncom = len(components_list)
@@ -243,18 +245,25 @@ for param in param_list:
             data_components = []
             for ic in range(ncom):
                 input_fn = os.path.join(balance_table_dir,'%s_Table_By_Group%s.csv' % (components_list[ic].lower(), tavg_BT_str))
-                data_components.append(pd.read_csv(input_fn))
+                try:
+                    data_component = pd.read_csv(input_fn)
+                except:
+                    data_components.append(None)
+                else:
+                    data_components.append(data_component)
     
             # select 'Whole_Bay' group
             ind = data['group'] == 'Whole_Bay'
             data = data.loc[ind]
             for ic in range(ncom):
-                data_components[ic] = data_components[ic].loc[ind]
+                if not data_components[ic] is None:
+                    data_components[ic] = data_components[ic].loc[ind]
     
             # convert times from string to datetime64
             data['time'] = pd.to_datetime(data['time'])
             for ic in range(ncom):
-                data_components[ic]['time'] = pd.to_datetime(data_components[ic]['time'])
+                if not data_components[ic] is None:
+                    data_components[ic]['time'] = pd.to_datetime(data_components[ic]['time'])
         
             # compute time step in days
             deltat = (data['time'].iloc[1] - data['time'].iloc[0])/np.timedelta64(1,'h')/24
@@ -289,7 +298,10 @@ for param in param_list:
                 dataf = data.loc[ind]
                 dataf_components = []
                 for ic in range(ncom):
-                    dataf_components.append(data_components[ic].loc[ind])
+                    if not data_components[ic] is None:
+                        dataf_components.append(data_components[ic].loc[ind])
+                    else:
+                        dataf_components.append(None)
     
                 # get time
                 time = np.unique(dataf['time'].values)
@@ -311,8 +323,9 @@ for param in param_list:
                 # golden gate outflux by components
                 GG_Outflux_Com = np.zeros((ntime, ncom))
                 for icom in range(ncom):
-                    ind = dataf_components[icom]['group'].values == 'Whole_Bay'
-                    GG_Outflux_Com[:,icom] = dataf_components[icom].loc[ind]['%s,Flux In from W (%s)' % (components_list[icom],units)].values
+                    if not dataf_components[icom] is None:
+                        ind = dataf_components[icom]['group'].values == 'Whole_Bay'
+                        GG_Outflux_Com[:,icom] = dataf_components[icom].loc[ind]['%s,Flux In from W (%s)' % (components_list[icom],units)].values
     
                 # make a dataframe to contain statistics for the whole bay
                 df = pd.DataFrame(index=time)
@@ -335,7 +348,7 @@ for param in param_list:
                 if iwy==0:
                     if irun==0:
                         ax_run[0].set_ylabel('Whole Bay Mass Balance (%s)' % units)
-                    elif irun==(nruns-1):
+                    if irun==(nruns-1):
                         ax_run[0].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
                 # make dataframe with reactions for whole bay
@@ -367,7 +380,7 @@ for param in param_list:
                 if iwy==0:
                     if irun==0:
                         ax_run[1].set_ylabel('Whole Bay Reactions (%s)' % units)
-                    elif irun==(nruns-1):
+                    if irun==(nruns-1):
                         ax_run[1].legend(loc='center left',bbox_to_anchor=(1, 0.5))
             
                 # make a dataframe with GG outflux components
@@ -389,7 +402,7 @@ for param in param_list:
                 if iwy==0:
                     if irun==0:
                         ax_run[2].set_ylabel('Whole Bay Influx vs. Outflux (%s)' % units)
-                    elif irun==(nruns-1):
+                    if irun==(nruns-1):
                         ax_run[2].legend(loc='center left',bbox_to_anchor=(1, 0.5))
     
             # add label for run
