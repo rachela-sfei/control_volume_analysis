@@ -58,8 +58,8 @@ reload(CVPL)
 #wy_list = [2013, 2017, 2018]
 
 # this example will make figures with 6 subplots, each corresponding to a different water year for the same run
-#runid_list = ['G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230']
-#wy_list = [2013, 2014, 2015, 2016, 2017, 2018]
+runid_list = ['G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230']
+wy_list = [2013, 2014, 2015, 2016, 2017, 2018]
 
 # this is like the previous example but also compares apples-to-apples full resolution and aggregated runs
 #runid_list = ['G141_13to18_197','FR13_025','G141_13to18_197','G141_13to18_197','G141_13to18_197','G141_13to18_197','FR17_018','G141_13to18_197','FR18_006']
@@ -68,8 +68,8 @@ reload(CVPL)
 # in this example, provided that all_time_together = True (see below) a single 1xN figure is generated where N is the 
 # number of time averaging periods in 2013 (e.g. 4 for Seasonal, 12 for monthly). if all_time_together = False, this
 # example will generate N figures with one subplot each
-runid_list = ['G141_13to18_230']
-wy_list = [2013]
+#runid_list = ['G141_13to18_230']
+#wy_list = [2013]
 
 # if there is only ONE entry in runid_list and wy_list, there is an option to try and stuff all of the time steps onto a single
 # plot, instead of having one plot per time step, with each column being a time step (set this to True to activate that option)
@@ -607,9 +607,9 @@ for time_period in time_period_list:
                 # save and close
                 fig.tight_layout(rect=rect)
                 fig.savefig(os.path.join(figure_path, figure_fn))
-                plt.close('all') 
+                 
 
-            # figure out number of rows, number of columns, and the figure size for the figures
+            # figure out number of rows, number of columns, and the figure size, and tight axis rectangle for the figures
             if nruns==1 and all_time_together:
                 ncols = ntime
             else: 
@@ -623,9 +623,9 @@ for time_period in time_period_list:
             voff = 0.025/nrows
             hoff = 0.4/ncols
             if multiple_rates_on_same_figure or (nruns==1 and all_time_together):
-                rect = [0, 0.03, 1-hoff, 1-voff]
+                rect = [0, 0.01, 1-hoff, 1-voff]
             else:
-                rect = [0, 0.03, 1-hoff, 1]
+                rect = [0, 0.01, 1-hoff, 0.99]
             figsize = (subplot_width*ncols + 0.4*subplot_width, subplot_height*nrows + extra_height)
 
             #################################################################################################################
@@ -679,6 +679,7 @@ for time_period in time_period_list:
                 # if plotting multiple rates on the same figure, save only on last rate, otherwise save for each rate
                 if (irate==(nrates-1)) or (not multiple_rates_on_same_figure):    
                     finish_up_figure()
+                    plt.close('all')
 
             #####################################################################################################
             # otherwise make a separate plot for each time window, where the subplots are the different runs
@@ -686,17 +687,76 @@ for time_period in time_period_list:
 
             else:
 
-                for itime in range(ntime):
+                if not multiple_rates_on_same_figure: 
 
-                    # make figure name
-                    figure_fn = '%s_%s_%s_Map%s_%s_%04d.png' % (run_list_str, wy_list_str, rate_name, norm_name, time_period, itime)
-                   
-                    # set up figure subwindows with room for a colorbar 
-                    fig, ax = make_figure(figsize, nrows, ncols)
+                    for itime in range(ntime):
     
-                    # loop through the runs and plot
-                    for irun in range(nruns):
-                
-                        add_subplot(irun, itime, irun)
+                        # make figure name
+                        figure_fn = '%s_%s_%s_Map%s_%s_%04d.png' % (run_list_str, wy_list_str, rate_name, norm_name, time_period, itime)
+                       
+                        # set up figure subwindows with room for a colorbar 
+                        fig, ax = make_figure(figsize, nrows, ncols)
+        
+                        # loop through the runs and plot
+                        for irun in range(nruns):
+                    
+                            add_subplot(irun, itime, irun)
+    
+                        add_colorbar()            
+                        finish_up_figure()
+                        plt.close('all')
 
-                    add_colorbar()                 
+                # if there are multiple rates on the same figure, we have generate a figure for each time step and keep them open 
+                # as we add all the rates to each... this may crash if we try to do weekly plots, but that would be silly to compare
+                # multiple runs on a week by week basis so probably we won't ever try that
+                else: 
+
+                    # on first rate, open up the figures
+                    if irate==0:
+
+                        figure_fn_all = []
+                        fig_all = []
+                        ax_all = []
+                        for itime in range(ntime):
+
+                            # make figure name
+                            figure_fn = '%s_%s_%s_Map%s_%s_%04d.png' % (run_list_str, wy_list_str, multiple_rates_figure_label, norm_name, time_period, itime)
+                       
+                            # set up figure subwindows with room for a colorbar 
+                            fig, ax = make_figure(figsize, nrows, ncols)
+
+                            # add a title
+                            fig.suptitle(multiple_rates_figure_title)
+                            
+                            # save the handles and figure names in lists
+                            figure_fn_all.append(figure_fn)
+                            fig_all.append(fig)
+                            ax_all.append(ax)
+
+                    # for each rate, leaf through the figures adding subplots
+                    for itime in range(ntime):
+
+                        # make figure name
+                        fig = fig_all[itime]
+                        ax = ax_all[itime][irate]
+
+                        # loop through the runs and plot
+                        for irun in range(nruns):
+                    
+                            add_subplot(irun, itime, irun)
+
+                        add_colorbar()            
+    
+                    # on the last rate, finish up the figures
+                    if irate == (nrates-1):
+
+                        for itime in range(ntime):
+                            figure_fn = figure_fn_all[itime]
+                            fig = fig_all[itime]
+
+                            finish_up_figure()
+
+                        plt.close('all')
+
+
+

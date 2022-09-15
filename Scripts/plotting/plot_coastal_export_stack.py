@@ -44,13 +44,13 @@ reload(CVPL)
 
 # list or runs to plot and water year to pick out of corresponding run (each is a column in the plot)
 #runid_list = ['G141_13to18_247']
-runid_list = ['FR17_003']
+runid_list = ['FR13_003']
 
 # this is the list of water years to zoom in on within each plot, should be the same length as runid_list
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
 #wystr_list = ['WY13to18','WY13to18']
-#wystr_list = ['WY13to18']
-wystr_list = ['WY2017']
+wystr_list = ['WY13to18']
+#wystr_list = ['WY2013']
 
 ## composite parameter (must match suffix of balance table)
 param_list = ['DIN','TN','TN_include_sediment']
