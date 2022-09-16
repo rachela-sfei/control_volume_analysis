@@ -41,7 +41,7 @@ reload(CVPL)
 ###################
 
 ############################################################################################################################
-# RUN ID AND WATER YEAR LISTS ARE SPECIAL BECAUSE THESE DETERMINE THE NUMBER OF SUBPLOTS AND THEIR CONTENT
+# RUN ID, WATER YEAR, AND RATE LISTS ARE SPECIAL BECAUSE THESE DETERMINE THE NUMBER OF SUBPLOTS AND THEIR CONTENT
 #
 #       make a list of run ID's and a list of water years. these lists should be the same length N. the script will make 
 #       subplots with N columns where each column n corresponds to run runid_list[n] and water year wy_list[n]. one figure 
@@ -51,50 +51,83 @@ reload(CVPL)
 #       the time steps onto a single plot, instead of having one plot per time step -- if you want to do this, set 
 #       all_time_together = True below
 #
+#       finally specify the list of rates you want to plot. these can be compiled into a single figure, with one rate
+#       per row (in which case you need to give a name to the collection of rates for the title and the figure name)
+#       or you can make one figure per rate
+#
 ########################################################################################################################
+
 
 # this example will make figures with 3 subplots, each corresponding to a different run
 #runid_list = ['FR13_025','FR17_018','FR18_006']
 #wy_list = [2013, 2017, 2018]
+#all_time_together = False
 
-# this example will make figures with 6 subplots, each corresponding to a different water year for the same run
-runid_list = ['G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230','G141_13to18_230']
-wy_list = [2013, 2014, 2015, 2016, 2017, 2018]
+## this example will make figures with 6 subplots, each corresponding to a different water year for the same run
+#runid_list = ['G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246']
+#wy_list = [2013, 2014, 2015, 2016, 2017, 2018]
+#all_time_together = False
 
 # this is like the previous example but also compares apples-to-apples full resolution and aggregated runs
-#runid_list = ['G141_13to18_197','FR13_025','G141_13to18_197','G141_13to18_197','G141_13to18_197','G141_13to18_197','FR17_018','G141_13to18_197','FR18_006']
-#wy_list = [2013, 2013, 2014, 2015, 2016, 2017, 2017, 2018, 2018]
+runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
+wy_list = [2013, 2013, 2017, 2017]
+all_time_together = False
 
 # in this example, provided that all_time_together = True (see below) a single 1xN figure is generated where N is the 
 # number of time averaging periods in 2013 (e.g. 4 for Seasonal, 12 for monthly). if all_time_together = False, this
 # example will generate N figures with one subplot each
-#runid_list = ['G141_13to18_230']
+#runid_list = ['G141_13to18_246']
 #wy_list = [2013]
+# all_time_together = True
 
-# if there is only ONE entry in runid_list and wy_list, there is an option to try and stuff all of the time steps onto a single
-# plot, instead of having one plot per time step, with each column being a time step (set this to True to activate that option)
-all_time_together = True
+# in this example we plot ALL the available rates (unless the user has defined some more I didn't include here)
+# but we plot them separately
+#rate_list = ['oxycon-water','oxycon-sed','dpp','dpp-benthic','dpp-pelagic','denit','n-dpp','n-dpp-pelagic',
+#             'n-dpp-benthic','din_recycling','dmin_water','dmin_sed','din_loss','tn_loss','n-algae-sed','pon-sed',
+#             'diats1-loss','diats1-aut','tn_include_sediment_loss']
+#multiple_rates_on_same_figure = False
+#multiple_rates_figure_label = None
+#multiple_rates_figure_title = None
 
+## in this example we plot all the rates that make up the net DIN reaction
+#rate_list = ['n-dpp-pelagic',
+#             'n-dpp-benthic',
+#             'denit',             
+#             'din_recycling',     
+#             'dmin_sed',          
+#             'dmin_water', 
+#             'din_loss']  
+#multiple_rates_on_same_figure = True
+#multiple_rates_figure_label = 'DIN_Rx_Summary'
+#multiple_rates_figure_title = 'DIN Reaction Summary'
+
+### in this example we plot all the rates that make up the net TN reaction
+#rate_list = ['denit',     
+#             'n-sed',        
+#             'diats1-mort',  
+#             'diats1-buri', # seems to be zero for the time being     
+#             'diats1-aut',  # seems to be zero for the time being
+#             'dmin_sed',   
+#             'tn_loss']
+#multiple_rates_on_same_figure = True
+#multiple_rates_figure_label = 'TN_Rx_Summary'
+#multiple_rates_figure_title = 'TN Reaction Summary'
+
+# in this example we plot all the rates that make up the net TotalDetNS reaction
+rate_list = ['n-sed',
+             'diats1-mort',
+             'dmin_sed1',             
+             'dmin_sed2',     
+             'det_bur',
+             'totaldetns_rx']  
+multiple_rates_on_same_figure = True
+multiple_rates_figure_label = 'TotalDetNS_Rx_Summary'
+multiple_rates_figure_title = 'Detritus Reaction Summary'
 
 ################################################################################################################
 # THE FOLLOWING LISTS ARE JUST FOR BATCH PROCESSING PURPOSES, SO THE USER DOESN'T HAVE TO CHANGE THE SCRIPT
 # EACH TIME THEY WANT TO PLOT A NEW RATE, TIME AVERAGING PERIOD, NORMALIZATION, ETC. CAN JUST RUN IT ALL AT ONCE
 ################################################################################################################
-
-# specify the rates you want to plot right now (see function get_rate_properties(rate_name) defined below to 
-# get their definitions)
-#rate_list = ['oxycon-water','oxycon-sed','dpp','dpp-benthic','dpp-pelagic','denit','n-dpp','n-dpp-pelagic',
-#             'n-dpp-benthic','din_recycling','dmin_water','dmin_sed','din_loss','tn_loss','n-algae-sed','pon-sed',
-#             'diats1-loss','diats1-aut','tn_include_sediment_loss']
-rate_list = ['dpp-pelagic','dpp-benthic','denit']
-#rate_list = ['dpp']
-
-# do you want the rates to be plotted on the same figure??? 
-# for example, if you want to put all the terms in the din budget in the same figure, set this to true
-# if you do set it to true, you need to provide a plot title and a string to label the figure
-multiple_rates_on_same_figure = True
-multiple_rates_figure_label = 'DIN_Budget'
-multiple_rates_figure_title = 'DIN Budget'
 
 # list of time averaging periods (choices are 'Annual','Seasonal','Monthly')
 #time_period_list = ['Annual','Seasonal','Monthly']
@@ -104,7 +137,7 @@ time_period_list = ['Seasonal']
 #norm_list = ['None','Area','Volume']
 norm_list = ['Area']
 
-# get length of run list and wy list, make sure they're the same length
+# get length of run list and wy list, make sure they're the same length, also check if all runs are the same
 nruns = len(runid_list)
 assert nruns == len(wy_list)
 
@@ -211,7 +244,7 @@ def get_rate_properties(rate_name):
 
     elif rate_name=='n-dpp-pelagic':
     
-        rate_title = 'Net Primary Productivity'
+        rate_title = 'Net Pelagic Pr. Prod.'
         grams_of_what = 'N'
         balance_table_list = ['din_Table.csv']
         multiplier_list = [-1]
@@ -221,7 +254,7 @@ def get_rate_properties(rate_name):
 
     elif rate_name=='n-dpp-benthic':
     
-        rate_title = 'Net Primary Productivity'
+        rate_title = 'Net Benthic Pr. Prod.'
         grams_of_what = 'N'
         balance_table_list = ['din_Table.csv']
         multiplier_list = [-1]
@@ -237,7 +270,6 @@ def get_rate_properties(rate_name):
         multiplier_list = [1]
         reaction_list = [["NH4,dZ_NRes",
                           "NH4,dNH4Aut"]]
-        cmap = cmocean.cm.balance
         cmap = cmocean.cm.amp
         cmap_diverging = False
 
@@ -261,10 +293,41 @@ def get_rate_properties(rate_name):
         cmap = cmocean.cm.turbid
         cmap_diverging = False
 
+    elif rate_name=='dmin_sed1':
+    
+        rate_title = 'DetNS1 + OONS1 Mineral.'
+        grams_of_what = 'N'
+        balance_table_list = ['totaldetns_Table.csv']
+        multiplier_list = [-1]
+        reaction_list = [['DetNS1,dMinDetNS1',
+                          'OONS1,dMinOONS1']]
+        cmap = cmocean.cm.turbid
+        cmap_diverging = False
+
+    elif rate_name=='dmin_sed2':
+    
+        rate_title = 'DetNS2 + OONS2 Mineral.'
+        grams_of_what = 'N'
+        balance_table_list = ['totaldetns_Table.csv']
+        multiplier_list = [-1]
+        reaction_list = [['DetNS2,dMinDetNS2',
+                          'OONS2,dMinOONS2']]
+        cmap = cmocean.cm.matter
+        cmap_diverging = False
+
+    elif rate_name=='det_bur':
+    
+        rate_title = 'DetNS2 + OONS2 Burial'
+        grams_of_what = 'N'
+        balance_table_list = ['totaldetns_Table.csv']
+        multiplier_list = [-1]
+        reaction_list = [['DetNS2,dBurS2DetN','OONS2,dBurS2OON']]
+        cmap = cmocean.cm.amp
+        cmap_diverging = False
     
     elif rate_name=='din_loss':
     
-        rate_title = 'DIN Assimilation'
+        rate_title = 'DIN Reactive Loss'
         grams_of_what = 'N'
         balance_table_list = ['din_Table.csv']
         multiplier_list = [-1]
@@ -301,35 +364,34 @@ def get_rate_properties(rate_name):
         cmap = cmocean.cm.balance
         cmap_diverging = True
 
-    elif rate_name=='n-algae-sed':
+    elif rate_name=='n-sed':
     
-        rate_title = 'Settling of Algae'
+        rate_title = 'Settling of Algae + PON'
         grams_of_what = 'N'
         balance_table_list = ['tn_Table.csv']
         multiplier_list = [-1]
-        reaction_list = [["Algae,dSedAlgae"]]
-        cmap = cmocean.cm.algae
-        cmap_diverging = False
-
-    elif rate_name=='pon-sed':
-
-        rate_title = 'Settling of PON'
-        grams_of_what = 'N'
-        balance_table_list = ['tn_Table.csv']
-        multiplier_list = [-1]
-        reaction_list = [["PON,dSedPON"]]
+        reaction_list = [["Algae,dSedAlgae","PON,dSedPON"]]
         cmap = mpl.cm.Greys
         cmap_diverging = False
 
-    elif rate_name=='diats1-loss':
+    elif rate_name=='diats1-mort':
     
-        rate_title = 'Benthic Algae Mortality/Burial'
+        rate_title = 'Benthic Algae Mortality'
         grams_of_what = 'N'
         balance_table_list = ['tn_Table.csv']
         multiplier_list = [-1]
-        reaction_list = [['DiatS1,dMrtDiatS1',
-                          'DiatS1,dBurS1Diat']]
+        reaction_list = [['DiatS1,dMrtDiatS1']]
         cmap = mpl.cm.Purples
+        cmap_diverging = False
+
+    elif rate_name=='diats1-buri':
+    
+        rate_title = 'Benthic Algae Burial'
+        grams_of_what = 'N'
+        balance_table_list = ['tn_Table.csv']
+        multiplier_list = [-1]
+        reaction_list = [['DiatS1,dBurS1Diat']]
+        cmap = mpl.cm.Greys
         cmap_diverging = False
 
     elif rate_name=='diats1-aut':
@@ -353,6 +415,24 @@ def get_rate_properties(rate_name):
                           'DetNS2,dBurS2DetN',
                           'OONS2,dBurS2OON',
                           'DiatS1,dBurS1Diat']]
+        cmap = mpl.cm.Spectral_r
+        cmap_diverging = False
+
+    elif rate_name=='totaldetns_rx':
+    
+        rate_title = 'Detritus Net Rx.'
+        grams_of_what = 'N'
+        balance_table_list = ['totaldetns_Table.csv']
+        multiplier_list = [1]
+        reaction_list = [['DetNS1,dMrtDetNS1',
+                          'DetNS1,dSedAlgN', 
+                          'DetNS1,dSedPON1', 
+                          'DetNS1,dMinDetNS1',
+                          'OONS1,dMinOONS1',
+                          'DetNS2,dMinDetNS2',
+                          'OONS2,dMinOONS2',
+                          'DetNS2,dBurS2DetN',
+                          'OONS2,dBurS2OON']]
         cmap = mpl.cm.Spectral_r
         cmap_diverging = False
     
@@ -391,6 +471,13 @@ wy_list_str = CVPL.make_concise_water_year_list_string(wy_list)
 figure_path = os.path.join(figure_base_dir, run_list_str, 'rate_maps')
 if not os.path.exists(figure_path):
     os.makedirs(figure_path)
+print('\nfigures will be saved here: %s\n' % figure_path)
+
+# check if all the runs are the same
+if len(np.unique(runid_list))==1:
+    all_runs_same = True
+else:
+    all_runs_same = False
 
 # loop through averaging time periods (Annual, Seasonal, Monthly)
 for time_period in time_period_list:
@@ -408,10 +495,10 @@ for time_period in time_period_list:
             # units for normalized data and string for including in figure name
             if norm == 'Volume':
                 norm_units = 'g %s/m$^3$/d' % grams_of_what
-                norm_name = '_Per_Volume'
+                norm_name = 'Per_Volume'
             elif norm == 'Area':
                 norm_units = 'g %s/m$^2$/d' % grams_of_what
-                norm_name = '_Per_Area'
+                norm_name = 'Per_Area'
             elif norm == 'None':
                 norm_units = 'g %s/d' % grams_of_what
                 norm_name = ''
@@ -461,7 +548,7 @@ for time_period in time_period_list:
                 balance_table_name = balance_table_list[0].replace('.csv','_%s.csv' % time_period)
                 df = pd.read_csv(os.path.join(balance_table_dir, balance_table_name))
                 rate = multiplier_list[0]*df[reaction_list[0]].sum(axis=1)
-                
+
                 # if there is more than one balance table, add those up too, summing the reactions by the multipliers
                 if ntables>1:
                     for i in range(1,ntables):
@@ -585,8 +672,8 @@ for time_period in time_period_list:
                 # set title (only put titles in first row)
                 title_str = ''
                 if (not multiple_rates_on_same_figure) or irate==0:
-                    if nruns>1:
-                        title_str += '%s\n' % runid
+                    if not all_runs_same:
+                        title_str += '%s\n' % runid_list[irun]
                     title_str += time_labels_dict[irun][itime]
                 ax[iaxis].set_title(title_str)
 
@@ -599,7 +686,21 @@ for time_period in time_period_list:
                     loc='center right',
                     borderpad=-2
                    )
-                norm1 = mpl.colors.Normalize(vmin=pmin_all, vmax=pmax_all)
+
+                # make colorbar behave well in case that all values are zero
+                if pmin_all==0 and pmax_all==0:
+                    if cmap_diverging:
+                        pmin_all_1 = 1
+                        pmax_all_1 = 1
+                    else:
+                        pmin_all_1 = 0
+                        pmax_all_1 = 1
+                else:
+                    pmin_all_1 = pmin_all
+                    pmax_all_1 = pmax_all
+
+                # make norm and add colorbar
+                norm1 = mpl.colors.Normalize(vmin=pmin_all_1, vmax=pmax_all_1)
                 mpl.colorbar.ColorbarBase(cax, cmap=cmap,norm=norm1, label=cbar_title, orientation='vertical')
                 
             def finish_up_figure():
@@ -609,24 +710,28 @@ for time_period in time_period_list:
                 fig.savefig(os.path.join(figure_path, figure_fn))
                  
 
-            # figure out number of rows, number of columns, and the figure size, and tight axis rectangle for the figures
+            # figure out number of rows and columns 
             if nruns==1 and all_time_together:
                 ncols = ntime
             else: 
                 ncols = nruns
             if multiple_rates_on_same_figure:
                 nrows = nrates
-                extra_height = 0.025 * subplot_height*nrows
             else:
                 nrows = 1
-                extra_height = 0
-            voff = 0.025/nrows
-            hoff = 0.4/ncols
-            if multiple_rates_on_same_figure or (nruns==1 and all_time_together):
-                rect = [0, 0.01, 1-hoff, 1-voff]
+
+            # figure size depends on number of rows and columns, add some extra width for the legend which can be quite wide
+            figsize = (subplot_width*ncols + 0.4*subplot_width, subplot_height*nrows)
+
+            # the tight layout rectangle needs room for the legend, and also needs room for a suptitle if there is a 
+            # suptitle, but we only have a suptitle in some cases 
+            if multiple_rates_on_same_figure or (nruns==1 and all_time_together) or all_runs_same:
+                rect = [0, 0.01, 1-0.4/ncols, 1-0.025/nrows]
             else:
-                rect = [0, 0.01, 1-hoff, 0.99]
-            figsize = (subplot_width*ncols + 0.4*subplot_width, subplot_height*nrows + extra_height)
+                rect = [0, 0.01, 1-0.4/ncols, 0.99]
+
+            # position of suptitle apparently needs to be adjusted for number of plots
+            suptitle_y = np.min([0.98 + nrows*0.0014,0.99])
 
             #################################################################################################################
             # if there is only one run, there's an option to plot all the time windows on the same figure -- this does that
@@ -638,14 +743,13 @@ for time_period in time_period_list:
                 if not multiple_rates_on_same_figure:
                 
                     # make figure name
-                    figure_fn = '%s_%s_%s_Map%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, rate_name, norm_name, time_period)
+                    figure_fn = '%s_%s_Rate_Map_%s_%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, norm_name, rate_name, time_period)
                
                     # set up figure subwindows with room for a colorbar 
                     fig, ax = make_figure(figsize, nrows, ncols)
 
-                    # if all subplots have same runid, put runid in suptitle instead of each subplot title
-                    if nruns==1:
-                        fig.suptitle(runid)
+                    # put runid in suptitle since there's only one run
+                    fig.suptitle(runid,y=suptitle_y)
 
                 # otherwise, if multiple rates are on the same figure, make the figure name and the figure only when we are
                 # working on the very first rate, the other times, grab the axis from the following row
@@ -654,17 +758,17 @@ for time_period in time_period_list:
                     if irate==0:
 
                         # make figure name
-                        figure_fn = '%s_%s_%s_Map%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, multiple_rates_figure_label, norm_name, time_period)
+                        figure_fn = '%s_%s_Rate_Map_%s_%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, norm_name, multiple_rates_figure_label, time_period)
                
                         # set up figure subwindows with room for a colorbar 
                         fig, ax1 = make_figure(figsize, nrows, ncols)
 
-                        # add title 
-                        if nruns>1:
-                            fig.suptitle(multiple_rates_figure_title)
+                        # add title -- if there is only one run or all runs are the same, put runid in the suptitle
+                        if all_runs_same:
+                            fig.suptitle(multiple_rates_figure_title + ': ' + runid,y=suptitle_y)
                         else:
-                            fig.suptitle(multiple_rates_figure_title + ': ' + runid)
-
+                            fig.suptitle(multiple_rates_figure_title, y=suptitle_y)
+        
                     # take the irate row of the axis
                     ax = ax1[irate,:]
 
@@ -692,10 +796,14 @@ for time_period in time_period_list:
                     for itime in range(ntime):
     
                         # make figure name
-                        figure_fn = '%s_%s_%s_Map%s_%s_%04d.png' % (run_list_str, wy_list_str, rate_name, norm_name, time_period, itime)
+                        figure_fn = '%s_%s_Rate_Map_%s_%s_%s_%04d.png' % (run_list_str, wy_list_str, norm_name, rate_name, time_period, itime)
                        
                         # set up figure subwindows with room for a colorbar 
                         fig, ax = make_figure(figsize, nrows, ncols)
+
+                        # if all the runs are the same, add run as suptitle
+                        if all_runs_same:
+                            fig.suptitle(runid,y=suptitle_y)
         
                         # loop through the runs and plot
                         for irun in range(nruns):
@@ -720,13 +828,16 @@ for time_period in time_period_list:
                         for itime in range(ntime):
 
                             # make figure name
-                            figure_fn = '%s_%s_%s_Map%s_%s_%04d.png' % (run_list_str, wy_list_str, multiple_rates_figure_label, norm_name, time_period, itime)
+                            figure_fn = '%s_%s_Rate_Map_%s_%s_%s_%04d.png' % (run_list_str, wy_list_str, norm_name, multiple_rates_figure_label, time_period, itime)
                        
                             # set up figure subwindows with room for a colorbar 
                             fig, ax = make_figure(figsize, nrows, ncols)
 
-                            # add a title
-                            fig.suptitle(multiple_rates_figure_title)
+                            # add title -- if there is only one run or all runs are the same, put runid in the suptitle
+                            if all_runs_same:
+                                fig.suptitle(multiple_rates_figure_title + ': ' + runid,y=suptitle_y)
+                            else:
+                                fig.suptitle(multiple_rates_figure_title, y=suptitle_y)
                             
                             # save the handles and figure names in lists
                             figure_fn_all.append(figure_fn)

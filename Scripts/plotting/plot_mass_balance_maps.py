@@ -431,6 +431,7 @@ run_list_str = CVPL.make_concise_runid_list_string([runid])
 figure_path = os.path.join(figure_base_dir, run_list_str, 'mass_balance_maps')
 if not os.path.exists(figure_path):
     os.makedirs(figure_path)
+print('\nfigures will be saved here: %s\n' % figure_path)
 
 # get path to the balance table folder in the run folder
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
@@ -662,7 +663,7 @@ for param in param_list:
                 ax.set_title('%s: averaged over %s\n%s mass balance (units are %s) ' % (runid, 
                                                     time_label, 
                                                     param, unit))
-                plt.savefig(os.path.join(figure_path, '%s_%s_%s_mass_balance_map_%s_%04d.png' % (run_list_str, domain_name, param, averaging_period, it)))
+                plt.savefig(os.path.join(figure_path, '%s_%s_Mass_Balance_Map_%s_%s_%04d.png' % (run_list_str, domain_name, param, averaging_period, it)))
                 plt.close()
                         
                                 

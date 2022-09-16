@@ -1,3 +1,16 @@
+'''
+
+Don't worry about this script, it is just an old script I used to test different
+interpolation methods for inferring the flux vectors in the residual circulation plots...
+keeping it here just in case it becomes useful again
+
+A brief look at this, seems the some of the file paths are not correct, so if you need to 
+run it, you'll need to update those
+
+Allie King Sept 2022
+
+'''
+
 ### PACKAGES
 
 import xarray as xr
@@ -45,8 +58,8 @@ histfn = os.path.join(path,'dwaq_hist.nc')
 histbal_fn = os.path.join(path,'dwaq_hist_bal.nc') 
 
 # path to shape functions defining control volumes and transects for DWAQ output
-shpfn = '../shapefiles/Agg_exchange_lines.shp'
-shpfn_poly = '../shapefiles/Agg_mod_contiguous.shp'
+shpfn = '../../Definitions/model_input_shapefiles/Agg_exchange_lines.shp'
+shpfn_poly = '../Definitions/model_input_shapefiles/Agg_mod_contiguous.shp'
 
 # names of variables to sum (in this case to get DIN)
 varname1 = 'no3'

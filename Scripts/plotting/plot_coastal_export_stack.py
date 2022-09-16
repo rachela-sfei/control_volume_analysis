@@ -44,16 +44,16 @@ reload(CVPL)
 
 # list or runs to plot and water year to pick out of corresponding run (each is a column in the plot)
 #runid_list = ['G141_13to18_247']
-runid_list = ['FR13_003']
+runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
 
 # this is the list of water years to zoom in on within each plot, should be the same length as runid_list
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
 #wystr_list = ['WY13to18','WY13to18']
-wystr_list = ['WY13to18']
+wystr_list = ['WY2013','WY2013','WY2017','WY2017']
 #wystr_list = ['WY2013']
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['DIN','TN','TN_include_sediment']
+param_list = ['DIN','TN','TN_include_sediment','TotalDetNS']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 tavg_list = ['Daily','Filtered','Cumulative']
@@ -72,9 +72,9 @@ assert nruns==len(wystr_list)
 # window width will be used for each run in current version of code)
 # add one to number of runs to accomodate the legend, which is quite large
 if 'WY13to18' in wystr_list: 
-    fs = (7.5*(nruns+1),10)
+    fs = (7.5*(nruns+0.75),10)
 else:
-    fs = (5*(nruns+1),10)
+    fs = (4*(nruns+0.75),10)
 
 # start with the default color cycle and add even more colors because the number of reactions is OUT OF CONTROL!
 colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
@@ -95,11 +95,6 @@ def return_components_list(param):
     ncom = len(components_list)
 
     return components_list, ncom
-
-# time axis formatting (label start of year put grid line every 4 months)
-major_locator = mdates.YearLocator()
-minor_locator = mdates.MonthLocator(bymonth=(1,4,7,10))
-major_formatter = mdates.DateFormatter('%Y')
 
 #########################################################################################
 ## functions
@@ -138,6 +133,7 @@ wy_list_str = CVPL.make_concise_water_year_list_string(wy_list)
 figure_path = os.path.join(figure_base_dir, run_list_str, 'coastal_export')
 if not os.path.exists(figure_path):
     os.makedirs(figure_path)
+print('\nfigures will be saved here: %s\n' % figure_path)
 
 # loop through parameters
 for param in param_list:
@@ -221,9 +217,6 @@ for param in param_list:
         # loop through the runs, each one is a column in the figure
         for irun in range(nruns):
     
-            # print run
-            print('run %d of %d' % (irun+1,nruns))
-    
             # get the figure axis for this run
             if nruns>1:
                 ax_run = ax[:,irun]
@@ -263,7 +256,7 @@ for param in param_list:
             data['time'] = pd.to_datetime(data['time'])
             for ic in range(ncom):
                 if not data_components[ic] is None:
-                    data_components[ic]['time'] = pd.to_datetime(data_components[ic]['time'])
+                    data_components[ic]['time'] = pd.to_datetime(data_components[ic]['time']).values
         
             # compute time step in days
             deltat = (data['time'].iloc[1] - data['time'].iloc[0])/np.timedelta64(1,'h')/24
@@ -407,14 +400,14 @@ for param in param_list:
     
             # add label for run
             ax_run[0].set_title('Run %s' % runid)
-    
+
             # format time axis for all 3 rows
             for ax1 in ax_run:
                 ax1.set_xlim((tmin,tmax))
-                ax1.xaxis.set_major_locator(major_locator)
-                ax1.xaxis.set_minor_locator(minor_locator)
-                ax1.xaxis.set_major_formatter(major_formatter)
-                ax1.grid(which='both')
+                ax1.xaxis.set_major_locator(mdates.YearLocator())
+                ax1.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=(1,4,7,10)))
+                ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+                ax1.grid(visible=True,which='both')
 
         # set y axis limits the same across runs
         # ... for first and 2nd rows, make y axis symmetric around zero
@@ -445,7 +438,7 @@ for param in param_list:
         # add title and save the figure
         fig.suptitle('Whole Bay %s %s Budget' % (tavg_str, param))
         fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-        fig.savefig(os.path.join(figure_path, '%s_%s_%s_Coastal_Export_Stackplot_%s.png' % (run_list_str, wy_list_str, param, tavg)),dpi=300)
+        fig.savefig(os.path.join(figure_path, '%s_%s_Coastal_Export_Stack_%s_%s.png' % (run_list_str, wy_list_str, tavg, param)),dpi=300)
     
         # close figures
         plt.close('all')

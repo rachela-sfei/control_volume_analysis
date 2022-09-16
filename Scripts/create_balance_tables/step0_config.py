@@ -16,8 +16,8 @@ alliek august 2022
 # 207,208,209,
 # 211,212,213,214,215,216,217,218,219,220,221,222,223
 # 227,229,230
-#runid = 'G141_13to18_247'
-runid = 'FR17_003'
+runid = 'G141_13to18_247'
+#runid = 'FR17_003'
 
 # base level substances to process. set to string 'all' or a list of substance strings -- warning, processing 
 # all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py)
@@ -27,7 +27,7 @@ substance_list = ['continuity', 'nh4', 'no3', 'pon1', 'pon2', 'don', 'diat', 'di
 # list of substances we think we are actually going to want to plot -- to save space, the 
 # step5_compile_balance_tables_into_groups.py and step6_aggregate_in_time.py scripts will only process these substances
 plot_substance_list = ['tn_include_sediment','tn','din','nh4','no3','don',
-                        'pon1','n-algae','n-zoopl','totaldetns','detns1','detns2','oons1','oons2',
+                        'pon1','pon2','n-algae','n-zoopl','totaldetns','detns1','detns2','oons1','oons2',
                         'oxy','algae','diat','green','diats1','zoopl']
 
 

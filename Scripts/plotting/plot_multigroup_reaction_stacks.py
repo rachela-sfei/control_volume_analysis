@@ -29,7 +29,7 @@ reload(CVPL)
 #########################################################################################
 
 # give a single run to plot
-runid = 'G141_13to18_207'
+runid = 'G141_13to18_246'
 
 # start time and end time sring (if None, all times available will be plotted, starting 
 # on october 1 of 1st water year
@@ -37,12 +37,6 @@ time_start = None
 time_end = None
 #time_start = '2012-10-01'
 #time_end = '2013-10-01'
-
-## composite parameter (must match suffix of balance table)
-#param = 'DIN'
-#param = 'TN'
-param = 'TN_include_sediment'
-#param = 'Algae'
 
 # base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 #base_dir = r'X:\hpcshared'
@@ -56,10 +50,10 @@ param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae']
 grams_of_what = {'DIN' : 'N', 'TN' : 'N', 'TN_include_sediment' : 'N', 'TotalDetNS' : 'N', 'Algae' : 'C', 'OXY' : 'O'}
 
 # list of panels to plot (a "panel" is a bad name for a plot of a collection of groups, each group in one subplot)
-panel_list = ['Whole_Bay_RMP', 'Whole_Bay_WB', 'South_Bay_6Part']
+panel_list = ['All_Subs_RMP', 'All_Subs_WB', 'South_Bay_6Part']
 
 # list of normalizations (divide by area, volume, or nothing)
-norm_list = ['Area'] #,'Volume','None']
+norm_list = ['Area','Volume','None']
 
 # list of time integration types
 tavg_list = ['Filtered', 'Cumulative']   # can also add 'Daily' if desired
@@ -132,9 +126,10 @@ colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e3
 run_list_str = CVPL.make_concise_runid_list_string([runid])
 
 # path to figures, create if it does not exist
-figure_path = os.path.join(figure_base_dir, run_list_str, 'reaction_stack_plots_multigroup')
+figure_path = os.path.join(figure_base_dir, run_list_str, 'multigroup_reaction_stacks')
 if not os.path.exists(figure_path):
     os.makedirs(figure_path)
+print('\nfigures will be saved here: %s\n' % figure_path)
             
 ## balance table folder
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
@@ -155,6 +150,10 @@ for param in param_list:
             tavg_suff = ''
         else:
             tavg_suff = '_' + tavg
+        if tavg=='Cumulative':
+            units = 'Mg'
+        else:
+            units = 'Mg/d'
 
         # load up the balance table data for the parameter of interest with the time averaging type of interest
         input_fn = os.path.join(table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_suff))
@@ -213,13 +212,13 @@ for param in param_list:
             reaction_list.append(rx)
         source_list_trimmed = []
         for rx in source_list:
-            source_list_trimmed.append(rx.replace(' (Mg/d)',''))
+            source_list_trimmed.append(rx.replace(' (%s)' % units,''))
         sink_list_trimmed = []
         for rx in sink_list:
-            sink_list_trimmed.append(rx.replace(' (Mg/d)',''))
+            sink_list_trimmed.append(rx.replace(' (%s)' % units,''))
         reaction_list_trimmed = []
         for rx in reaction_list:
-            reaction_list_trimmed.append(rx.replace(' (Mg/d)',''))
+            reaction_list_trimmed.append(rx.replace(' (%s)' % units,''))
         
         # loop through norms
         for norm in norm_list:
@@ -228,20 +227,22 @@ for param in param_list:
             if norm == 'Volume':
                 norm_units = 'g %s/m$^3$/d' % grams_of_what[param]
                 normval = data['Volume (Mean, m^3)'].values / 1e6
-                norm_name = '_Per_Volume'
+                norm_name = 'Per_Volume'
             elif norm == 'Area':
                 norm_units = 'g %s/m$^2$/d' % grams_of_what[param]
                 normval = data['Area (m^2)'].values /1e6
-                norm_name = '_Per_Area'
+                norm_name = 'Per_Area'
             elif norm == 'None':
                 norm_units = 'Mg %s/d' % grams_of_what[param]
                 normval = 1
                 norm_name = ''
+            if tavg == 'Cumulative':
+                norm_units = norm_units.replace('/d','')
 
             # apply the normalization to all columns except group and time
             data1 = data.copy(deep=True)
             for col in data.columns:
-                if col in ['group', 'time']:
+                if col in ['group', 'time', 'Volume (m^3)', 'Volume (Mean, m^3)', 'Area (m^2)']:
                     data1[col] = data[col].values
                 else:
                     data1[col] = data[col].values / normval
@@ -262,11 +263,10 @@ for param in param_list:
                 fig, ax = plt.subplots(nrows, ncols, figsize=figure_size)
                 ax = ax.flatten()
         
-               
                 # get time
                 time = np.unique(data['time'].values)
                 ntime = len(time)
-            
+
                 # loop through the groups
                 for igroup in range(ngroups):
             
@@ -275,6 +275,10 @@ for param in param_list:
                     ind = data['group'] == group
                     data_group = data.loc[ind].copy(deep=True)
 
+                    # find the area and volume of the group
+                    area_km2 = np.mean(data_group['Area (m^2)'].values)/1000/1000
+                    volume_km2xm = np.mean(data_group['Volume (Mean, m^3)'].values)/1000/1000
+
                     # fill up dataframe with reactions
                     df = pd.DataFrame(index=time)
                     for rx in reaction_list:
@@ -282,9 +286,9 @@ for param in param_list:
                     df.columns = reaction_list_trimmed
                 
                     # get net reaction and storage
-                    Net_Rx_Group = data_group['%s,Net Reaction (Mg/d)' % param].values
+                    Net_Rx_Group = data_group['%s,Net Reaction (%s)' % (param, units)].values
                     Net_Rx_Group_Check_Sum = df.values.sum(axis=1)
-                    Storage_Group = -data_group['%s,dMass/dt, Balance Check (Mg/d)' % param].values
+                    Storage_Group = -data_group['%s,dMass/dt, Balance Check (%s)' % (param, units)].values
             
                     # add storage to the dataframe
                     df['Storage (-dM/dt)'] = Storage_Group
@@ -301,14 +305,13 @@ for param in param_list:
                     ax[igroup].plot(time, Net_Rx_Group, 'k', label='Net Reaction')
                     ax[igroup].plot(time, Net_Rx_Group_Check_Sum, 'm--', label='Net Reaction, Check Sum')
                     ax[igroup].plot(time, Net_Rx_Group + Storage_Group, 'b', label='Net Reaction - dM/dt')
-                    ax[igroup].set_title(group_labels[igroup])
+                    ax[igroup].set_title('%s\nArea = %0.0f km$^2$\nVolume = %0.0f km$^2$ x m' % (group_labels[igroup], area_km2, volume_km2xm))
                     if np.mod(igroup, ncols)==0:
                         ax[igroup].set_ylabel('Reactions and Storage (%s)' % norm_units)
-        
+
                     # add legend
-                    if iwy==0:
-                        if igroup==(ncols-1):
-                            ax[igroup].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+                    if igroup==(ncols-1):
+                        ax[igroup].legend(loc='center left',bbox_to_anchor=(1, 0.5))
             
                 # format axes 
                 ymax = 0
@@ -328,8 +331,8 @@ for param in param_list:
         
                 # add title and save the figure of subembayment reactions
                 fig.suptitle('%s %s Reactions %s\n%s' % (tavg_str, param, panel_label,runid))
-                fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-                fig.savefig(os.path.join(out_dir, '%s_%s_%s_%s_Reactions%s_%s.png' % (run_list_str, wy_list_str, panel, param, norm_name, tavg)),dpi=300)
+                fig.tight_layout(rect=[0, 0, 1, 0.98])
+                fig.savefig(os.path.join(figure_path, '%s_%s_Rx_Stacks_%s_%s_%s_%s.png' % (run_list_str, wy_list_str, tavg, norm_name, param, panel)),dpi=300)
         
                 # close figures
                 plt.close('all')
