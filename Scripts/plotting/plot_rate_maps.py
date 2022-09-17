@@ -68,61 +68,71 @@ reload(CVPL)
 #wy_list = [2013, 2014, 2015, 2016, 2017, 2018]
 #all_time_together = False
 
-# this is like the previous example but also compares apples-to-apples full resolution and aggregated runs
-runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
-wy_list = [2013, 2013, 2017, 2017]
-all_time_together = False
+## this is like the previous example but also compares apples-to-apples full resolution and aggregated runs
+#runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
+#wy_list = [2013, 2013, 2017, 2017]
+#all_time_together = False
 
 # in this example, provided that all_time_together = True (see below) a single 1xN figure is generated where N is the 
 # number of time averaging periods in 2013 (e.g. 4 for Seasonal, 12 for monthly). if all_time_together = False, this
-# example will generate N figures with one subplot each
-#runid_list = ['G141_13to18_246']
-#wy_list = [2013]
-# all_time_together = True
+# example will generate N figures with one subplot each. Note if you want to plot multiple water years in an agg run 
+# you should do them one at a time (sorry it's not automated)
+runid_list = ['FR17_003']
+wy_list = [2017]
+all_time_together = True
 
-# in this example we plot ALL the available rates (unless the user has defined some more I didn't include here)
-# but we plot them separately
-#rate_list = ['oxycon-water','oxycon-sed','dpp','dpp-benthic','dpp-pelagic','denit','n-dpp','n-dpp-pelagic',
-#             'n-dpp-benthic','din_recycling','dmin_water','dmin_sed','din_loss','tn_loss','n-algae-sed','pon-sed',
-#             'diats1-loss','diats1-aut','tn_include_sediment_loss']
-#multiple_rates_on_same_figure = False
-#multiple_rates_figure_label = None
-#multiple_rates_figure_title = None
+select_a_rate_set = 3
 
-## in this example we plot all the rates that make up the net DIN reaction
-#rate_list = ['n-dpp-pelagic',
-#             'n-dpp-benthic',
-#             'denit',             
-#             'din_recycling',     
-#             'dmin_sed',          
-#             'dmin_water', 
-#             'din_loss']  
-#multiple_rates_on_same_figure = True
-#multiple_rates_figure_label = 'DIN_Rx_Summary'
-#multiple_rates_figure_title = 'DIN Reaction Summary'
+if select_a_rate_set==0:
+    # in this example we plot ALL the available rates (unless the user has defined some more I didn't include here)
+    # but we plot them separately
+    rate_list = ['oxycon-water','oxycon-sed','dpp','dpp-benthic','dpp-pelagic','denit','n-dpp','n-dpp-pelagic',
+                 'n-dpp-benthic','din_recycling','dmin_water','dmin_sed','din_loss','tn_loss','n-algae-sed','pon-sed',
+                 'diats1-loss','diats1-aut','tn_include_sediment_loss']
+    multiple_rates_on_same_figure = False
+    multiple_rates_figure_label = None
+    multiple_rates_figure_title = None
 
-### in this example we plot all the rates that make up the net TN reaction
-#rate_list = ['denit',     
-#             'n-sed',        
-#             'diats1-mort',  
-#             'diats1-buri', # seems to be zero for the time being     
-#             'diats1-aut',  # seems to be zero for the time being
-#             'dmin_sed',   
-#             'tn_loss']
-#multiple_rates_on_same_figure = True
-#multiple_rates_figure_label = 'TN_Rx_Summary'
-#multiple_rates_figure_title = 'TN Reaction Summary'
+elif select_a_rate_set==1:
 
-# in this example we plot all the rates that make up the net TotalDetNS reaction
-rate_list = ['n-sed',
-             'diats1-mort',
-             'dmin_sed1',             
-             'dmin_sed2',     
-             'det_bur',
-             'totaldetns_rx']  
-multiple_rates_on_same_figure = True
-multiple_rates_figure_label = 'TotalDetNS_Rx_Summary'
-multiple_rates_figure_title = 'Detritus Reaction Summary'
+    # in this example we plot all the rates that make up the net DIN reaction
+    rate_list = ['n-dpp-pelagic',
+                 'n-dpp-benthic',
+                 'denit',             
+                 'din_recycling',     
+                 'dmin_sed',          
+                 'dmin_water', 
+                 'din_loss']  
+    multiple_rates_on_same_figure = True
+    multiple_rates_figure_label = 'DIN_Rx_Summary'
+    multiple_rates_figure_title = 'DIN Reaction Summary'
+    
+elif select_a_rate_set==2:    
+
+    ### in this example we plot all the rates that make up the net TN reaction
+    rate_list = ['denit',     
+                 'n-sed',        
+                 'diats1-mort',  
+                 'diats1-buri', # seems to be zero for the time being     
+                 'diats1-aut',  # seems to be zero for the time being
+                 'dmin_sed',   
+                 'tn_loss']
+    multiple_rates_on_same_figure = True
+    multiple_rates_figure_label = 'TN_Rx_Summary'
+    multiple_rates_figure_title = 'TN Reaction Summary'
+
+elif select_a_rate_set==3:   
+
+    # in this example we plot all the rates that make up the net TotalDetNS reaction
+    rate_list = ['n-sed',
+                 'diats1-mort',
+                 'dmin_sed1',             
+                 'dmin_sed2',     
+                 'det_bur',
+                 'totaldetns_rx']  
+    multiple_rates_on_same_figure = True
+    multiple_rates_figure_label = 'TotalDetNS_Rx_Summary'
+    multiple_rates_figure_title = 'Detritus Reaction Summary'
 
 ################################################################################################################
 # THE FOLLOWING LISTS ARE JUST FOR BATCH PROCESSING PURPOSES, SO THE USER DOESN'T HAVE TO CHANGE THE SCRIPT
@@ -495,10 +505,10 @@ for time_period in time_period_list:
             # units for normalized data and string for including in figure name
             if norm == 'Volume':
                 norm_units = 'g %s/m$^3$/d' % grams_of_what
-                norm_name = 'Per_Volume'
+                norm_name = '_Per_Volume'
             elif norm == 'Area':
                 norm_units = 'g %s/m$^2$/d' % grams_of_what
-                norm_name = 'Per_Area'
+                norm_name = '_Per_Area'
             elif norm == 'None':
                 norm_units = 'g %s/d' % grams_of_what
                 norm_name = ''
@@ -743,7 +753,7 @@ for time_period in time_period_list:
                 if not multiple_rates_on_same_figure:
                 
                     # make figure name
-                    figure_fn = '%s_%s_Rate_Map_%s_%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, norm_name, rate_name, time_period)
+                    figure_fn = '%s_%s_Rate_Map%s_%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, norm_name, time_period, rate_name)
                
                     # set up figure subwindows with room for a colorbar 
                     fig, ax = make_figure(figsize, nrows, ncols)
@@ -758,7 +768,7 @@ for time_period in time_period_list:
                     if irate==0:
 
                         # make figure name
-                        figure_fn = '%s_%s_Rate_Map_%s_%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, norm_name, multiple_rates_figure_label, time_period)
+                        figure_fn = '%s_%s_Rate_Map%s_%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, norm_name, time_period, multiple_rates_figure_label)
                
                         # set up figure subwindows with room for a colorbar 
                         fig, ax1 = make_figure(figsize, nrows, ncols)
@@ -796,7 +806,7 @@ for time_period in time_period_list:
                     for itime in range(ntime):
     
                         # make figure name
-                        figure_fn = '%s_%s_Rate_Map_%s_%s_%s_%04d.png' % (run_list_str, wy_list_str, norm_name, rate_name, time_period, itime)
+                        figure_fn = '%s_%s_Rate_Map_%s%s_%s_Time%04d.png' % (run_list_str, wy_list_str, time_period, norm_name, rate_name, itime)
                        
                         # set up figure subwindows with room for a colorbar 
                         fig, ax = make_figure(figsize, nrows, ncols)
@@ -828,7 +838,7 @@ for time_period in time_period_list:
                         for itime in range(ntime):
 
                             # make figure name
-                            figure_fn = '%s_%s_Rate_Map_%s_%s_%s_%04d.png' % (run_list_str, wy_list_str, norm_name, multiple_rates_figure_label, time_period, itime)
+                            figure_fn = '%s_%s_Rate_Map%s_%s_%s_Time%04d.png' % (run_list_str, wy_list_str, norm_name, time_period, multiple_rates_figure_label, itime)
                        
                             # set up figure subwindows with room for a colorbar 
                             fig, ax = make_figure(figsize, nrows, ncols)

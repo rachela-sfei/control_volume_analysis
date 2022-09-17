@@ -56,7 +56,7 @@ wystr_list = ['WY2013','WY2013','WY2017','WY2017']
 param_list = ['DIN','TN','TN_include_sediment','TotalDetNS']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
-tavg_list = ['Daily','Filtered','Cumulative']
+tavg_list = ['Filtered','Cumulative']
 
 # base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 #run_base_dir = r'X:\hpcshared'

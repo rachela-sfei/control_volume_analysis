@@ -29,7 +29,9 @@ reload(CVPL)
 #########################################################################################
 
 # give a single run to plot
-runid = 'G141_13to18_246'
+#runid = 'G141_13to18_246'
+#runid = 'FR13_003'
+runid = 'FR17_003'
 
 # start time and end time sring (if None, all times available will be plotted, starting 
 # on october 1 of 1st water year
@@ -44,7 +46,7 @@ run_base_dir = '/richmondvol1/hpcshared'
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 
 ## list of parameters to plot
-param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae']
+param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae', 'Diat', 'Green', 'DiatS1']
 
 # dictionary to map parameter to element corresponding to mass
 grams_of_what = {'DIN' : 'N', 'TN' : 'N', 'TN_include_sediment' : 'N', 'TotalDetNS' : 'N', 'Algae' : 'C', 'OXY' : 'O'}
@@ -157,8 +159,12 @@ for param in param_list:
 
         # load up the balance table data for the parameter of interest with the time averaging type of interest
         input_fn = os.path.join(table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_suff))
-        data = pd.read_csv(input_fn)
-        
+        try:
+            data = pd.read_csv(input_fn)
+        except:
+            print('could not open %s\nit probably doesn''t exist, skipping this one' % input_fn)
+            continue
+
         # convert times from string to datetime64
         data['time'] = data['time'].astype('datetime64[ns]')
         
@@ -227,11 +233,11 @@ for param in param_list:
             if norm == 'Volume':
                 norm_units = 'g %s/m$^3$/d' % grams_of_what[param]
                 normval = data['Volume (Mean, m^3)'].values / 1e6
-                norm_name = 'Per_Volume'
+                norm_name = '_Per_Volume'
             elif norm == 'Area':
                 norm_units = 'g %s/m$^2$/d' % grams_of_what[param]
                 normval = data['Area (m^2)'].values /1e6
-                norm_name = 'Per_Area'
+                norm_name = '_Per_Area'
             elif norm == 'None':
                 norm_units = 'Mg %s/d' % grams_of_what[param]
                 normval = 1
@@ -332,7 +338,7 @@ for param in param_list:
                 # add title and save the figure of subembayment reactions
                 fig.suptitle('%s %s Reactions %s\n%s' % (tavg_str, param, panel_label,runid))
                 fig.tight_layout(rect=[0, 0, 1, 0.98])
-                fig.savefig(os.path.join(figure_path, '%s_%s_Rx_Stacks_%s_%s_%s_%s.png' % (run_list_str, wy_list_str, tavg, norm_name, param, panel)),dpi=300)
+                fig.savefig(os.path.join(figure_path, '%s_%s_Rx_Stacks_%s%s_%s_%s.png' % (run_list_str, wy_list_str, tavg, norm_name, panel, param)),dpi=300)
         
                 # close figures
                 plt.close('all')

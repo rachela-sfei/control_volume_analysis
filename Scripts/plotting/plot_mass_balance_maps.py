@@ -17,15 +17,12 @@ reload(CVPL)
 #########################
 
 # run name 
-runid = 'G141_13to18_247'
-#runid = 'FR13_025'
-#runid = 'FR17_018'
-#runid = 'FR18_006'
+#runid = 'G141_13to18_246'
 #runid = 'FR13_003'
-#runid = 'FR17_003'
+runid = 'FR17_003'
 
 # list of parameters to make plots for
-param_list = ['TN', 'DIN', 'Algae', 'TN_include_sediment']
+param_list = ['DIN', 'TN', 'TN_include_sediment', 'TotalDetNS', 'Algae', 'Diat', 'Green', 'DiatS1']
 
 # list of "domains" which are groups of groups to plot
 #domain_name_list = ['Whole_Bay_ABC','WB_South_Bay_ABC','WB_Subembayments','WB_Channel_Shoal','RMP_Subembayments',
@@ -66,6 +63,18 @@ def some_plotting_details(param):
         unit = 'Mg/d C'
         include_load = False
         include_param_in_rx_label = True
+    if param=='Diat':
+        unit = 'Mg/d C'
+        include_load = False
+        include_param_in_rx_label = True
+    if param=='Green':
+        unit = 'Mg/d C'
+        include_load = False
+        include_param_in_rx_label = True
+    if param=='DiatS1':
+        unit = 'Mg/d C'
+        include_load = False
+        include_param_in_rx_label = True
     elif param=='DIN':
         unit = 'Mg/d N'
         include_load = True
@@ -77,6 +86,10 @@ def some_plotting_details(param):
     elif param=='TN_include_sediment':
         unit = 'Mg/d N'
         include_load = True
+        include_param_in_rx_label = True
+    elif param=='TotalDetNS':
+        unit = 'Mg/d N'
+        include_load = False
         include_param_in_rx_label = True
 
     return unit, include_load, include_param_in_rx_label
@@ -457,9 +470,12 @@ for param in param_list:
         try:
             df = pd.read_csv(balance_table_fn)
         except:
-            raise Exception('could not load %s, check to make sure you generated %s averages '  % (balance_table_fn, averaging_period) +  
-                            'when you ran step6_aggregate_in_time.py in the create_balance_tables scripts')
-                            
+            print('could not load %s, check to make sure you generated %s averages '  % (balance_table_fn, averaging_period) +  
+                  'when you ran step6_aggregate_in_time.py in the create_balance_tables scripts, otherwise could be this parameter ' + 
+                  'isn''t in this model run')
+            continue
+            
+
         # convert time to datetime64
         df['time'] = df['time'].astype('datetime64[ns]')
 
@@ -663,7 +679,7 @@ for param in param_list:
                 ax.set_title('%s: averaged over %s\n%s mass balance (units are %s) ' % (runid, 
                                                     time_label, 
                                                     param, unit))
-                plt.savefig(os.path.join(figure_path, '%s_%s_Mass_Balance_Map_%s_%s_%04d.png' % (run_list_str, domain_name, param, averaging_period, it)))
+                plt.savefig(os.path.join(figure_path, '%s_Mass_Balance_Map_%s_%s_%s_Time%04d.png' % (run_list_str, averaging_period, domain_name, param, it)))
                 plt.close()
                         
                                 
