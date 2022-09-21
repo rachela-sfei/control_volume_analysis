@@ -67,18 +67,22 @@ figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 nruns = len(runid_list)
 assert nruns==len(wystr_list)
 
-# figure size for (3 rows) x (nruns columns) mass budget plot 
-# (make figure wider to accomodate multi-year run -- same plot 
-# window width will be used for each run in current version of code)
-# add one to number of runs to accomodate the legend, which is quite large
+# figure size for (2-4 rows depending) x (nruns columns) mass budget plot 
 if 'WY13to18' in wystr_list: 
-    fs = (7.5*(nruns+0.75),10)
+    figure_width = 7.5*(nruns+0.75)
 else:
-    fs = (4*(nruns+0.75),10)
+    figure_width = 4*(nruns+0.75)
+row_height = 3
 
 # start with the default color cycle and add even more colors because the number of reactions is OUT OF CONTROL!
 colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
           'fuchsia','gold','lawngreen','aqua','lavender','navy','lightgray']
+
+# flag to include a row with the subembayment-by-subembayment net reaction for this parameter
+# and the list of subembayments to use (let's use RMP) and a list w/ nice names for legend
+include_subembayment_net_rx = True
+subembayment_list = ['LSB', 'SB_RMP', 'Central_Bay_RMP', 'San_Pablo_Bay', 'Suisun_Bay'] 
+subembayment_nice = ['Lower South Bay', 'South Bay (RMP)','Central Bay (RMP)', 'San Pablo Bay', 'Suisun Bay']
 
 # finction to list of components OF THE COASTAL EXPORT (need not include benthic components, 
 # because they can't flow out of the bay as they are stuck to the bed) given the parameter
@@ -95,6 +99,18 @@ def return_components_list(param):
     ncom = len(components_list)
 
     return components_list, ncom
+
+# tells you if the parameter is benthic (if it's benthic, don't include the export plot row, because it
+# doesn't get transported, so everything is zero)
+def is_it_benthic(param):
+
+    if param in ['DetNS1','DetNS2','DetNS','OONS1','OONS2','OONS',
+                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1']:
+        is_benthic = True
+    else:
+        is_benthic = False
+
+    return is_benthic
 
 #########################################################################################
 ## functions
@@ -140,12 +156,20 @@ for param in param_list:
 
     # get list of components for this parameter
     components_list, ncom = return_components_list(param)
+
+    # compute the number of rows in the plots, depends on whether parameter is benthic and whether
+    # breakdown of net reaction by subembayment is included
+    nrows = 2
+    if not is_it_benthic(param):
+        nrows += 1
+    if include_subembayment_net_rx:
+        nrows += 1
     
     # loop through different time averages: daily, spring-neap filter, cumulative
     for tavg in tavg_list:
     
         # initialize 3 panel figure with complete mass balance, reactions, and export composition
-        fig, ax = plt.subplots(3,nruns,figsize=fs)
+        fig, ax = plt.subplots(nrows,nruns,figsize=(figure_width, row_height*nrows + 0.5))
     
         # for figure labeling
         if tavg=='Filtered':
@@ -214,6 +238,11 @@ for param in param_list:
         for rx in master_reaction_list:
             master_reaction_list_trimmed.append(rx.replace(' (%s)' % units,''))
 
+        # track the min and max reaction by subembayment to see if it is always above or below zero
+        if include_subembayment_net_rx:
+            max_rx_by_sub = 0
+            min_rx_by_sub = 0
+
         # loop through the runs, each one is a column in the figure
         for irun in range(nruns):
     
@@ -244,6 +273,14 @@ for param in param_list:
                     data_components.append(None)
                 else:
                     data_components.append(data_component)
+
+            # select the subembayment data and load up into a list
+            if include_subembayment_net_rx:
+                nsubs = len(subembayment_list)
+                data_subs = []
+                for sub in subembayment_list:
+                    ind = data['group'] == sub
+                    data_subs.append(data.loc[ind].copy())
     
             # select 'Whole_Bay' group
             ind = data['group'] == 'Whole_Bay'
@@ -257,6 +294,9 @@ for param in param_list:
             for ic in range(ncom):
                 if not data_components[ic] is None:
                     data_components[ic]['time'] = pd.to_datetime(data_components[ic]['time']).values
+            if include_subembayment_net_rx:
+                for isub in range(nsubs):
+                    data_subs[isub]['time'] = pd.to_datetime(data_subs[isub]['time']).values
         
             # compute time step in days
             deltat = (data['time'].iloc[1] - data['time'].iloc[0])/np.timedelta64(1,'h')/24
@@ -287,7 +327,7 @@ for param in param_list:
 
                 # select the data in this time window (the "f" notation is a relic of when used to do the 
                 # spring-neap filtering in the plotting script)
-                ind = np.logical_and( data.time>=t_window[0], data.time<t_window[1])
+                ind = np.logical_and( data.time.values>=t_window[0], data.time.values<t_window[1])
                 dataf = data.loc[ind]
                 dataf_components = []
                 for ic in range(ncom):
@@ -295,7 +335,11 @@ for param in param_list:
                         dataf_components.append(data_components[ic].loc[ind])
                     else:
                         dataf_components.append(None)
-    
+                if include_subembayment_net_rx:
+                    dataf_subs = []
+                    for isub in range(nsubs):
+                        dataf_subs.append(data_subs[isub].loc[ind])
+
                 # get time
                 time = np.unique(dataf['time'].values)
                 ntime = len(time)
@@ -304,6 +348,9 @@ for param in param_list:
                 # plot the mass budget for the whole bay
                 ########################################
     
+                # first row of plot
+                irow = 0
+
                 # get stats for whole bay
                 Delta_Influx = dataf['%s,Flux In from E (%s)' % (param,units)].values
                 GG_Outflux = dataf['%s,Flux In from W (%s)' % (param,units)].values
@@ -322,12 +369,20 @@ for param in param_list:
     
                 # make a dataframe to contain statistics for the whole bay
                 df = pd.DataFrame(index=time)
-                df['Point Sources'] = Net_Loading.copy()
-                df['Delta Influx'] = Delta_Influx.copy()
-                df['Minor Tribs'] = Minor_Trib_Influx.copy()
+                if not is_it_benthic(param):
+                    df['Point Sources'] = Net_Loading.copy()
+                    df['Delta Influx'] = Delta_Influx.copy()
+                    df['Minor Tribs'] = Minor_Trib_Influx.copy()
                 df['Storage (-dM/dt)'] = Storage.copy()
                 df['Net Reaction'] = Net_Rx.copy()
-                df['Golden Gate Outflux'] = GG_Outflux.copy()
+                if not is_it_benthic(param):
+                    df['Golden Gate Outflux'] = GG_Outflux.copy()
+
+                # make the colors match between benthic and not benthic plots
+                if is_it_benthic(param):
+                    color_list = colors[3:5]
+                else:
+                    color_list = colors[0:6]
     
                 # divide into positive and negative
                 df_pos = df.copy(deep=True)
@@ -336,13 +391,16 @@ for param in param_list:
                 df_neg[df>0] = 0
     
                 # add to figure
-                ax_run[0].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
-                ax_run[0].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
+                ax_run[irow].stackplot(time, df_pos.values.transpose(), colors = color_list, labels=df.columns)
+                ax_run[irow].stackplot(time, df_neg.values.transpose(), colors = color_list)
                 if iwy==0:
                     if irun==0:
-                        ax_run[0].set_ylabel('Whole Bay Mass Balance (%s)' % units)
+                        ax_run[irow].set_ylabel('Whole Bay Mass Balance (%s)' % units)
                     if irun==(nruns-1):
-                        ax_run[0].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+                        ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+
+                # next row of plot
+                irow += 1                
 
                 # make dataframe with reactions for whole bay
                 df = pd.DataFrame(columns=master_reaction_list)
@@ -365,43 +423,79 @@ for param in param_list:
                 df_neg[df>0] = 0
     
                 # add to figure 1
-                ax_run[1].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
-                ax_run[1].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
-                ax_run[1].plot(time, Net_Rx, 'k', label='Net Reaction')
-                ax_run[1].plot(time, Net_Rx_Check_Sum, 'm--', label='Net Reaction, Check Sum')
-                ax_run[1].plot(time, Net_Rx + Storage, 'b', label='Net Reaction - dM/dt')
+                ax_run[irow].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
+                ax_run[irow].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
+                ax_run[irow].plot(time, Net_Rx, 'k', label='Net Reaction')
+                ax_run[irow].plot(time, Net_Rx_Check_Sum, 'm--', label='Net Reaction, Check Sum')
+                ax_run[irow].plot(time, Net_Rx + Storage, 'b', label='Net Reaction - dM/dt')
                 if iwy==0:
                     if irun==0:
-                        ax_run[1].set_ylabel('Whole Bay Reactions (%s)' % units)
+                        ax_run[irow].set_ylabel('Whole Bay Reactions (%s)' % units)
                     if irun==(nruns-1):
-                        ax_run[1].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+                        ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+
+                # next row of plot
+                if include_subembayment_net_rx:
+                    irow += 1   
+                    irow_sub = irow
+
+                    # make a dataframe with net reaction for each subembayment
+                    df = pd.DataFrame(columns=subembayment_nice, index=time)
+                    df.loc[:,:] = 0
+                    for isub, sub in enumerate(subembayment_nice):
+                        df[sub] = dataf_subs[isub]['%s,Net Reaction (%s)' % (param,units)].values
+
+                    # divide into positive and negative values
+                    df_pos = df.copy(deep=True)
+                    df_neg = df.copy(deep=True)
+                    df_pos[df<0] = 0
+                    df_neg[df>0] = 0
+
+                    # add to figure 
+                    ax_run[irow].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
+                    ax_run[irow].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
+                    ax_run[irow].plot(time, Net_Rx, 'k', label='Whole Bay')
+                    if iwy==0:
+                        if irun==0:
+                            ax_run[irow].set_ylabel('Net Reaction\nby Subembayment (%s)' % units)
+                        if irun==(nruns-1):
+                            ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+
+                    # track the max and min
+                    max_rx_by_sub = np.max([max_rx_by_sub, df_pos.sum(axis=1).max()])
+                    min_rx_by_sub = np.min([min_rx_by_sub, df_neg.sum(axis=1).min()])
             
-                # make a dataframe with GG outflux components
-                df = pd.DataFrame(index=time)
-                for icom in range(ncom):
-                    df[components_list[icom] + ' Outflux Through GG'] = -GG_Outflux_Com[:,icom]
-    
-                # divide into positive and negative values
-                df_pos = df.copy(deep=True)
-                df_neg = df.copy(deep=True)
-                df_pos[df<0] = 0
-                df_neg[df>0] = 0
-    
-                # add to figure 3
-                ax_run[2].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
-                ax_run[2].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
-                ax_run[2].plot(time,Tribs_Plus_Loads, 'k--', label='%s Loading from Tribs and Point Sources' % param)
-                ax_run[2].plot(time, -GG_Outflux, 'k', label='%s Outflux Through GG' % param)
-                if iwy==0:
-                    if irun==0:
-                        ax_run[2].set_ylabel('Whole Bay Influx vs. Outflux (%s)' % units)
-                    if irun==(nruns-1):
-                        ax_run[2].legend(loc='center left',bbox_to_anchor=(1, 0.5))
-    
+                # final row of plot
+                if not is_it_benthic(param):
+                    irow += 1  
+                    irow_out = irow
+
+                    # make a dataframe with GG outflux components
+                    df = pd.DataFrame(index=time)
+                    for icom in range(ncom):
+                        df[components_list[icom] + ' Outflux Through GG'] = -GG_Outflux_Com[:,icom]
+        
+                    # divide into positive and negative values
+                    df_pos = df.copy(deep=True)
+                    df_neg = df.copy(deep=True)
+                    df_pos[df<0] = 0
+                    df_neg[df>0] = 0
+        
+                    # add to figure 3
+                    ax_run[irow].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
+                    ax_run[irow].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
+                    ax_run[irow].plot(time,Tribs_Plus_Loads, 'k--', label='%s Loading from Tribs and Point Sources' % param)
+                    ax_run[irow].plot(time, -GG_Outflux, 'k', label='%s Outflux Through GG' % param)
+                    if iwy==0:
+                        if irun==0:
+                            ax_run[irow].set_ylabel('Whole Bay Influx vs. Outflux (%s)' % units)
+                        if irun==(nruns-1):
+                            ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+
             # add label for run
             ax_run[0].set_title('Run %s' % runid)
 
-            # format time axis for all 3 rows
+            # format time axis for all rows
             for ax1 in ax_run:
                 ax1.set_xlim((tmin,tmax))
                 ax1.xaxis.set_major_locator(mdates.YearLocator())
@@ -422,18 +516,35 @@ for param in param_list:
                     ymax = np.max([ymax,ymax1])
                 for irun in range(nruns):
                     ax[irow,irun].set_ylim((-ymax,ymax))
-        # ... for 3rd row set min at zero
-        for irow in [2]:
-            if nruns==1:
-                ymax = np.abs(ax[irow].get_ylim()).max()
-                ax[irow].set_ylim((0,ymax))
-            else:
+        # ... for outflux row set min at zero
+        if not is_it_benthic(param):
+            for irow in [irow_out]:
+                if nruns==1:
+                    ymax = np.abs(ax[irow].get_ylim()).max()
+                    ax[irow].set_ylim((0,ymax))
+                else:
+                    ymax = 0
+                    for irun in range(nruns):
+                        ymax1 = np.abs(ax[irow,irun].get_ylim()).max()
+                        ymax = np.max([ymax,ymax1])
+                    for irun in range(nruns):
+                        ax[irow,irun].set_ylim((0,ymax))
+        # ... for reaction by subembayment check if one or the other of max or min is zero
+        if include_subembayment_net_rx:
+
+            if np.abs(max_rx_by_sub) < 1e-2:
                 ymax = 0
+                ymin = min_rx_by_sub*1.05
+            elif np.abs(min_rx_by_sub) < 1e-2:
+                ymin = 0
+                ymax = max_rx_by_sub*1.05
+            else:
+                max_rx_by_sub = np.max([np.abs(min_rx_by_sub),np.abs(max_rx_by_sub)])
+                ymin = -max_rx_by_sub*1.05
+                ymax = max_rx_by_sub*1.05
+            for irow in [irow_sub]:
                 for irun in range(nruns):
-                    ymax1 = np.abs(ax[irow,irun].get_ylim()).max()
-                    ymax = np.max([ymax,ymax1])
-                for irun in range(nruns):
-                    ax[irow,irun].set_ylim((0,ymax))
+                    ax[irow,irun].set_ylim((ymin,ymax))
 
         # add title and save the figure
         fig.suptitle('Whole Bay %s %s Budget' % (tavg_str, param))

@@ -24,8 +24,6 @@ import copy
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from mpl_toolkits.axes_grid1 import ImageGrid
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 import os, sys
@@ -63,7 +61,7 @@ reload(CVPL)
 #wy_list = [2013, 2017, 2018]
 #all_time_together = False
 
-## this example will make figures with 6 subplots, each corresponding to a different water year for the same run
+# this example will make figures with 6 subplots, each corresponding to a different water year for the same run
 #runid_list = ['G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246']
 #wy_list = [2013, 2014, 2015, 2016, 2017, 2018]
 #all_time_together = False
@@ -77,11 +75,11 @@ reload(CVPL)
 # number of time averaging periods in 2013 (e.g. 4 for Seasonal, 12 for monthly). if all_time_together = False, this
 # example will generate N figures with one subplot each. Note if you want to plot multiple water years in an agg run 
 # you should do them one at a time (sorry it's not automated)
-runid_list = ['FR17_003']
-wy_list = [2017]
+runid_list = ['FR13_003']
+wy_list = [2013]
 all_time_together = True
 
-select_a_rate_set = 3
+select_a_rate_set = 1
 
 if select_a_rate_set==0:
     # in this example we plot ALL the available rates (unless the user has defined some more I didn't include here)
@@ -100,8 +98,7 @@ elif select_a_rate_set==1:
                  'n-dpp-benthic',
                  'denit',             
                  'din_recycling',     
-                 'dmin_sed',          
-                 'dmin_water', 
+                 'dmin_sed',   
                  'din_loss']  
     multiple_rates_on_same_figure = True
     multiple_rates_figure_label = 'DIN_Rx_Summary'
@@ -134,6 +131,24 @@ elif select_a_rate_set==3:
     multiple_rates_figure_label = 'TotalDetNS_Rx_Summary'
     multiple_rates_figure_title = 'Detritus Reaction Summary'
 
+elif select_a_rate_set==4:
+
+    # in this example we plot all the rates that make up the net OXY reaction
+    rate_list = ['oxycon-water',
+                 'oxycon-sed',
+                 'oxy1',             
+                 'oxy2',     
+                 'oxy3',
+                 'oxy4',     
+                 'oxy5',     
+                 'oxy6',     
+                 'oxy7',     
+                 'oxy8',     
+                 'oxy_rx']  
+    multiple_rates_on_same_figure = True
+    multiple_rates_figure_label = 'OXY_Rx_Summary'
+    multiple_rates_figure_title = 'OXY Reaction Summary'
+
 ################################################################################################################
 # THE FOLLOWING LISTS ARE JUST FOR BATCH PROCESSING PURPOSES, SO THE USER DOESN'T HAVE TO CHANGE THE SCRIPT
 # EACH TIME THEY WANT TO PLOT A NEW RATE, TIME AVERAGING PERIOD, NORMALIZATION, ETC. CAN JUST RUN IT ALL AT ONCE
@@ -145,7 +160,7 @@ time_period_list = ['Seasonal']
 
 # list of normalizations (divide by 'None','Area','Volume')
 #norm_list = ['None','Area','Volume']
-norm_list = ['Area']
+norm_list = ['Area','Volume','None']
 
 # get length of run list and wy list, make sure they're the same length, also check if all runs are the same
 nruns = len(runid_list)
@@ -184,23 +199,121 @@ def get_rate_properties(rate_name):
     '''
     if rate_name=='oxycon-water':
     
-        rate_title = 'Oxygen Consumption (Water Column)'        # title for figure
+        #rate_title = 'Oxygen Consumption (Water Column)'        # title for figure
+        rate_title = '-1 x OXY,dOxCon'        
         grams_of_what = 'O'                                     # grams of what in the units?   
         balance_table_list = ['oxy_Table.csv']                  # list of balance tables
         multiplier_list = [-1]                                  # multiplier for each balance table
         reaction_list = [['OXY,dOxCon']]                        # for each balance table, list of reactions to sum
-        cmap = cmocean.cm.dense                                 # color map
+        cmap = cmocean.cm.amp                                 # color map
         cmap_diverging = False                                  # center at zero (True if rate goes positive and negative)?
 
     elif rate_name=='oxycon-sed':
     
-        rate_title = 'Oxygen Consumption (Sediment)'
+        #rate_title = 'Oxygen Consumption (Sediment)'
+        rate_title = '-1 x OXY,dMinTotalDetCS1'
         grams_of_what = 'O'
         balance_table_list = ['oxy_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['OXY,dMinDetCS1', 'OXY,dMinDetCS2', 'OXY,dMinOOCS1', 'OXY,dMinOOCS2']]
+        cmap = cmocean.cm.amp  
+        cmap_diverging = False
+
+    elif rate_name=='oxy1':
+    
+        rate_title = '-1 x OXY,dNitrif'
+        grams_of_what = 'O'
+        balance_table_list = ['oxy_Table.csv']
+        multiplier_list = [-1]
+        reaction_list = [['OXY,dNitrif']]
+        cmap = cmocean.cm.amp  
+        cmap_diverging = False
+
+    elif rate_name=='oxy2':
+    
+        rate_title = '-1 x OXY,dZ_Resp'
+        grams_of_what = 'O'
+        balance_table_list = ['oxy_Table.csv']
+        multiplier_list = [-1]
+        reaction_list = [['OXY,dZ_Resp']]
+        cmap = cmocean.cm.amp  
+        cmap_diverging = False
+
+    elif rate_name=='oxy3':
+    
+        rate_title = 'OXY,dDenitWat'
+        grams_of_what = 'O'
+        balance_table_list = ['oxy_Table.csv']
+        multiplier_list = [1]
+        reaction_list = [['OXY,dDenitWat']]
         cmap = cmocean.cm.dense  
         cmap_diverging = False
+
+    elif rate_name=='oxy4':
+    
+        rate_title = 'OXY,dPPDiat + OXY,dPPGreen\n(includes correction)'
+        grams_of_what = 'O'
+        balance_table_list = ['oxy_Table.csv']
+        multiplier_list = [1]
+        reaction_list = [['OXY,dPPDiat', 'OXY,dcPPDiat', 'OXY,dPPGreen', 'OXY,dcPPGreen']]
+        cmap = cmocean.cm.dense  
+        cmap_diverging = False
+
+    elif rate_name=='oxy5':
+    
+        rate_title = 'OXY,dPPDiatS1'
+        grams_of_what = 'O'
+        balance_table_list = ['oxy_Table.csv']
+        multiplier_list = [1]
+        reaction_list = [['OXY,dPPDiatS1']]
+        cmap = cmocean.cm.dense  
+        cmap_diverging = False
+
+    elif rate_name=='oxy6':
+    
+        rate_title = 'OXY,dNO3Upt'
+        grams_of_what = 'O'
+        balance_table_list = ['oxy_Table.csv']
+        multiplier_list = [1]
+        reaction_list = [['OXY,dNO3Upt']]
+        cmap = cmocean.cm.dense  
+        cmap_diverging = False
+
+
+    elif rate_name=='oxy7':
+    
+        rate_title = 'OXY,dNO3UptS1'
+        grams_of_what = 'O'
+        balance_table_list = ['oxy_Table.csv']
+        multiplier_list = [1]
+        reaction_list = [['OXY,dNO3UptS1']]
+        cmap = cmocean.cm.dense  
+        cmap_diverging = False
+
+
+    elif rate_name=='oxy8':
+    
+        rate_title = 'OXY,dREAROXY'
+        grams_of_what = 'O'
+        balance_table_list = ['oxy_Table.csv']
+        multiplier_list = [1]
+        reaction_list = [['OXY,dREAROXY']]
+        cmap = cmocean.cm.balance_r  
+        cmap_diverging = True
+
+    elif rate_name=='oxy_rx':
+    
+        rate_title = 'Net OXY Rx.'
+        grams_of_what = 'O'
+        balance_table_list = ['oxy_Table.csv']
+        multiplier_list = [1]
+        reaction_list = [['OXY,dDenitWat', 'OXY,dNitrif',
+                          'OXY,dMinDetCS1', 'OXY,dMinDetCS2', 'OXY,dMinOOCS1', 'OXY,dMinOOCS2',
+                          'OXY,dOxCon', 'OXY,dZ_Resp', 'OXY,dREAROXY', 'OXY,dPPGreen',
+                          'OXY,dPPDiat', 'OXY,dPPDiatS1', 'OXY,dNO3UptS1', 'OXY,dcPPGreen',
+                          'OXY,dcPPDiat', 'OXY,dNO3Upt']]
+        cmap = cmocean.cm.balance_r
+        cmap_diverging = True
 
     elif rate_name=='dpp':
     
@@ -274,23 +387,15 @@ def get_rate_properties(rate_name):
 
     elif rate_name=='din_recycling':
     
-        rate_title = 'DIN Recycling (Respiration + Mortality)'
+        rate_title = 'DIN Recycling (Respiration + Mortality +\nMineralization of DON and PON)'
         grams_of_what = 'N'
         balance_table_list = ['din_Table.csv']
         multiplier_list = [1]
         reaction_list = [["NH4,dZ_NRes",
-                          "NH4,dNH4Aut"]]
+                          "NH4,dNH4Aut",
+                          "NH4,dMinDON",
+                          "NH4,dMinPON"]]
         cmap = cmocean.cm.amp
-        cmap_diverging = False
-
-    elif rate_name=='dmin_water':
-    
-        rate_title = 'DON + PON Mineralization'
-        grams_of_what = 'N'
-        balance_table_list = ['din_Table.csv']
-        multiplier_list = [1]
-        reaction_list = [["NH4,dMinDON","NH4,dMinPON"]]
-        cmap = cmocean.cm.matter
         cmap_diverging = False
 
     elif rate_name=='dmin_sed':
@@ -557,14 +662,26 @@ for time_period in time_period_list:
                 # read the first balance table and sum up the reacitons, mutiplying by the appropriate stoichiometric multiplier
                 balance_table_name = balance_table_list[0].replace('.csv','_%s.csv' % time_period)
                 df = pd.read_csv(os.path.join(balance_table_dir, balance_table_name))
-                rate = multiplier_list[0]*df[reaction_list[0]].sum(axis=1)
+
+                # need to check that all the reactions are in this run, 
+                reaction_list_0 = []
+                for rx in reaction_list[0]:
+                    if rx in df.columns:
+                        reaction_list_0.append(rx)
+                rate = multiplier_list[0]*df[reaction_list_0].sum(axis=1)
 
                 # if there is more than one balance table, add those up too, summing the reactions by the multipliers
                 if ntables>1:
                     for i in range(1,ntables):
                         balance_table_name = balance_table_list[i].replace('.csv','_%s.csv' % time_period)
                         df = pd.read_csv(os.path.join(balance_table_dir, balance_table_name))
-                        rate = rate + multiplier_list[i]*df[reaction_list[i]].sum(axis=1)
+
+                        # need to check that all reactions are in this run
+                        reaction_list_i = []
+                        for rx in reaction_list[0]:
+                            if rx in df.columns:
+                                reaction_list_i.append(rx)
+                        rate = rate + multiplier_list[i]*df[reaction_list_i].sum(axis=1)
                 
                 # from the last balance table, grab all the control voulme ID and geometry info, as well as the time axis, then
                 # add the rate 
@@ -638,24 +755,7 @@ for time_period in time_period_list:
             # make figure title
             cbar_title = '%s\n(%s)' % (rate_title, norm_units)
 
-            # define a little function to make a figure and axis
-            def make_figure(figsize, nrows, ncols):
-            
-                # set up figure subwindows with room for a colorbar 
-                fig, ax = plt.subplots(nrows, ncols, figsize=figsize)
-                #fig = plt.figure(figsize=figsize)
-                #ax = ImageGrid(fig, 111,          # as in plt.subplot(111)
-                #             nrows_ncols=(nrows,ncols),
-                #             axes_pad=0.15,
-                #             share_all=True,
-                #             cbar_location="right",
-                #             cbar_mode="single",
-                #             cbar_size="7%",
-                #             cbar_pad=0.15,
-                #             )
-            
-                return fig, ax
-
+            # make a function to add a subplot to figure
             def add_subplot(iaxis, itime, irun):
 
                 # get geodataframe
@@ -756,7 +856,7 @@ for time_period in time_period_list:
                     figure_fn = '%s_%s_Rate_Map%s_%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, norm_name, time_period, rate_name)
                
                     # set up figure subwindows with room for a colorbar 
-                    fig, ax = make_figure(figsize, nrows, ncols)
+                    fig, ax = plt.subplots(nrows, ncols, figsize=figsize)
 
                     # put runid in suptitle since there's only one run
                     fig.suptitle(runid,y=suptitle_y)
@@ -809,7 +909,7 @@ for time_period in time_period_list:
                         figure_fn = '%s_%s_Rate_Map_%s%s_%s_Time%04d.png' % (run_list_str, wy_list_str, time_period, norm_name, rate_name, itime)
                        
                         # set up figure subwindows with room for a colorbar 
-                        fig, ax = make_figure(figsize, nrows, ncols)
+                        fig, ax = plt.subplots(nrows, ncols, figsize=figsize)
 
                         # if all the runs are the same, add run as suptitle
                         if all_runs_same:
@@ -841,7 +941,7 @@ for time_period in time_period_list:
                             figure_fn = '%s_%s_Rate_Map%s_%s_%s_Time%04d.png' % (run_list_str, wy_list_str, norm_name, time_period, multiple_rates_figure_label, itime)
                        
                             # set up figure subwindows with room for a colorbar 
-                            fig, ax = make_figure(figsize, nrows, ncols)
+                            fig, ax = plt.subplots(nrows, ncols, figsize=figsize)
 
                             # add title -- if there is only one run or all runs are the same, put runid in the suptitle
                             if all_runs_same:

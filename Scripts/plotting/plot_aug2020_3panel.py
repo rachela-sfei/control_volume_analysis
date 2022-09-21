@@ -324,7 +324,6 @@ for param in param_list:
                         units_label = '%s %s' % (units, element_dict[param])
                         units_mass_label = 'Mg %s' % element_dict[param]
                         label_mass = 'Mass'
-                        label_norm = ''
                         norm_name = ''
                     elif norm == 'Area':
                         if was_there_data[irun]:
@@ -333,7 +332,6 @@ for param in param_list:
                         units_label = '%s/m$^2$ %s' % (units.replace('M',''),element_dict[param])
                         units_mass_label = 'g %s/m$^2$' % element_dict[param]
                         label_mass = 'Mass per Area'
-                        label_norm = 'per Area'
                         norm_name = '_Per_Area'
                     elif norm == 'Volume':
                         if was_there_data[irun]:
@@ -342,7 +340,6 @@ for param in param_list:
                         units_label = '%s/m$^3$ %s' % (units.replace('M',''),element_dict[param])
                         units_mass_label = 'g %s/m$^3$' % element_dict[param]
                         label_mass = 'Concentration'
-                        label_norm = 'per Volume'
                         norm_name = '_Per_Volume'
 
                     
