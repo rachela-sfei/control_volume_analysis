@@ -28,10 +28,18 @@ reload(CVPL)
 ## user input
 #########################################################################################
 
-# give a single run to plot
+# run name and server where it is located
 #runid = 'G141_13to18_246'
 #runid = 'FR13_003'
-runid = 'FR17_003'
+if 1:
+    runid = 'FR13_026'
+    server = 'chicago'
+if 1:
+    runid = 'FR17_019'
+    server = 'chicago'
+if 1:
+    runid = 'FR18_007'
+    server = 'chicago'
 
 # start time and end time sring (if None, all times available will be plotted, starting 
 # on october 1 of 1st water year
@@ -40,16 +48,22 @@ time_end = None
 #time_start = '2012-10-01'
 #time_end = '2013-10-01'
 
-# base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-#base_dir = r'X:\hpcshared'
-run_base_dir = '/richmondvol1/hpcshared'
+# base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 
 ## list of parameters to plot
 param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae', 'Diat', 'Green', 'DiatS1']
 
 # dictionary to map parameter to element corresponding to mass
-grams_of_what = {'DIN' : 'N', 'TN' : 'N', 'TN_include_sediment' : 'N', 'TotalDetNS' : 'N', 'Algae' : 'C', 'OXY' : 'O'}
+grams_of_what = {'DIN' : 'N', 
+                 'TN' : 'N', 
+                 'TN_include_sediment' : 'N', 
+                 'TotalDetNS' : 'N', 
+                 'Algae' : 'C', 
+                 'Diat' : 'C', 
+                 'Green' : 'C', 
+                 'DiatS1' : 'C', 
+                 'OXY' : 'O'}
 
 # list of panels to plot (a "panel" is a bad name for a plot of a collection of groups, each group in one subplot)
 panel_list = ['All_Subs_RMP', 'All_Subs_WB', 'South_Bay_6Part']
@@ -134,6 +148,7 @@ if not os.path.exists(figure_path):
 print('\nfigures will be saved here: %s\n' % figure_path)
             
 ## balance table folder
+run_base_dir = '/%svol1/hpcshared' % server
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
 table_dir = os.path.join(run_dir,'Balance_Tables')
 

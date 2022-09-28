@@ -75,13 +75,49 @@ reload(CVPL)
 # number of time averaging periods in 2013 (e.g. 4 for Seasonal, 12 for monthly). if all_time_together = False, this
 # example will generate N figures with one subplot each. Note if you want to plot multiple water years in an agg run 
 # you should do them one at a time (sorry it's not automated)
-runid_list = ['FR13_003']
-wy_list = [2013]
-all_time_together = True
+#runid_list = ['FR18_007']
+#wy_list = [2018]
+#server_list = ['chicago']
+#all_time_together = True
 
-select_a_rate_set = 1
+if 1:
+    runid_list = ['FR13_003', 'FR13_026']
+    wy_list = [2013, 2013]
+    server_list = ['richmond','chicago']
+    all_time_together = False
+if 1:
+    runid_list = ['FR13_026', 'G141_13to18_246']
+    wy_list = [2013, 2013]
+    server_list = ['chicago','richmond']
+    all_time_together = False
+if 1:
+    runid_list = ['FR17_003', 'FR17_019']
+    wy_list = [2017, 2017]
+    server_list = ['richmond','chicago']
+    all_time_together = False
+if 1:
+    runid_list = ['FR17_019', 'G141_13to18_246']
+    wy_list = [2017, 2017]
+    server_list = ['chicago','richmond']
+    all_time_together = False
+if 1:
+    runid_list = ['FR18_007', 'G141_13to18_246']
+    wy_list = [2018, 2018]
+    server_list = ['chicago','richmond']
+    all_time_together = False
+if 1:    
+    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+    wy_list = [2013,2013,2017,2017,2018,2018]
+    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
+if 1:    
+    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
+    wy_list = [2013,2013,2017,2017]
+    server_list = ['richmond','chicago','richmond','chicago']
+
+select_a_rate_set = 4
 
 if select_a_rate_set==0:
+
     # in this example we plot ALL the available rates (unless the user has defined some more I didn't include here)
     # but we plot them separately
     rate_list = ['oxycon-water','oxycon-sed','dpp','dpp-benthic','dpp-pelagic','denit','n-dpp','n-dpp-pelagic',
@@ -166,10 +202,11 @@ norm_list = ['Area','Volume','None']
 nruns = len(runid_list)
 assert nruns == len(wy_list)
 
-# base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-#base_dir = r'X:\hpcshared'
-run_base_dir = '/richmondvol1/hpcshared'
+# base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
+
+# base directory for model input (used to find shapefiles)
+input_base_dir = '/richmondvol1/hpcshared'
 
 # nanpercentile for color map cutoff
 cper = 97.5
@@ -182,8 +219,8 @@ subplot_height = 5
 plt.rcParams['font.size'] = '16'
 
 # path to the shapefile for full res / aggregated runs
-shp_fn_FR = os.path.join(run_base_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
-shp_fn_AGG = os.path.join(run_base_dir,'inputs','shapefiles','Agg_mod_contiguous_141.shp')
+shp_fn_FR = os.path.join(input_base_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
+shp_fn_AGG = os.path.join(input_base_dir,'inputs','shapefiles','Agg_mod_contiguous_141.shp')
 
 # this gigantic function is really user input because this is where the user can define different rates to plot.
 # the user should keep a close eye on this function becuase the reaction_list variables may need to change if more
@@ -644,6 +681,7 @@ for time_period in time_period_list:
                 wy = wy_list[irun]
 
                 # get path to the balance table folder in the run folder
+                run_base_dir = '/%svol1/hpcshared' % server_list[irun]
                 run_dir = CVPL.get_run_dir(run_base_dir, runid)
                 balance_table_dir = os.path.join(run_dir,'Balance_Tables')
 
@@ -871,7 +909,7 @@ for time_period in time_period_list:
                         figure_fn = '%s_%s_Rate_Map%s_%s_%s_ALLTIME.png' % (run_list_str, wy_list_str, norm_name, time_period, multiple_rates_figure_label)
                
                         # set up figure subwindows with room for a colorbar 
-                        fig, ax1 = make_figure(figsize, nrows, ncols)
+                        fig, ax1 = plt.subplots(nrows, ncols, figsize=figsize)
 
                         # add title -- if there is only one run or all runs are the same, put runid in the suptitle
                         if all_runs_same:
@@ -979,5 +1017,6 @@ for time_period in time_period_list:
 
                         plt.close('all')
 
-
-
+    
+    
+    

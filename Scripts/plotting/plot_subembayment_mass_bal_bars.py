@@ -21,9 +21,7 @@ reload(CVPL)
 # flag to separate sources and sinks
 separate_source_sink_flag = True
 
-# base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-#base_dir = r'X:\hpcshared'
-run_base_dir = '/richmondvol1/hpcshared'
+# base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 
 # list of parameters to plot
@@ -139,7 +137,7 @@ run_list_str = CVPL.make_concise_runid_list_string(bar_run_ID)
 wy_list_str = CVPL.make_concise_water_year_list_string(bar_wy)
 
 # path to figures, create if it does not exist
-figure_path = os.path.join(figure_base_dir, run_list_str, 'subembayment_mass_balance_bars')
+figure_path = os.path.join(figure_base_dir, run_list_str, 'subembayment_mass_bal_bars')
 if not os.path.exists(figure_path):
     os.makedirs(figure_path)
 print('\nfigures will be saved here: %s\n' % figure_path)
@@ -161,6 +159,7 @@ for param in param_list:
             runid = bar_run_ID[ibar]
     
             # get path to the balance table folder in the run folder
+            run_base_dir = '/%svol1/hpcshared' % server_list[ibar]
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
     

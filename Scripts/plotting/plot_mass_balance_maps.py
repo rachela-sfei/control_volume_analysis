@@ -16,10 +16,18 @@ reload(CVPL)
 # user input
 #########################
 
-# run name 
+# run name and server where it is located
 #runid = 'G141_13to18_246'
 #runid = 'FR13_003'
-runid = 'FR17_003'
+if 1:
+    runid = 'FR13_026'
+    server = 'chicago'
+if 1:
+    runid = 'FR17_019'
+    server = 'chicago'
+if 1:
+    runid = 'FR18_007'
+    server = 'chicago'
 
 # list of parameters to make plots for
 param_list = ['DIN', 'TN', 'TN_include_sediment', 'TotalDetNS', 'Algae', 'Diat', 'Green', 'DiatS1']
@@ -32,9 +40,7 @@ domain_name_list = ['WB_and_RMP_Subembayments','WB_and_RMP_Channel_Shoal']
 # list of averaging periods to use for generating maps
 averaging_period_list = ['Seasonal'] # can also add 'Annual', Monthly', and/or 'Weekly' assuming those time averages were created in step6 of create_balance_tables scripts
 
-# base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-#base_dir = r'X:\hpcshared'
-run_base_dir = '/richmondvol1/hpcshared'
+# base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 
 # number of significant figures to include in the LARGEST reaction and transpor terms ... this
@@ -447,6 +453,7 @@ if not os.path.exists(figure_path):
 print('\nfigures will be saved here: %s\n' % figure_path)
 
 # get path to the balance table folder in the run folder
+run_base_dir = '/%svol1/hpcshared' % server
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
 balance_table_dir = os.path.join(run_dir,'Balance_Tables')
 

@@ -30,6 +30,101 @@ from scipy.interpolate import griddata
 from shapely.geometry import Point
 import matplotlib.pyplot as plt 
 import scipy.signal as signal
+from importlib import reload
+import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
+reload(CVPL)
+    
+
+#################    
+### USER INPUT
+#################
+
+# run folder and water year'
+#runid = 'FR13_025'
+#water_year = 2013
+#runid = 'FR17_018'
+#water_year = 2017
+runid = 'FR13_003'
+water_year = 2013
+server = 'richmond'
+
+# parameter list
+param_list = ['din','tn','continuity','algae']
+
+# base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
+#base_dir = r'X:\hpcshared'
+figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
+shapefile_dir = '/richmondvol1/hpcshared/inputs/shapefiles'
+
+# some parameters controlling the algorithm for inferring flux vectors at cell centers from dot products of flux vectors at cell edges
+dmax = 10000. # maximum radius defining the neighborhood for interpolating
+Nmax = 6 #  max number of points to use in least squares approximation on regular grid
+
+# set minimum edge length to include in plots, and some calculations (meters)
+min_edge_length = 800
+
+# set an efficiency for mixing due to tidal dispersion (Rusty's alpha from dispersion coefficients for aggregated model)
+alpha = 0.12
+
+# regular grid spanning whole bay
+dx = 250.
+x = np.arange(538000.,611500.,dx)
+y = np.arange(4136500.,4225000.,dx)
+xg, yg = np.meshgrid(x,y)
+
+# some parameters for the flux vector map
+axlim =(520000, 611000.0, 4137214.3349336325, 4236092.86876108)
+legloc = (572500,4185000)
+arrow_scale=4
+key_arrow_frac = 0.5
+
+# start time string, for trimming data
+start_time = np.datetime64('%s-10-01' % (water_year-1)) 
+
+# polygon numbers to include in whole bay polygon (excluding ocean)
+ibay = [0, 117, 139, 2, 113, 114, 115, 111, 1, 3, 116, 7, 4, 112, 5, 108, 109, 110, 9, 107, 
+    6, 8, 29, 10, 12, 11, 138, 137, 100, 19, 18, 13, 20, 26, 25, 21, 14, 24, 101, 102, 103, 104, 
+    105, 106, 28, 27, 22, 15, 30, 23, 35, 34, 33, 32, 31, 17, 41, 40, 39, 38, 37, 36, 16, 140, 
+    44, 43, 42, 46, 45, 49, 47, 97, 98, 86, 96, 95, 85, 93, 52, 87, 94, 48, 51, 50, 90, 88, 91, 
+    89, 92, 53, 56, 99, 54, 55, 57, 67, 65, 66, 136, 58, 59, 63, 64, 60, 62, 61, 143, 144, 141, 
+    68, 69, 70, 71, 78, 72, 84, 79, 146, 80, 82, 83, 142, 145, 73, 81, 74, 76, 77, 75]
+
+
+# polygon numbers to include in vector flux maps (crop off the ocean, exclude polygons where have vector info in one direciton only)
+ipoly = np.sort(np.array([ 2, 113, 114, 115, 111, 1, 3, 116, 7, 4, 112, 5, 108, 109, 110, 9, 107, # LSB sloughs 0, 139, 117
+    6, 8, 29, 10, 12, 11, 100, 19, 18, 13, 20, 26, 25, 21, 14, 24, 101, 102, 103, 104, # Redwood Creek: 138, 137 
+    105, 106, 28, 27, 22, 15, 30, 23, 35, 34, 33, 32, 31, 41, 40, 39, 38, 37, 36, 140, 
+    44, 43, 42, 46, 45, 49, 47, 97, 98, 86, 96, 95, 85, 93, 52,   48, 51, 50, 90, 88, 91, 
+    89, 92, 53, 56, 99, 54, 55, 57, 67, 65, 66, 136, 58, 59, 63, 64, 60, 62, 61, # san pablo tribs: 143, 144, 141, 
+    68,   71, 78, 72, 84, 79, 146, 80, 82, 83, 142, 145, 73, 81, 74, 76])) # delta confluence 75, 77]
+# carquinez only has flux info from E/W 69,70, 
+# golden gate only has E/W flux info 94
+# near golden gate, only has E/W flux info 87,
+# along west shoal of south bay, too much anisotropy in side length 16, 17
+
+# transect numbers to include (crop off the ocean)
+itran = np.sort(np.array([  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,
+        13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,
+        26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,
+        39,  40,  41,  42,  43,  44,  45,  46,  47,  48,  49,  50,  51,
+        52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63,  64,
+        65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,
+        78,  79,  80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,
+        91,  92,  93,  94,  95,  96,  97,  98,  99, 100, 101, 102, 103,
+       104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
+       117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129,
+       130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142,
+       143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155,
+       156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168,
+       169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181,
+       182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194,
+       195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207,
+       208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220,
+       221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233,
+       234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246,
+       247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259,
+       260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272,
+       273, 274, 275, 276, 277, 278, 279, 280, 281, 282,319]))
 
 #################
 ### FUNCTIONS
@@ -153,120 +248,41 @@ def spring_neap_filter(y, dt_days = 1./24., fcut = 1/36., N = 4):
    
     # return fitlered signal
     return yf
-    
-
-#################    
-### USER INPUT
-#################
-
-# run folder and water year'
-#run_folder = 'FR13_025'
-#water_year = 2013
-#run_folder = 'FR17_018'
-#water_year = 2017
-run_folder = 'FR18_006'
-water_year = 2018
-
-# root directory (for runs, shapefiles, and output csv files)
-root_dir = '/richmondvol1/hpcshared/'   ## running on chicago
-#root_dir = r'X:\hpcshared'              ## running on windows laptop with mounted drive
-
-# output folder path
-plotfolder = os.path.join(root_dir,'NMS_Projects','Control_Volume_Analysis','Plots',run_folder,'flux_maps')
-
-# path to run folder and shapefiles (note use original 141 shapefiles because won't use other cv's and transects for these plots)
-shpfn =  os.path.join(root_dir,'inputs','shapefiles','Agg_exchange_lines.shp') 
-shpfn_poly = os.path.join(root_dir,'inputs','shapefiles','Agg_mod_contiguous.shp') 
-path = os.path.join(root_dir,'Full_res','WY%d' % water_year,run_folder)
-lsp_path = os.path.join(root_dir,'Full_res','WY%d' % water_year,run_folder,'sfbay_dynamo000.lsp')
-
-# some parameters controlling the algorithm for inferring flux vectors at cell centers from dot products of flux vectors at cell edges
-dmax = 10000. # maximum radius defining the neighborhood for interpolating
-Nmax = 6 #  max number of points to use in least squares approximation on regular grid
-
-# set minimum edge length to include in plots, and some calculations (meters)
-min_edge_length = 800
-
-# set an efficiency for mixing due to tidal dispersion (Rusty's alpha from dispersion coefficients for aggregated model)
-alpha = 0.12
-
-# regular grid spanning whole bay
-dx = 250.
-x = np.arange(538000.,611500.,dx)
-y = np.arange(4136500.,4225000.,dx)
-xg, yg = np.meshgrid(x,y)
-
-# some parameters for the flux vector map
-axlim =(520000, 611000.0, 4137214.3349336325, 4236092.86876108)
-legloc = (572500,4185000)
-arrow_scale=4
-key_arrow_frac = 0.5
-
-# start time string, for trimming data
-start_time = np.datetime64('%s-10-01' % (water_year-1)) 
-
-# polygon numbers to include in whole bay polygon (excluding ocean)
-ibay = [0, 117, 139, 2, 113, 114, 115, 111, 1, 3, 116, 7, 4, 112, 5, 108, 109, 110, 9, 107, 
-    6, 8, 29, 10, 12, 11, 138, 137, 100, 19, 18, 13, 20, 26, 25, 21, 14, 24, 101, 102, 103, 104, 
-    105, 106, 28, 27, 22, 15, 30, 23, 35, 34, 33, 32, 31, 17, 41, 40, 39, 38, 37, 36, 16, 140, 
-    44, 43, 42, 46, 45, 49, 47, 97, 98, 86, 96, 95, 85, 93, 52, 87, 94, 48, 51, 50, 90, 88, 91, 
-    89, 92, 53, 56, 99, 54, 55, 57, 67, 65, 66, 136, 58, 59, 63, 64, 60, 62, 61, 143, 144, 141, 
-    68, 69, 70, 71, 78, 72, 84, 79, 146, 80, 82, 83, 142, 145, 73, 81, 74, 76, 77, 75]
-
-
-# polygon numbers to include in vector flux maps (crop off the ocean, exclude polygons where have vector info in one direciton only)
-ipoly = np.sort(np.array([ 2, 113, 114, 115, 111, 1, 3, 116, 7, 4, 112, 5, 108, 109, 110, 9, 107, # LSB sloughs 0, 139, 117
-    6, 8, 29, 10, 12, 11, 100, 19, 18, 13, 20, 26, 25, 21, 14, 24, 101, 102, 103, 104, # Redwood Creek: 138, 137 
-    105, 106, 28, 27, 22, 15, 30, 23, 35, 34, 33, 32, 31, 41, 40, 39, 38, 37, 36, 140, 
-    44, 43, 42, 46, 45, 49, 47, 97, 98, 86, 96, 95, 85, 93, 52,   48, 51, 50, 90, 88, 91, 
-    89, 92, 53, 56, 99, 54, 55, 57, 67, 65, 66, 136, 58, 59, 63, 64, 60, 62, 61, # san pablo tribs: 143, 144, 141, 
-    68,   71, 78, 72, 84, 79, 146, 80, 82, 83, 142, 145, 73, 81, 74, 76])) # delta confluence 75, 77]
-# carquinez only has flux info from E/W 69,70, 
-# golden gate only has E/W flux info 94
-# near golden gate, only has E/W flux info 87,
-# along west shoal of south bay, too much anisotropy in side length 16, 17
-
-# transect numbers to include (crop off the ocean)
-itran = np.sort(np.array([  0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,
-        13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,
-        26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,
-        39,  40,  41,  42,  43,  44,  45,  46,  47,  48,  49,  50,  51,
-        52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  62,  63,  64,
-        65,  66,  67,  68,  69,  70,  71,  72,  73,  74,  75,  76,  77,
-        78,  79,  80,  81,  82,  83,  84,  85,  86,  87,  88,  89,  90,
-        91,  92,  93,  94,  95,  96,  97,  98,  99, 100, 101, 102, 103,
-       104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
-       117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129,
-       130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142,
-       143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155,
-       156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168,
-       169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181,
-       182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194,
-       195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207,
-       208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220,
-       221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233,
-       234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246,
-       247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259,
-       260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272,
-       273, 274, 275, 276, 277, 278, 279, 280, 281, 282,319]))
-
-# retrieve the stoichiometric multipliers from the *.lsp file
-NC_ratios, PC_ratios = scan_lsp_for_NC_PC(lsp_path)
-
-# path to DWAQ run, hist file, and hist_bal file
-histfn = os.path.join(path,'dwaq_hist.nc')
-histbal_fn = os.path.join(path,'dwaq_hist_bal.nc') 
 
 ###################
 ### MAIN PROGRAM
 ###################
 
-# create plot directory
-if not os.path.exists(plotfolder):
-    os.makedirs(plotfolder)
+# get strings with concise lists of runs and water years
+run_list_str = CVPL.make_concise_runid_list_string([runid])
+wy_list_str = CVPL.make_concise_water_year_list_string([water_year])
+
+# path to figures, create if it does not exist
+figure_path = os.path.join(figure_base_dir, run_list_str, 'residual_circulation')
+if not os.path.exists(figure_path):
+    os.makedirs(figure_path)
+print('\nfigures will be saved here: %s\n' % figure_path)
+
+# path to shapefiles assumes some things about where stuff is located on richmond that may change in future
+shpfn =  os.path.join(shapefile_dir,'Agg_exchange_lines.shp') 
+shpfn_poly = os.path.join(shapefile_dir,'Agg_mod_contiguous.shp') 
+
+# get path to the run directory 
+run_base_dir = '/%svol1/hpcshared' % server
+run_dir = CVPL.get_run_dir(run_base_dir, runid)
+
+# lsp file path
+lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
+
+# path to DWAQ run, hist file, and hist_bal file
+histfn = os.path.join(run_dir,'dwaq_hist.nc')
+histbal_fn = os.path.join(run_dir,'dwaq_hist_bal.nc') 
+
+# retrieve the stoichiometric multipliers from the *.lsp file
+NC_ratios, PC_ratios = scan_lsp_for_NC_PC(lsp_path)
 
 # loop through filter options and parameeters
-for param in ['din','tn','continuity','algae']:
+for param in param_list:
 
     if param=='algae':
 
@@ -376,7 +392,7 @@ for param in ['din','tn','continuity','algae']:
             time = time[ind]
             
             # plot title
-            plot_title = '%s: %s Flux, Unfiltered' % (run_folder, plotname_prefix)
+            plot_title = '%s: %s Flux, Unfiltered' % (runid, plotname_prefix)
         
         elif filter_option == 'spring-neap':
             varT_AVG = np.zeros(varT.shape)
@@ -396,7 +412,7 @@ for param in ['din','tn','continuity','algae']:
             time = time[::nskip]
         
             # plot title
-            plot_title = '%s: %s Flux, Filtered Over Spring-Neap Cycle' % (run_folder, plotname_prefix)
+            plot_title = '%s: %s Flux, Filtered Over Spring-Neap Cycle' % (runid, plotname_prefix)
         
         elif filter_option == 'tidal':
             varT_AVG = np.zeros(varT.shape)
@@ -417,7 +433,7 @@ for param in ['din','tn','continuity','algae']:
         
         
             # plot title
-            plot_title = '%s: %s Flux, Tidally Filtered' % (run_folder, plotname_prefix)
+            plot_title = '%s: %s Flux, Tidally Filtered' % (runid, plotname_prefix)
         
         elif filter_option == 'seasonal':
             ind1 = np.logical_and(time>=pd.Timestamp('%d-10-01' % (water_year-1)), time<pd.Timestamp('%d-01-01' % water_year))
@@ -439,14 +455,14 @@ for param in ['din','tn','continuity','algae']:
             time = ['Oct, Nov, Dec', 'Jan, Feb, Mar', 'Apr, May, Jun', 'Jul, Aug, Sep']
         
             # plot title
-            plot_title = '%s: %s Flux, Seasonal Average' % (run_folder, plotname_prefix)
+            plot_title = '%s: %s Flux, Seasonal Average' % (runid, plotname_prefix)
         
         elif filter_option == 'annual':
             varT_AVG = varT[ind,:].mean(axis=0)
             varT_RMS = np.sqrt(np.mean((varT_tidal_residual[ind,:])**2,axis=0))
             time = time[ind][0]
         
-            plot_title = '%s: %s Flux, Annual Average' % (run_folder, plotname_prefix)
+            plot_title = '%s: %s Flux, Annual Average' % (runid, plotname_prefix)
             time = time[ind][0]
         
         # trim fluxes to included transects only
@@ -744,7 +760,7 @@ for param in ['din','tn','continuity','algae']:
                 fig.suptitle(plot_title)
             else:
                 fig.suptitle(plot_title + '\n' + str(time[itime]))
-            fig.savefig(os.path.join(plotfolder,'%s_%s_flux_map_streamlines_%s_%06d.png' % (run_folder,plotname_prefix,filter_option,itime)),dpi=300)
+            fig.savefig(os.path.join(figure_path,'%s_%s_flux_map_streamlines_%s_%06d.png' % (runid,plotname_prefix,filter_option,itime)),dpi=300)
         
             # plot fluxes across edges, with direcitons for mean fluxes
             fig1, ax1 = plt.subplots(1,2,figsize=(16,11))
@@ -766,7 +782,7 @@ for param in ['din','tn','continuity','algae']:
                 fig1.suptitle(plot_title)
             else:
                 fig1.suptitle(plot_title + '\n' + str(time[itime]))
-            fig1.savefig(os.path.join(plotfolder,'%s_%s_flux_map_mean_and_rms_edges_%s_%06d.png' % (run_folder,plotname_prefix,filter_option,itime)),dpi=300)
+            fig1.savefig(os.path.join(figure_path,'%s_%s_flux_map_mean_and_rms_edges_%s_%06d.png' % (runid,plotname_prefix,filter_option,itime)),dpi=300)
         
             # plot mean fluxes at centroids and RMS fluxes across edges
             fig2, ax2 = plt.subplots(figsize=(8.5,11))
@@ -784,7 +800,7 @@ for param in ['din','tn','continuity','algae']:
                 fig2.suptitle(plot_title + '\nvectors = mean flux, edges = 0.12 x RMS deviation from tidally filtered flux')
             else:
                 fig2.suptitle(plot_title + '\nvectors = mean flux, edges = 0.12 x RMS deviation from tidally filtered flux\n' + str(time[itime]))
-            fig2.savefig(os.path.join(plotfolder,'%s_%s_flux_map_mean_and_rms_vectors_%s_%06d.png' % (run_folder,plotname_prefix,filter_option,itime)),dpi=300)
+            fig2.savefig(os.path.join(figure_path,'%s_%s_flux_map_mean_and_rms_vectors_%s_%06d.png' % (runid,plotname_prefix,filter_option,itime)),dpi=300)
             
             # plot mean fluxe streamlines with RMS fluxes across edges
             fig3, ax3 = plt.subplots(figsize=(8.5,11))
@@ -800,7 +816,7 @@ for param in ['din','tn','continuity','algae']:
                 fig3.suptitle(plot_title + '\nstreamlines = mean flux, edges = 0.12 x RMS deviation from tidally filtered flux')
             else:
                 fig3.suptitle(plot_title + '\nstreamlines = mean flux, edges = 0.12 x RMS deviation from tidally filtered flux\n' + str(time[itime]))
-            fig3.savefig(os.path.join(plotfolder,'%s_%s_flux_map_streamlines_plus_rms_%s_%06d.png' % (run_folder,plotname_prefix,filter_option,itime)),dpi=300)
+            fig3.savefig(os.path.join(figure_path,'%s_%s_flux_map_streamlines_plus_rms_%s_%06d.png' % (runid,plotname_prefix,filter_option,itime)),dpi=300)
         
             # plot mean flux magnitude in color with RMS fluxes across edges and black streamlines on top
             fig4, ax4 = plt.subplots(figsize=(8.5,11))
@@ -817,7 +833,7 @@ for param in ['din','tn','continuity','algae']:
                 fig4.suptitle(plot_title + '\nbackground color = mean flux magnitude, edges = 0.12 x RMS deviation from tidally filtered flux\nstreamlines = mean flux direction')
             else:
                 fig4.suptitle(plot_title + '\nbackground color = mean flux magnitude, edges = 0.12 x RMS deviation from tidally filtered flux\nstreamlines = mean flux direction\n' + str(time[itime]))
-            fig4.savefig(os.path.join(plotfolder,'%s_%s_flux_map_streamlines_plus_mean_and_rms_%s_%06d.png' % (run_folder,plotname_prefix,filter_option,itime)),dpi=300)
+            fig4.savefig(os.path.join(figure_path,'%s_%s_flux_map_streamlines_plus_mean_and_rms_%s_%06d.png' % (runid,plotname_prefix,filter_option,itime)),dpi=300)
         
             plt.close('all')
                     

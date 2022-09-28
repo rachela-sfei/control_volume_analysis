@@ -50,14 +50,35 @@ group_list = 'all'
 
 # list or runs to plot and water years to pick out of corresponding run (each is a column in the plot)
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
-#runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
-#wystr_list = ['WY2013','WY2013','WY2017','WY2017']
-#runid_list = ['G141_13to18_246']
-#wystr_list = ['WY13to18']
-#runid_list = ['FR13_003']
-#wystr_list = ['WY2013']
-runid_list = ['FR17_003']
-wystr_list = ['WY2017']
+# also list servers where runs are stored
+if 1:
+    runid_list = ['FR13_003', 'FR13_026']
+    wystr_list = ['WY2013', 'WY2013']
+    server_list = ['richmond','chicago']
+if 1:
+    runid_list = ['FR13_026', 'G141_13to18_246']
+    wystr_list = ['WY2013', 'WY2013']
+    server_list = ['chicago','richmond']
+if 1:
+    runid_list = ['FR17_003', 'FR17_019']
+    wystr_list = ['WY2017', 'WY2017']
+    server_list = ['richmond','chicago']
+if 1:
+    runid_list = ['FR17_019', 'G141_13to18_246']
+    wystr_list = ['WY2017', 'WY2017']
+    server_list = ['chicago','richmond']
+if 1:
+    runid_list = ['FR18_007', 'G141_13to18_246']
+    wystr_list = ['WY2018', 'WY2018']
+    server_list = ['chicago','richmond']
+if 1:    
+    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017','WY2018', 'WY2018']
+    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
+if 1:    
+    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
+    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017']
+    server_list = ['richmond','chicago','richmond','chicago']
 
 
 # list of parameters to plot (must match balance table, one plot per parameter is created)
@@ -72,9 +93,7 @@ norm_list = ['Area']
 # do you want to include mass in the figure? if so it will go in first row, but we skip this one for cumulative time aggregation
 include_mass = True
 
-# base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-#run_base_dir = r'X:\hpcshared'
-run_base_dir = '/richmondvol1/hpcshared'
+# base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 
 # number of runs (corresponds to number of columns)
@@ -88,6 +107,10 @@ else:
     fig_width = 4*(nruns+0.75)
 row_height = 3
 
+# maximum number of rows in the legend (needed b/c tight_layout shrinks subplot windows to try 
+# to accomodate legend, unsuccessfully, if it gets too long --OXY reaction in particular has so many reactions)
+max_legend_rows = 10
+
 # start with the default color cycle and add even more colors because the number of reactions is OUT OF CONTROL!
 colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
           'fuchsia','gold','lawngreen','aqua','lavender','navy','lightgray']
@@ -96,6 +119,7 @@ colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e3
 element_dict = {}
 element_dict['TN'] = 'N'
 element_dict['TN_include_sediment'] = 'N'
+element_dict['TotalDetNS'] = 'N'
 element_dict['DIN'] = 'N'
 element_dict['OXY'] = 'O'
 element_dict['NO3'] = 'N'
@@ -160,6 +184,7 @@ print('\nfigures will be saved here: %s\n' % figure_path)
 # if group_list is set to 'all' or is otherwise not a list, take a sneak peek at one of the balance 
 # tables and retrieve a list of all the spatial groups (hopefully this one exists)
 if group_list == 'all':
+    run_base_dir = '/%svol1/hpcshared' % server_list[0]
     run_dir = CVPL.get_run_dir(run_base_dir, runid_list[0])
     balance_table_dir = os.path.join(run_dir,'Balance_Tables')
     data = pd.read_csv(os.path.join(balance_table_dir,'%s_Table_By_Group.csv' % param_list[0].lower()))
@@ -226,6 +251,7 @@ for param in param_list:
             runid = runid_list[irun]
     
             # get path to the balance table folder in the run folder
+            run_base_dir = '/%svol1/hpcshared' % server_list[irun]
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             
@@ -300,6 +326,7 @@ for param in param_list:
                     runid = runid_list[irun]
             
                     # get path to the balance table folder in the run folder
+                    run_base_dir = '/%svol1/hpcshared' % server_list[irun]
                     run_dir = CVPL.get_run_dir(run_base_dir, runid)
                     balance_table_dir = os.path.join(run_dir,'Balance_Tables')
                     
@@ -558,8 +585,11 @@ for param in param_list:
                                     ax_run1 = ax
                                 handles, labels = ax_run1[irow].get_legend_handles_labels()
 
+                                # sometimes we need mulitple columns in the legend to fit all the reactions
+                                ncol = int(np.ceil((len(master_reaction_cols) + 1)/max_legend_rows))
+
                                 # put the legend in the last column, but with contents based on first column that had data
-                                ax_run[irow].legend(handles, labels, loc='center left',bbox_to_anchor=(1, 0.5))
+                                ax_run[irow].legend(handles, labels, loc='center left',bbox_to_anchor=(1, 0.5), ncol=ncol)
 
                         # row corresponding to reactions
                         row_rx = irow

@@ -45,9 +45,8 @@ param_list = ['DIN','TN','TN_include_sediment','TotalDetNS','OXY','Algae']
 # list of norms to use (this is for batch processing, they appear in separate figures)
 norm_list = ['Area','Volume','None']
 
-# base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
+# base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 #base_dir = r'X:\hpcshared'
-run_base_dir = '/richmondvol1/hpcshared'
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 
 # figure size scales with number of subplots
@@ -96,6 +95,7 @@ for param in param_list:
             runid = runid_list[irun]
     
             # get path to the balance table folder in the run folder
+            run_base_dir = '/%svol1/hpcshared' % server_list[irun]
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             
@@ -165,6 +165,7 @@ for param in param_list:
                 wy = wy_list[irun]
         
                 # get path to the balance table folder in the run folder
+                run_base_dir = '/%svol1/hpcshared' % server_list[irun]
                 run_dir = CVPL.get_run_dir(run_base_dir, runid)
                 balance_table_dir = os.path.join(run_dir,'Balance_Tables')
     

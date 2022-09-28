@@ -16,8 +16,17 @@ alliek august 2022
 # 207,208,209,
 # 211,212,213,214,215,216,217,218,219,220,221,222,223
 # 227,229,230
-runid = 'G141_13to18_247'
+runid = 'G141_13to18_88'
 #runid = 'FR17_003'
+
+# base directory of the model runs
+model_run_base_dir = '/richmondvol1/hpcshared'
+
+# base directory for model input, namely the shapefiles (this definitely runs on linux, in theory can also run this in windows and use mounted drive)
+model_input_dir = '/richmondvol1/hpcshared'
+
+# stompy directory (stompy is called in step0_create_balance_tables.py to create dwaq_hist_bal.nc from the *-his.bal file if needed)
+stompy_dir = '/opt/software/rusty/stompy/newest_commit/stompy'
 
 # base level substances to process. set to string 'all' or a list of substance strings -- warning, processing 
 # all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py)
@@ -35,7 +44,7 @@ plot_substance_list = ['tn_include_sediment','tn','din','nh4','no3','don',
 # list of time averaging schemes to apply (saves space to skip some if we don't need them) 
 # (this is used in step6_aggregate_in_time.py)
 #tavg_list = ['Cumulative', 'Filtered', 'Annual', 'Seasonal', 'Monthly', 'Weekly']
-tavg_list = ['Cumulative', 'Filtered', 'Seasonal']
+tavg_list = ['Cumulative', 'Filtered', 'Seasonal','Monthly']
 
 # float format for csv files
 float_format = '%1.6e'
@@ -47,7 +56,7 @@ error_tol_percent = 0.001
 # NOTE THAT FOR FR13_003 AND FR13_007 RUNS, THERE IS A MASS CONSERVATION ERROR BUT IT IS NOT A DEAL BREAKER, SO WE SET THIS TO FALSE
 # WHEN GENERATING BALANCE TABLES FOR THOSE RUNS (the error is that algae that settles to the bed does not go into detritus, it just 
 # leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
-abort_for_mass_cons_error = False 
+abort_for_mass_cons_error = True
 
 # delete all balance tables before re-running step1_create_balance_tables?
 delete_balance_tables = True
@@ -59,13 +68,6 @@ delete_balance_tables = True
 # 3. originally, i added the capacity to process delta runs to make sure mass of N is conserved, and for the most part it is, 
 #    (there's a small leak when N is passed from DIN to algae because we're using an old version of DWAQ)
 is_delta = False
-
-# base directory for model input, namely the shapefiles (this definitely runs on linux, in theory can also run this in windows and use mounted drive)
-#model_inout_dir = 'X:\hpcshared'
-model_inout_dir = '/richmondvol1/hpcshared'
-
-# stompy directory (stompy is called in step0_create_balance_tables.py to create dwaq_hist_bal.nc from the *-his.bal file if needed)
-stompy_dir = '/opt/software/rusty/stompy/newest_commit/stompy'
 
 # if the user sets the following variables to None, they are calculated automatically, by making some assumptions about
 # how our computers are organized (see below)
@@ -438,10 +440,10 @@ import socket
 # functions
 ##############################
 
-def get_shapefile_paths(model_inout_dir, runid, is_delta):
+def get_shapefile_paths(model_input_dir, runid, is_delta):
 
 	'''
-	poly_path, tran_path = get_shapefile_paths(model_inout_dir, runid, is_delta)
+	poly_path, tran_path = get_shapefile_paths(model_input_dir, runid, is_delta)
 
 	given the path to the base directory for all our model input, the runid, and boolean saying whether or not this is a delta run,
 	automatically find the path to the shapefiles used to set up the run (note we are using an earlier version of the open bay FR shapefiles, 
@@ -451,20 +453,20 @@ def get_shapefile_paths(model_inout_dir, runid, is_delta):
 	if is_delta:
 
 		# path to shapefiles used in final delta runs
-	    tran_path =  os.path.join(model_inout_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Transects_Dave_Plus_WB_v4.shp') 
-	    poly_path = os.path.join(model_inout_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Polygons_Dave_Plus_WB_v4.shp')
+	    tran_path =  os.path.join(model_input_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Transects_Dave_Plus_WB_v4.shp') 
+	    poly_path = os.path.join(model_input_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Polygons_Dave_Plus_WB_v4.shp')
 	
 	elif 'FR' in runid:
 
 	    ## path to the full res shapefile
-	    tran_path =  os.path.join(model_inout_dir,'inputs','shapefiles','Agg_exchange_lines_plus_subembayments_shoal_channel.shp') 
-	    poly_path = os.path.join(model_inout_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
+	    tran_path =  os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_plus_subembayments_shoal_channel.shp') 
+	    poly_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
 
 	elif 'G141' in runid:
 	    
 		# path to shapefiles used in aggregated grid runs
-	    tran_path = os.path.join(model_inout_dir,'inputs','shapefiles','Agg_exchange_lines_141.shp')
-	    poly_path =  os.path.join(model_inout_dir,'inputs','shapefiles','Agg_mod_contiguous_141.shp')
+	    tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_141.shp')
+	    poly_path =  os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_141.shp')
 	
 	return poly_path, tran_path
 
@@ -523,28 +525,40 @@ def get_water_year(runid):
 
 	return water_year
 
-def get_run_dir(model_inout_dir, runid, is_delta):
+def get_run_dir(model_run_base_dir, runid, is_delta):
 
-	'''
-	run_dir = get_run_dir(model_inout_dir, runid, is_delta)
+    '''
+    run_dir = get_run_dir(model_run_base_dir, runid, is_delta)
 
-	given the path to the base directory for all our model input, the runid, and boolean saying whether or not this is a delta run,
-	automatically find the path to the directory for the run, where all the input and output files are stored
-	'''
+    given the path to the base directory for all our model input, the runid, and boolean saying whether or not this is a delta run,
+    automatically find the path to the directory for the run, where all the input and output files are stored
+    '''
 
-	# paths to input shapefiles, *.his and *-bal.his files, *.lsp file
-	if is_delta:
-	    run_dir = os.path.join(model_inout_dir,'Delta','BGC_model','Full_res',runid)
-	elif 'FR' in runid:
-		water_year = get_water_year(runid)
-		run_dir = os.path.join(model_inout_dir,'Full_res',water_year,runid)
-	elif 'G141' in runid:
-		water_year = get_water_year(runid)
-		run_dir = os.path.join(model_inout_dir,'Grid141',water_year,runid)
-	else:
-		raise Exception('runid %s does not fit expected pattern' % runid)
-
-	return run_dir
+    # paths *.his and *-bal.his files, *.lsp file
+    if 'richmondvol1' in model_run_base_dir:
+        if is_delta:
+            run_dir = os.path.join(model_run_base_dir,'Delta','BGC_model','Full_res',runid)
+        elif 'FR' in runid:
+            water_year = get_water_year(runid)
+            run_dir = os.path.join(model_run_base_dir,'Full_res',water_year,runid)
+        elif 'G141' in runid:
+            water_year = get_water_year(runid)
+            run_dir = os.path.join(model_run_base_dir,'Grid141',water_year,runid)
+        else:
+            raise Exception('runid %s does not fit expected pattern' % runid)
+    else:
+        if is_delta:
+            raise Exception('need to revise step0_config.py to accomodate delta runs on servers besides richmond')
+        elif 'FR' in runid:
+            water_year = get_water_year(runid)
+            run_dir = os.path.join(model_run_base_dir,'open_bay','bgc','full_res',water_year,runid)
+        elif 'G141' in runid:
+            water_year = get_water_year(runid)
+            run_dir = os.path.join(model_run_base_dir,'open_bay','bgc','agg',water_year,runid)
+        else:
+            raise Exception('runid %s does not fit expected pattern' % runid)
+            
+    return run_dir
 
 def get_lsp_path(run_dir, is_delta):
 
@@ -595,7 +609,7 @@ def logger_cleanup():
 
 # get the paths to the shapefiles used in the model input
 if poly_path is None or tran_path is None:
-	poly_path, tran_path = get_shapefile_paths(model_inout_dir, runid, is_delta)
+	poly_path, tran_path = get_shapefile_paths(model_input_dir, runid, is_delta)
 
 # get the paths to the group and group connectivity definition files for the aggregated groups (used in step5_)
 if group_def_path is None or group_con_path is None:
@@ -603,7 +617,7 @@ if group_def_path is None or group_con_path is None:
 
 # get the run directory
 if run_dir is None:
-	run_dir = get_run_dir(model_inout_dir, runid, is_delta)
+	run_dir = get_run_dir(model_run_base_dir, runid, is_delta)
 
 # get the path to the lsp file
 if lsp_path is None:

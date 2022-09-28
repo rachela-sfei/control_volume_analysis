@@ -42,15 +42,40 @@ reload(CVPL)
 ## user input
 #########################################################################################
 
-# list or runs to plot and water year to pick out of corresponding run (each is a column in the plot)
-#runid_list = ['G141_13to18_247']
-runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
-
-# this is the list of water years to zoom in on within each plot, should be the same length as runid_list
-# use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
-#wystr_list = ['WY13to18','WY13to18']
-wystr_list = ['WY2013','WY2013','WY2017','WY2017']
-#wystr_list = ['WY2013']
+# list of runs to plot, water year to pick out of corresponding run (each is a column in the plot), 
+# and a list of servers where each run is located (use 'WY13to18' to plot all years of a 6-year agg grid run, 
+# otherwise format should be 'WY2013', 'WY2018', etc.)
+#runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
+#wystr_list = ['WY2013','WY2013','WY2017','WY2017']
+#server_list = ['richmond','richmond','richmond','richmond']
+if 1:
+    runid_list = ['FR13_003', 'FR13_026']
+    wystr_list = ['WY2013', 'WY2013']
+    server_list = ['richmond','chicago']
+if 1:
+    runid_list = ['FR13_026', 'G141_13to18_246']
+    wystr_list = ['WY2013', 'WY2013']
+    server_list = ['chicago','richmond']
+if 1:
+    runid_list = ['FR17_003', 'FR17_019']
+    wystr_list = ['WY2017', 'WY2017']
+    server_list = ['richmond','chicago']
+if 1:
+    runid_list = ['FR17_019', 'G141_13to18_246']
+    wystr_list = ['WY2017', 'WY2017']
+    server_list = ['chicago','richmond']
+if 1:
+    runid_list = ['FR18_007', 'G141_13to18_246']
+    wystr_list = ['WY2018', 'WY2018']
+    server_list = ['chicago','richmond']
+if 1:    
+    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+    wystr_list = ['WY2013','WY2013','WY2017', 'WY2017','WY2018', 'WY2018']
+    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
+if 1:    
+    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
+    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017']
+    server_list = ['richmond','chicago','richmond','chicago']
 
 ## composite parameter (must match suffix of balance table)
 param_list = ['DIN','TN','TN_include_sediment','TotalDetNS']
@@ -58,9 +83,7 @@ param_list = ['DIN','TN','TN_include_sediment','TotalDetNS']
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 tavg_list = ['Filtered','Cumulative']
 
-# base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-#run_base_dir = r'X:\hpcshared'
-run_base_dir = '/richmondvol1/hpcshared'
+# base directory for the and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 
 # number of runs (corresponds to number of columns)
@@ -199,6 +222,7 @@ for param in param_list:
             runid = runid_list[irun]
     
             # get path to the balance table folder in the run folder
+            run_base_dir = '/%svol1/hpcshared' % server_list[irun]
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             
@@ -256,6 +280,7 @@ for param in param_list:
             runid = runid_list[irun]
     
             # get path to the balance table folder in the run folder
+            run_base_dir = '/%svol1/hpcshared' % server_list[irun]
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             

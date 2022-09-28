@@ -169,13 +169,24 @@ def get_run_dir(run_base_dir, runid):
 	given the base directory and runid, return the full path to the model run folder on richmond
 	'''
 
-	if 'FR' in runid:
-		water_year = get_water_year(runid)
-		run_dir = os.path.join(run_base_dir,'Full_res',water_year,runid)
-	elif 'G141' in runid:
-		water_year = get_water_year(runid)
-		run_dir = os.path.join(run_base_dir,'Grid141',water_year,runid)
+	if 'richmond' in run_base_dir:
+		if 'FR' in runid:
+			water_year = get_water_year(runid)
+			run_dir = os.path.join(run_base_dir,'Full_res',water_year,runid)
+		elif 'G141' in runid:
+			water_year = get_water_year(runid)
+			run_dir = os.path.join(run_base_dir,'Grid141',water_year,runid)
+		else:
+			raise Exception('runid %s does not fit expected pattern' % runid)
 	else:
-		raise Exception('runid %s does not fit expected pattern' % runid)
+		if 'FR' in runid:
+			water_year = get_water_year(runid)
+			run_dir = os.path.join(run_base_dir,'open_bay','bgc','full_res',water_year,runid)
+		elif 'G141' in runid:
+			water_year = get_water_year(runid)
+			run_dir = os.path.join(run_base_dir,'open_bay','bgc','agg',water_year,runid)
+		else:
+			raise Exception('runid %s does not fit expected pattern' % runid)
+
 
 	return run_dir
