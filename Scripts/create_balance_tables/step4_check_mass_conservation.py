@@ -135,8 +135,12 @@ for param in step0_config.mass_cons_check_param_list:
     
     # read table
     table_name = '%s_Table.csv' % param.lower()
-    df = pd.read_csv(os.path.join(step0_config.balance_table_dir,table_name))
-    
+    try:
+        df = pd.read_csv(os.path.join(step0_config.balance_table_dir,table_name))
+    except:
+        print('Cannot open %s, skipping mass conservation check for this parameter')
+        continue
+
     # read the polygon shapefile, and if delta, find the water board polygons and select those to plot
     gdf = gpd.read_file(step0_config.poly_path)
     if step0_config.is_delta:

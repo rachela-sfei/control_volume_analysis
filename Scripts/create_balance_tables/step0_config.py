@@ -10,19 +10,41 @@ alliek august 2022
 # user input
 ##############################
 
+# abort if error tolerance is exceeded? set to False for troubleshooting only. (this is used in step4_check_mass_conservation.py)
+# NOTE THAT FOR FR13_003 AND FR13_007 RUNS, THERE IS A MASS CONSERVATION ERROR BUT IT IS NOT A DEAL BREAKER, SO WE SET THIS TO FALSE
+# WHEN GENERATING BALANCE TABLES FOR THOSE RUNS (the error is that algae that settles to the bed does not go into detritus, it just 
+# leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
+abort_for_mass_cons_error = True
+
 # this is the run you want to process
 # skip 210, runs 224-226, and run 228
 # 197, 
 # 207,208,209,
 # 211,212,213,214,215,216,217,218,219,220,221,222,223
 # 227,229,230
-runid = 'G141_13to18_88'
 #runid = 'FR17_003'
+#runid = 'FR22_HAB_054'
+#runid = 'FR22_HAB_055'
+#runid = 'FR22_HAB_056'
+#runid = 'FR22_HAB_057'
+runid = 'FR22_HAB_058'
 
-# base directory of the model runs
+# if the user sets the following variables to None, they are calculated automatically, by making some assumptions about
+# how our computers are organized (see below). if your run doesn't fit the usual mold, you can override the automatic stuff
+# by setting some or all of these variables directly
+poly_path = None
+tran_path = None
+group_def_path = None          
+group_con_path = None
+run_dir = '/chicagovol1/hpcshared/open_bay/bgc/full_res/WY2022_bloom/%s' % runid
+lsp_path = None
+balance_table_dir = None       # will be placed inside run_dir unless otherwise specified
+
+# base directory of the model runs (this is ignored if run_dir is specified as something other than None above)
 model_run_base_dir = '/richmondvol1/hpcshared'
 
 # base directory for model input, namely the shapefiles (this definitely runs on linux, in theory can also run this in windows and use mounted drive)
+# (this is ignored if poly_path and tran_path are specified as something other than None above)
 model_input_dir = '/richmondvol1/hpcshared'
 
 # stompy directory (stompy is called in step0_create_balance_tables.py to create dwaq_hist_bal.nc from the *-his.bal file if needed)
@@ -40,7 +62,6 @@ plot_substance_list = ['tn_include_sediment','tn','din','nh4','no3','don',
                         'oxy','algae','diat','green','diats1','zoopl']
 
 
-
 # list of time averaging schemes to apply (saves space to skip some if we don't need them) 
 # (this is used in step6_aggregate_in_time.py)
 #tavg_list = ['Cumulative', 'Filtered', 'Annual', 'Seasonal', 'Monthly', 'Weekly']
@@ -50,13 +71,7 @@ tavg_list = ['Cumulative', 'Filtered', 'Seasonal','Monthly']
 float_format = '%1.6e'
 
 # set tolerance for mass conservation error as a percentage of whatever variable we chose to normalize by (this is used in step4_check_mass_conservation.py)
-error_tol_percent = 0.001
-
-# abort if error tolerance is exceeded? set to False for troubleshooting only. (this is used in step4_check_mass_conservation.py)
-# NOTE THAT FOR FR13_003 AND FR13_007 RUNS, THERE IS A MASS CONSERVATION ERROR BUT IT IS NOT A DEAL BREAKER, SO WE SET THIS TO FALSE
-# WHEN GENERATING BALANCE TABLES FOR THOSE RUNS (the error is that algae that settles to the bed does not go into detritus, it just 
-# leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
-abort_for_mass_cons_error = True
+error_tol_percent = 0.1
 
 # delete all balance tables before re-running step1_create_balance_tables?
 delete_balance_tables = True
@@ -68,16 +83,6 @@ delete_balance_tables = True
 # 3. originally, i added the capacity to process delta runs to make sure mass of N is conserved, and for the most part it is, 
 #    (there's a small leak when N is passed from DIN to algae because we're using an old version of DWAQ)
 is_delta = False
-
-# if the user sets the following variables to None, they are calculated automatically, by making some assumptions about
-# how our computers are organized (see below)
-poly_path = None
-tran_path = None
-group_def_path = None
-group_con_path = None
-run_dir = None
-lsp_path = None
-balance_table_dir = None
 
 # for some parameters, the dwaq_hist.nc file does not have the correct units ... use this to override the units
 # (this is used only in step1_create_balance_tables.py, where we compute dMass/dt from concentraitons in the *.his
@@ -410,7 +415,14 @@ composite_reaction_dict = {
 
 # which parameters to check for mass conservation? put them in a list
 # (this is used for step4_check_mass_conservation.py)
-mass_cons_check_param_list = ['N-Algae','N-Zoopl','Algae','Zoopl','DIN','TN','TN_include_sediment','TotalDetNS']
+mass_cons_check_param_list = ['N-Algae',
+                              'N-Zoopl',
+                              'Algae',
+                              'Zoopl',
+                              'DIN',
+                              'TN',
+                              'TN_include_sediment',
+                              'TotalDetNS']
 
 # for each parameter in mass_cons_check_param_list, pick a reaction to normalize everything by -- error in the terms
 # that should be zero will be measured as a percentage of this term (this is used for step4_check_mass_conservation.py)
