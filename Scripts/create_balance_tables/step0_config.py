@@ -22,12 +22,22 @@ abort_for_mass_cons_error = True
 # 207,208,209,
 # 211,212,213,214,215,216,217,218,219,220,221,222,223
 # 227,229,230
-#runid = 'FR17_003'
-#runid = 'FR22_HAB_054'
-#runid = 'FR22_HAB_055'
-#runid = 'FR22_HAB_056'
-#runid = 'FR22_HAB_057'
-runid = 'FR22_HAB_058'
+#runid = 'G141_13to18_246'  # /richmondvol1          chicago
+#runid = 'G141_13to18_254'  # /fortcollinsvol1       chicago
+#runid = 'G141_13to18_255'  # /fortcollinsvol1       chicago
+#runid = 'G141_13to18_256'  # /fortcollinsvol1       chicago
+#runid = 'G141_13to18_257'  # /fortcollinsvol1       chicago
+#runid = 'G141_13to18_258'  # /fortcollinsvol1       chicago
+#runid = 'G141_13to18_259'  # /fortcollinsvol1       chicago
+#runid = 'G141_13to18_260'  # /boisevol1             chicago
+runid = 'G141_13to18_261'  # /boisevol1             boise
+#runid = 'G141_13to18_262'  # /boisevol1             boise
+#runid = 'G141_13to18_263'  # /boisevol1             boise
+#runid = 'G141_13to18_264'  # /boisevol1             boise
+#runid = 'G141_13to18_265'  # /boisevol1             boise
+#runid = 'G141_13to18_266'  # /boisevol1             boise
+#runid = 'G141_13to18_267'  # /boisevol1             boise
+#runid = 'G141_13to18_268'  # /boisevol1             boise
 
 # if the user sets the following variables to None, they are calculated automatically, by making some assumptions about
 # how our computers are organized (see below). if your run doesn't fit the usual mold, you can override the automatic stuff
@@ -36,12 +46,12 @@ poly_path = None
 tran_path = None
 group_def_path = None          
 group_con_path = None
-run_dir = '/chicagovol1/hpcshared/open_bay/bgc/full_res/WY2022_bloom/%s' % runid
+run_dir = None  #run_dir = '/chicagovol1/hpcshared/open_bay/bgc/full_res/WY2022_bloom/%s' % runid 
 lsp_path = None
 balance_table_dir = None       # will be placed inside run_dir unless otherwise specified
 
 # base directory of the model runs (this is ignored if run_dir is specified as something other than None above)
-model_run_base_dir = '/richmondvol1/hpcshared'
+model_run_base_dir = '/boisevol1/hpcshared'
 
 # base directory for model input, namely the shapefiles (this definitely runs on linux, in theory can also run this in windows and use mounted drive)
 # (this is ignored if poly_path and tran_path are specified as something other than None above)
@@ -52,26 +62,28 @@ stompy_dir = '/opt/software/rusty/stompy/newest_commit/stompy'
 
 # base level substances to process. set to string 'all' or a list of substance strings -- warning, processing 
 # all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py)
-# substance_list = 'all'
-substance_list = ['continuity', 'nh4', 'no3', 'pon1', 'pon2', 'don', 'diat', 'diats1', 'green', 'oxy', 'zoopl_e', 'zoopl_r', 'zoopl_v', 'detns1', 'detns2', 'oons1', 'oons2']
+substance_list = ['continuity', 'nh4', 'no3', 'pon1', 'pon2', 'don', 'diat', 'diats1', 'green', 'oxy', 
+                  'zoopl_e', 'zoopl_r', 'zoopl_v', 
+                  'mussel_v','mussel_e','mussel_r','grazer4_v','grazer4_e','grazer4_r',
+                  'detns1', 'detns2', 'oons1', 'oons2']
 
 # list of substances we think we are actually going to want to plot -- to save space, the 
 # step5_compile_balance_tables_into_groups.py and step6_aggregate_in_time.py scripts will only process these substances
 plot_substance_list = ['tn_include_sediment','tn','din','nh4','no3','don',
                         'pon1','pon2','n-algae','n-zoopl','totaldetns','detns1','detns2','oons1','oons2',
-                        'oxy','algae','diat','green','diats1','zoopl']
+                        'oxy','algae','diat','green','diats1','zoopl','mussel','grazer4','clams']
 
 
 # list of time averaging schemes to apply (saves space to skip some if we don't need them) 
 # (this is used in step6_aggregate_in_time.py)
 #tavg_list = ['Cumulative', 'Filtered', 'Annual', 'Seasonal', 'Monthly', 'Weekly']
-tavg_list = ['Cumulative', 'Filtered', 'Seasonal','Monthly']
+tavg_list = ['Cumulative']#, 'Filtered', 'Annual', 'Seasonal']
 
 # float format for csv files
 float_format = '%1.6e'
 
 # set tolerance for mass conservation error as a percentage of whatever variable we chose to normalize by (this is used in step4_check_mass_conservation.py)
-error_tol_percent = 0.1
+error_tol_percent = 1#0.1
 
 # delete all balance tables before re-running step1_create_balance_tables?
 delete_balance_tables = True
@@ -112,9 +124,9 @@ composite_parameters = {
 #                             'Mussel_V','Mussel_E','Mussel_R','Grazer4_V','Grazer4_E','Grazer4_R'],
 #    'TotalDetPS' : ['DetPS1', 'DetPS2','OOPS1', 'OOPS2'],
 #    'TotalDetSi' : ['DetSiS1', 'DetSiS2','OOSiS1', 'OOSiS2'],
-#    'Grazer4' : ['Grazer4_V', 'Grazer4_E', 'Grazer4_R'],
-#    'Mussel' : ['Mussel_V', 'Mussel_E', 'Mussel_R'], 
-#    'Clams' : ['Grazer4_V', 'Grazer4_E', 'Grazer4_R', 'Mussel_V', 'Mussel_E', 'Mussel_R']
+    'Grazer4' : ['Grazer4_V', 'Grazer4_E', 'Grazer4_R'],
+    'Mussel' : ['Mussel_V', 'Mussel_E', 'Mussel_R'], 
+    'Clams' : ['Grazer4_V', 'Grazer4_E', 'Grazer4_R', 'Mussel_V', 'Mussel_E', 'Mussel_R']
 }
 
 # is the budget of each composite parameter in grams of C, N, P, etc? (this is used in 

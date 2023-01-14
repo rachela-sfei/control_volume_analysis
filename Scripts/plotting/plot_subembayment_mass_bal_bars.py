@@ -10,6 +10,10 @@ import matplotlib.pyplot as plt
 import sys
 import os 
 import matplotlib.patches as mpatches
+if not 'DISPLAY' in os.environ:
+    import matplotlib
+    matplotlib.use('agg')
+    plt.switch_backend('Agg')
 from importlib import reload
 import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
 reload(CVPL)

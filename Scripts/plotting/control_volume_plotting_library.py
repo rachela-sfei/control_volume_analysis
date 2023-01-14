@@ -34,10 +34,18 @@ def make_concise_runid_list_string(runid_list):
 	
 	'''
 
-	# replace 'G141_' with 'AGG' in runid's
+	# check if this is a special "HAB" run, and if so, only allow comparisons between HAB runs
+	if '_HAB' in runid_list[0]:
+		for runid in runid_list:	
+			assert '_HAB' in runid # at this time, we only allow comparisons between HAB runs
+		ishab = True
+	else:
+		ishab = False
+
+	# replace 'G141_' with 'AGG' in runid's, and also eliminate "_HAB"
 	runid_list_copy = runid_list.copy()
 	for i,runid in enumerate(runid_list):
-		runid_list_copy[i] = runid.replace('G141_','AGG')
+		runid_list_copy[i] = runid.replace('G141_','AGG').replace('_HAB','')
 	
 	# come up with a corresponding list of just the run prefixes and just the run numbers
 	run_pref_list = []
@@ -86,7 +94,11 @@ def make_concise_runid_list_string(runid_list):
 		for run_numb in run_numb_subset:
 			concise_runid_list_string = concise_runid_list_string + run_numb + '_'
 	concise_runid_list_string = concise_runid_list_string[0:-1]
-	
+
+	# add HAB prefix if it is a HAB simulation
+	if ishab:
+		concise_runid_list_string = 'HAB_' + concise_runid_list_string
+
 	return concise_runid_list_string
 
 def list_of_wy_str_2_list_of_int_wys(wystr_list):
@@ -94,6 +106,11 @@ def list_of_wy_str_2_list_of_int_wys(wystr_list):
 	''' given a list of strings describing water years (e.g. ['WY2013', 'WY13to18'])
 	compute the list of all integer water years included'''
 
+	# remove "_bloom" if present
+	for i,wystr in enumerate(wystr_list):
+		wystr_list[i] = wystr.replace('_bloom','')
+	
+	# make concise list
 	wy_list = []
 	for wystr in wystr_list:
 		if 'to' in wystr:
@@ -159,6 +176,10 @@ def get_water_year(runid):
 	else:
 		raise Exception('runid %s does not fit expected pattern' % runid)
 
+	# special append for HAB runs
+	if '_HAB' in runid:
+		water_year = water_year + '_bloom'
+
 	return water_year
 
 def get_run_dir(run_base_dir, runid):
@@ -187,6 +208,7 @@ def get_run_dir(run_base_dir, runid):
 			run_dir = os.path.join(run_base_dir,'open_bay','bgc','agg',water_year,runid)
 		else:
 			raise Exception('runid %s does not fit expected pattern' % runid)
+
 
 
 	return run_dir

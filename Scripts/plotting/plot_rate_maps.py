@@ -24,6 +24,9 @@ import copy
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+if not 'DISPLAY' in os.environ:
+    mpl.use('agg')
+    plt.switch_backend('Agg')
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 import os, sys

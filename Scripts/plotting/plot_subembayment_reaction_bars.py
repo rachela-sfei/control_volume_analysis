@@ -14,6 +14,10 @@ import os, sys
 import pandas as pd
 import cmocean 
 import geopandas as gpd
+if not 'DISPLAY' in os.environ:
+    import matplotlib
+    mpl.use('agg')
+    plt.switch_backend('Agg')
 from importlib import reload
 import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
 reload(CVPL)

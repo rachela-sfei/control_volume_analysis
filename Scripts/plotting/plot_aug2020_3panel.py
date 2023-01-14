@@ -29,6 +29,10 @@ import matplotlib.pylab as plt
 import datetime as dt
 import matplotlib.dates as mdates
 from scipy import signal
+if not 'DISPLAY' in os.environ:
+    import matplotlib
+    matplotlib.use('agg')
+    plt.switch_backend('Agg')
 from importlib import reload
 import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
 reload(CVPL)
@@ -48,47 +52,53 @@ except:
 #group_list = ['Whole_Bay','A','D']
 group_list = 'all'
 
+# autoscale x axis (if you set to False, script will set min/max based on water year range)
+# note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
+autoscale_x = True
+
 # list or runs to plot and water years to pick out of corresponding run (each is a column in the plot)
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
 # also list servers where runs are stored
 if 1:
-    runid_list = ['FR13_003', 'FR13_026']
-    wystr_list = ['WY2013', 'WY2013']
-    server_list = ['richmond','chicago']
-if 1:
-    runid_list = ['FR13_026', 'G141_13to18_246']
-    wystr_list = ['WY2013', 'WY2013']
-    server_list = ['chicago','richmond']
-if 1:
-    runid_list = ['FR17_003', 'FR17_019']
-    wystr_list = ['WY2017', 'WY2017']
-    server_list = ['richmond','chicago']
-if 1:
-    runid_list = ['FR17_019', 'G141_13to18_246']
-    wystr_list = ['WY2017', 'WY2017']
-    server_list = ['chicago','richmond']
-if 1:
-    runid_list = ['FR18_007', 'G141_13to18_246']
-    wystr_list = ['WY2018', 'WY2018']
-    server_list = ['chicago','richmond']
-if 1:    
-    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017','WY2018', 'WY2018']
-    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
-if 1:    
-    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
-    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017']
-    server_list = ['richmond','chicago','richmond','chicago']
+    runid_list = ['FR22_HAB_071', 'FR22_HAB_072', 'FR22_HAB_073', 'FR22_HAB_074']
+    wystr_list = ['WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom']
+    server_list = ['chicago','chicago','chicago','chicago']
+#if 1:
+#    runid_list = ['FR13_026', 'G141_13to18_246']
+#    wystr_list = ['WY2013', 'WY2013']
+#    server_list = ['chicago','richmond']
+#if 1:
+#    runid_list = ['FR17_003', 'FR17_019']
+#    wystr_list = ['WY2017', 'WY2017']
+#    server_list = ['richmond','chicago']
+#if 1:
+#    runid_list = ['FR17_019', 'G141_13to18_246']
+#    wystr_list = ['WY2017', 'WY2017']
+#    server_list = ['chicago','richmond']
+#if 1:
+#    runid_list = ['FR18_007', 'G141_13to18_246']
+#    wystr_list = ['WY2018', 'WY2018']
+#    server_list = ['chicago','richmond']
+#if 1:    
+#    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+#    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017','WY2018', 'WY2018']
+#    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
+#if 1:    
+#    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
+#    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017']
+#    server_list = ['richmond','chicago','richmond','chicago']
 
 
 # list of parameters to plot (must match balance table, one plot per parameter is created)
-param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae', 'Diat', 'Green','DiatS1']
+#param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae', 'Diat', 'Green','DiatS1']
+param_list = ['Algae','OXY','DIN','TN','TN_include_sediment','TotalDetNS']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily']) one plot per is created
-tavg_list = ['Filtered','Cumulative']
+#tavg_list = ['Filtered','Cumulative']
+tavg_list = ['Daily']
 
 # list of normalizations (divide by 'None','Area','Volume')
-norm_list = ['Area']
+norm_list = ['None','Area','Volume']
 
 # do you want to include mass in the figure? if so it will go in first row, but we skip this one for cumulative time aggregation
 include_mass = True
@@ -166,6 +176,7 @@ def pos_neg(array):
 #########################################################################################
 ## main
 #########################################################################################
+
 
 # get string with concise list of runs 
 run_list_str = CVPL.make_concise_runid_list_string(runid_list)
@@ -249,7 +260,7 @@ for param in param_list:
 
             # get the run id
             runid = runid_list[irun]
-    
+
             # get path to the balance table folder in the run folder
             run_base_dir = '/%svol1/hpcshared' % server_list[irun]
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
@@ -599,12 +610,18 @@ for param in param_list:
                     ax_run[0].set_title('Run %s\nGroup Area = %0.0f km$^2$\nGroup Volume = %0.0f km$^2$ x m' % (runid, area_km2, volume_km2xm))
         
                     # format time axis for all rows
-                    for ax1 in ax_run:
-                        ax1.set_xlim((tmin,tmax))
-                        ax1.xaxis.set_major_locator(mdates.YearLocator())
-                        ax1.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=(1,4,7,10)))
-                        ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
-                        ax1.grid(visible=True,which='both')
+                    if autoscale_x:
+                        for ax1 in ax_run:
+                            ax1.autoscale(enable=True, axis='x', tight=True)
+                            ax1.grid(visible=True,which='both')
+                        fig.autofmt_xdate()
+                    else:
+                        for ax1 in ax_run:
+                            ax1.set_xlim((tmin,tmax))
+                            ax1.xaxis.set_major_locator(mdates.YearLocator())
+                            ax1.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=(1,4,7,10)))
+                            ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+                            ax1.grid(visible=True,which='both')
 
                 # if group was found in all runs, go ahead and finish up the plot and save it
                 if plot_this_one:

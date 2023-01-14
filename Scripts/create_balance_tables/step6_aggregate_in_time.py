@@ -181,7 +181,7 @@ for balance_table_fn in table_list:
 
     # find the set of water years available in this run
     time = np.unique(df.time)
-    yr = pd.Timestamp(time.min()).year
+    yr = pd.Timestamp(time.min()).year - 1
     yrmax = pd.Timestamp(time.max()).year
     wy_list = []
     while yr<=yrmax:

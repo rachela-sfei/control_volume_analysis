@@ -33,6 +33,10 @@ import matplotlib.pylab as plt
 import datetime as dt
 import matplotlib.dates as mdates
 from scipy import signal
+if not 'DISPLAY' in os.environ:
+    import matplotlib
+    matplotlib.use('agg')
+    plt.switch_backend('Agg')
 from importlib import reload
 import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
 reload(CVPL)
@@ -42,46 +46,94 @@ reload(CVPL)
 ## user input
 #########################################################################################
 
+# autoscale x axis (if you set to False, script will set min/max based on water year range)
+# note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
+autoscale_x = True
+
 # list of runs to plot, water year to pick out of corresponding run (each is a column in the plot), 
 # and a list of servers where each run is located (use 'WY13to18' to plot all years of a 6-year agg grid run, 
 # otherwise format should be 'WY2013', 'WY2018', etc.)
+
+
+
+#runid_list = ['G141_13to18_246','G141_13to18_256','G141_13to18_257']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','fortcollins','fortcollins']
+
+#runid_list = ['G141_13to18_246','G141_13to18_259','G141_13to18_258']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','fortcollins','fortcollins']
+
+
+#runid_list = ['G141_13to18_246','G141_13to18_262','G141_13to18_262']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','boise','boise']
+
+#runid_list = ['G141_13to18_246','G141_13to18_262','G141_13to18_263']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','boise','boise']
+#
+#runid_list = ['G141_13to18_246','G141_13to18_266','G141_13to18_265']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','boise','boise']
+#
+#runid_list = ['G141_13to18_246','G141_13to18_268','G141_13to18_267']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','boise','boise']
+
+## try again later:
+
+#runid_list = ['G141_13to18_246', 'G141_13to18_255', 'G141_13to18_254']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','fortcollins','fortcollins']
+
+runid_list = ['G141_13to18_246','G141_13to18_261','G141_13to18_260']
+wystr_list = ['WY13to18','WY13to18','WY13to18']
+server_list = ['richmond','boise','boise']
+
+
 #runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
 #wystr_list = ['WY2013','WY2013','WY2017','WY2017']
 #server_list = ['richmond','richmond','richmond','richmond']
-if 1:
-    runid_list = ['FR13_003', 'FR13_026']
-    wystr_list = ['WY2013', 'WY2013']
-    server_list = ['richmond','chicago']
-if 1:
-    runid_list = ['FR13_026', 'G141_13to18_246']
-    wystr_list = ['WY2013', 'WY2013']
-    server_list = ['chicago','richmond']
-if 1:
-    runid_list = ['FR17_003', 'FR17_019']
-    wystr_list = ['WY2017', 'WY2017']
-    server_list = ['richmond','chicago']
-if 1:
-    runid_list = ['FR17_019', 'G141_13to18_246']
-    wystr_list = ['WY2017', 'WY2017']
-    server_list = ['chicago','richmond']
-if 1:
-    runid_list = ['FR18_007', 'G141_13to18_246']
-    wystr_list = ['WY2018', 'WY2018']
-    server_list = ['chicago','richmond']
-if 1:    
-    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-    wystr_list = ['WY2013','WY2013','WY2017', 'WY2017','WY2018', 'WY2018']
-    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
-if 1:    
-    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
-    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017']
-    server_list = ['richmond','chicago','richmond','chicago']
+#if 1:
+#    runid_list = ['FR22_HAB_054', 'FR22_HAB_055', 'FR22_HAB_056', 'FR22_HAB_057', 'FR22_HAB_058']
+#    wystr_list = ['WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom']
+#    server_list = ['chicago','chicago','chicago','chicago','chicago']
+#if 1:
+#    runid_list = ['FR13_003', 'FR13_026']
+#    wystr_list = ['WY2013', 'WY2013']
+#    server_list = ['richmond','chicago']
+#if 1:
+#    runid_list = ['FR13_026', 'G141_13to18_246']
+#    wystr_list = ['WY2013', 'WY2013']
+#    server_list = ['chicago','richmond']
+#if 1:
+#    runid_list = ['FR17_003', 'FR17_019']
+#    wystr_list = ['WY2017', 'WY2017']
+#    server_list = ['richmond','chicago']
+#if 1:
+#    runid_list = ['FR17_019', 'G141_13to18_246']
+#    wystr_list = ['WY2017', 'WY2017']
+#    server_list = ['chicago','richmond']
+#if 1:
+#    runid_list = ['FR18_007', 'G141_13to18_246']
+#    wystr_list = ['WY2018', 'WY2018']
+#    server_list = ['chicago','richmond']
+#if 1:    
+#    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+#    wystr_list = ['WY2013','WY2013','WY2017', 'WY2017','WY2018', 'WY2018']
+#    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
+#if 1:    
+#    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
+#    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017']
+#    server_list = ['richmond','chicago','richmond','chicago']
 
 ## composite parameter (must match suffix of balance table)
 param_list = ['DIN','TN','TN_include_sediment','TotalDetNS']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
-tavg_list = ['Filtered','Cumulative']
+#tavg_list = ['Filtered','Cumulative']
+tavg_list = ['Cumulative']
 
 # base directory for the and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
@@ -521,12 +573,18 @@ for param in param_list:
             ax_run[0].set_title('Run %s' % runid)
 
             # format time axis for all rows
-            for ax1 in ax_run:
-                ax1.set_xlim((tmin,tmax))
-                ax1.xaxis.set_major_locator(mdates.YearLocator())
-                ax1.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=(1,4,7,10)))
-                ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
-                ax1.grid(visible=True,which='both')
+            if autoscale_x:
+                for ax1 in ax_run:
+                    ax1.autoscale(enable=True, axis='x', tight=True)
+                    ax1.grid(visible=True,which='both')
+                fig.autofmt_xdate()
+            else:
+                for ax1 in ax_run:
+                    ax1.set_xlim((tmin,tmax))
+                    ax1.xaxis.set_major_locator(mdates.YearLocator())
+                    ax1.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=(1,4,7,10)))
+                    ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+                    ax1.grid(visible=True,which='both')
 
         # set y axis limits the same across runs
         # ... for first and 2nd rows, make y axis symmetric around zero

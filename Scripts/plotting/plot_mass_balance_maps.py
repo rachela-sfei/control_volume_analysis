@@ -8,6 +8,9 @@ import geopandas as gpd
 import numpy as np 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+if not 'DISPLAY' in os.environ:
+    mpl.use('agg')
+    plt.switch_backend('Agg')
 from importlib import reload
 import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
 reload(CVPL)

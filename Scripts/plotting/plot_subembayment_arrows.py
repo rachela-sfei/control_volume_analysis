@@ -11,6 +11,10 @@ import sys
 import os 
 import geopandas as gpd
 import matplotlib.collections as mcollections
+if not 'DISPLAY' in os.environ:
+    import matplotlib
+    matplotlib.use('agg')
+    plt.switch_backend('Agg')
 from importlib import reload
 import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
 reload(CVPL)
@@ -22,21 +26,21 @@ reload(CVPL)
 # list of run id's and corresponding water years -- these lists should be the same length
 # and each item in the list will correspond to a column in the figure
 if 1:
-    runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
-    wy_list = [2013, 2013, 2017, 2017]
-    server_list = ['richmond','richmond','richmond','richmond']
+    runid_list = ['FR22_HAB_054', 'FR22_HAB_055', 'FR22_HAB_056', 'FR22_HAB_057', 'FR22_HAB_058']
+    wy_list = [2022,2022,2022,2022,2022]
+    server_list = ['chicago','chicago','chicago','chicago','chicago']
 
-if 1:    
-    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-    wy_list = [2013,2013,2017,2017,2018,2018]
-    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
-if 1:    
-    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
-    wy_list = [2013,2013,2017,2017]
-    server_list = ['richmond','chicago','richmond','chicago']
+#if 1:    
+#    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+#    wy_list = [2013,2013,2017,2017,2018,2018]
+#    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
+#if 1:    
+#    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
+#    wy_list = [2013,2013,2017,2017]
+#    server_list = ['richmond','chicago','richmond','chicago']
 
 # list of time averages to plot (must have pre-generated these w/ step6 of the create_balance_tables scripts)
-tavg_list = ['Seasonal']
+tavg_list = ['Weekly']
 
 # list of parameters to plot -- these will be processed one after the other, not compared
 param_list = ['DIN','TN','TN_include_sediment','TotalDetNS','OXY','Algae']
@@ -315,19 +319,24 @@ for param in param_list:
                     x, y = center_arrow_dict[key][0]
                     group = center_arrow_dict[key][1]
         
+                    # isolate group
+                    df_group = df.loc[group]
+                    if len(group) > 1:
+                        print('warning: %d duplicate time steps at time %s, using final time step' % (len(df_group), time[itime]))
+                        df_group = df_group.iloc[-1]
         
                     # get the loading and the reactions from the balance tables
-                    loading_1 = df.loc[group]['%s,Net Load (Mg/d)' % param] 
-                    storage_1 = df.loc[group]['%s,dMass/dt, Balance Check (Mg/d)' % param] 
+                    loading_1 = df_group['%s,Net Load (Mg/d)' % param] 
+                    storage_1 = df_group['%s,dMass/dt, Balance Check (Mg/d)' % param] 
                     source_1 = 0
                     for source1 in source_list:
                         if source1 in df.columns:
-                            source_1 += df.loc[group][source1].copy()
+                            source_1 += df_group[source1].copy()
                     sink_1 = 0
                     for sink1 in sink_list:
                         if sink1 in df.columns:
-                            sink_1 += df.loc[group][sink1].copy()
-                    reaction_1 = df.loc[group]['%s,Net Reaction (Mg/d)' % param] 
+                            sink_1 += df_group[sink1].copy()
+                    reaction_1 = df_group['%s,Net Reaction (Mg/d)' % param] 
                     if (reaction_1 - (source_1+sink_1))/reaction_1 > 0.01:
                         print('warning (param=%s, tavg=%s, irun=%d, itime=%d) not exactly equal reaction = %f vs. sources-sinks = %f' % (param, tavg, irun, itime, reaction_1,source_1+sink_1))
         
@@ -370,9 +379,15 @@ for param in param_list:
                     dx, dy = flux_arrow_dict[key][1]
                     group = flux_arrow_dict[key][2]
                     side = flux_arrow_dict[key][3]
+
+                    # isolate group
+                    df_group = df.loc[group]
+                    if len(group) > 1:
+                        print('warning: %d duplicate time steps at time %s, using final time step' % (len(df_group), time[itime]))
+                        df_group = df_group.iloc[-1]
                 
                     # get the flux in on the group side combo specified
-                    transport_1 = df.loc[group]['%s,Flux In from %s (Mg/d)' % (param, side)]
+                    transport_1 = df_group['%s,Flux In from %s (Mg/d)' % (param, side)]
                 
                     # append to the list
                     xT.append(x)

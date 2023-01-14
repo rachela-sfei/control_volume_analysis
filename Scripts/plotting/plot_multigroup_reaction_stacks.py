@@ -19,6 +19,10 @@ import numpy as np
 import matplotlib.pylab as plt
 import datetime as dt
 import matplotlib.dates as mdates
+if not 'DISPLAY' in os.environ:
+    import matplotlib
+    matplotlib.use('agg')
+    plt.switch_backend('Agg')
 from importlib import reload
 import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
 reload(CVPL)
@@ -32,21 +36,23 @@ reload(CVPL)
 #runid = 'G141_13to18_246'
 #runid = 'FR13_003'
 if 1:
-    runid = 'FR13_026'
+    runid = 'FR22_HAB_058'
     server = 'chicago'
-if 1:
-    runid = 'FR17_019'
-    server = 'chicago'
-if 1:
-    runid = 'FR18_007'
-    server = 'chicago'
+#if 1:
+#    runid = 'FR17_019'
+#    server = 'chicago'
+#if 1:
+#    runid = 'FR18_007'
+#    server = 'chicago'
 
-# start time and end time sring (if None, all times available will be plotted, starting 
-# on october 1 of 1st water year
+# autoscale x axis (if you set to False, script will set min/max based on water year range)
+# note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
+autoscale_x = True
+
+# optional start and end time (useful for comparing single water year to multiple water year runs, can set to None, otherwise
+# set to date string with format like '2022-08-19')
 time_start = None
 time_end = None
-#time_start = '2012-10-01'
-#time_end = '2013-10-01'
 
 # base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
@@ -72,7 +78,8 @@ panel_list = ['All_Subs_RMP', 'All_Subs_WB', 'South_Bay_6Part']
 norm_list = ['Area','Volume','None']
 
 # list of time integration types
-tavg_list = ['Filtered', 'Cumulative']   # can also add 'Daily' if desired
+#tavg_list = ['Filtered', 'Cumulative']   # can also add 'Daily' if desired
+tavg_list = ['Daily']
 
 # this is a function, but it's really more like user input b/c this is where you specify the properties of the different plots
 # of groups of groups that we are going to make
@@ -201,6 +208,8 @@ for param in param_list:
         # get the list of water years available, requiruing at least two data points in a water year
         jan1 = pd.DatetimeIndex(np.unique(time.astype('datetime64[Y]')))
         yr_list = [j.year for j in jan1]
+        yr_list.append(np.min(yr_list)-1)
+        yr_list.append(np.max(yr_list)+1)
         wy_list = []
         for yr in yr_list:
             if np.sum(np.logical_and(time>=np.datetime64('%d-10-01' % yr), time<np.datetime64('%d-10-01' % (yr+1))))>1:
@@ -333,7 +342,8 @@ for param in param_list:
                     # add legend
                     if igroup==(ncols-1):
                         ax[igroup].legend(loc='center left',bbox_to_anchor=(1, 0.5))
-            
+        
+
                 # format axes 
                 ymax = 0
                 for iax in range(len(ax)):
@@ -341,14 +351,19 @@ for param in param_list:
                     if iax>=ngroups:
                         ax1.axis('off')
                     else:
-                        ax1.set_xlim((tmin,tmax))
-                        ax1.xaxis.set_major_locator(major_locator)
-                        ax1.xaxis.set_minor_locator(minor_locator)
-                        ax1.xaxis.set_major_formatter(major_formatter)
+                        if autoscale_x:
+                            ax1.autoscale(enable=True, axis='x', tight=True)
+                        else:
+                            ax1.set_xlim((tmin,tmax))
+                            ax1.xaxis.set_major_locator(major_locator)
+                            ax1.xaxis.set_minor_locator(minor_locator)
+                            ax1.xaxis.set_major_formatter(major_formatter)
                         ax1.grid(which='both')
                         ymax = np.max(np.array([ymax,np.abs(ax1.get_ylim()).max()]))
                 for ax1 in ax:
                     ax1.set_ylim((-ymax,ymax))
+                if autoscale_x:
+                    fig.autofmt_xdate()
         
                 # add title and save the figure of subembayment reactions
                 fig.suptitle('%s %s Reactions %s\n%s' % (tavg_str, param, panel_label,runid))

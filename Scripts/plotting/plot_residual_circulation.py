@@ -30,6 +30,9 @@ from scipy.interpolate import griddata
 from shapely.geometry import Point
 import matplotlib.pyplot as plt 
 import scipy.signal as signal
+if not 'DISPLAY' in os.environ:
+    mpl.use('agg')
+    plt.switch_backend('Agg')
 from importlib import reload
 import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
 reload(CVPL)
