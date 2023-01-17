@@ -35,7 +35,7 @@ param2run = {}
 runs2plot = { 'Base (#246)'         : 'G141_13to18_246',
               '-25% (#255)'         : 'G141_13to18_255',
               '+25% (#254)'        :  'G141_13to18_254'}  
-param2run['Diat Growth Rate'] = runs2plot
+param2run['Phytoplankton Growth Rate'] = runs2plot
 
 #%% (2) Light Extinction Coefficient
 runs2plot = {'Base (#246)'         : 'G141_13to18_246',

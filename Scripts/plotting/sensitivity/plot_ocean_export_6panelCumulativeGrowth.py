@@ -32,7 +32,7 @@ figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 
 
 # PARAM_SENS gives keys to dictionary defined in sensitivity_run_definitions.py
-for PARAM_SENS in ['Sediment Initial Conc C/N/P/Si','Diat Growth Rate', 'Light Extinction Coefficient', 
+for PARAM_SENS in ['Phytoplankton Growth Rate','Sediment Initial Conc C/N/P/Si', 'Light Extinction Coefficient', 
                    'Zero growth rates', 'Zoop Ingestion Rate', 'Include Clams', 'Diagenesis Rates for Fresh Sediment', 
                    'Diagenesis Rates for Legacy Sediment']: 
 

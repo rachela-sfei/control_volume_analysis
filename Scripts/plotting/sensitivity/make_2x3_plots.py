@@ -45,13 +45,14 @@ from sensitivity_run_definitions import param2run, server_dict
 # if autoscale_casis = False, color axis will be read from the make2x3plots_def.py file
 autoscale_caxis = True
 percentile_cutoff = 95   # this will automatically set the range for the colorbar cutoff
+max_percentage_change = 75   # this sets a SINGLE SCALE for the percentage change plots
 
 # base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 
 
 # PARAM_SENS gives keys to dictionary defined in sensitivity_run_definitions.py
-for PARAM_SENS in ['Sediment Initial Conc C/N/P/Si','Diat Growth Rate', 'Light Extinction Coefficient', 
+for PARAM_SENS in ['Phytoplankton Growth Rate','Sediment Initial Conc C/N/P/Si', 'Light Extinction Coefficient', 
                    'Zero growth rates', 'Zoop Ingestion Rate', 'Include Clams', 'Diagenesis Rates for Fresh Sediment', 
                    'Diagenesis Rates for Legacy Sediment']: 
                    
@@ -66,8 +67,8 @@ for PARAM_SENS in ['Sediment Initial Conc C/N/P/Si','Diat Growth Rate', 'Light E
     # ///////////////////////////////////// 
     base_run = 'Base (#246)'
     
-    # zoop_grazing, Denit, DPP , oxygen_consumption 'DPP', 'zoop_grazing', 
-    params2plot = ['nitrogen_assimilation', 'oxygen_consumption', 'Denit', 'zoop_grazing', 'DPP']
+    # zoop_grazing, Denit, Net PP , oxygen_consumption 'Net PP', 'zoop_grazing', 
+    params2plot = ['nitrogen_assimilation', 'oxygen_consumption', 'Denit', 'zoop_grazing', 'Net PP']
     
     # What normalization scheme you want to use for the data ('Area', 'Volume')
     NORM = 'Area'
@@ -106,14 +107,14 @@ for PARAM_SENS in ['Sediment Initial Conc C/N/P/Si','Diat Growth Rate', 'Light E
 
     # --------------------------------------------------------------------------
     # Define all the parameters + units / etc with dictionaries 
-    param = 'DPP'
+    param = 'Net PP'
     
     # green is automatically included, or not, as appropriate by updated balance table scripts
     #incl_green = True # set to True for 6 year agg grid runs based off Run 125 and related
     
 
 
-    param2name = {'DPP' : 'DPP',
+    param2name = {'Net PP' : 'Net PP',
                   'Denit' : 'Denitrification',
                   'zoop_grazing' : 'Algae consumption by zoop',
                   'oxygen_consumption' : 'Oxygen Consumption',
@@ -121,20 +122,20 @@ for PARAM_SENS in ['Sediment Initial Conc C/N/P/Si','Diat Growth Rate', 'Light E
 
     # hard code colorbar limits here, if autoscale_caxis is false
     if not autoscale_caxis:
-        param2max = { 'DPP' :  0.6,
+        param2max = { 'Net PP' :  0.6,
                       'Denit' : 0.05,
                       'zoop_grazing' : 0.1,
                       'oxygen_consumption' : 1,
                       'nitrogen_assimilation' : 0.05} 
         
-        param2percentagerange = {'DPP' :  2,
+        param2percentagerange = {'Net PP' :  2,
                       'Denit' : 0.2,
                       'zoop_grazing' : 1.5,
                       'oxygen_consumption' : 1.1,
                       'nitrogen_assimilation' : 0.5} 
     
     units = {} 
-    units.update(dict.fromkeys(['zoop_grazing', 'DPP'], 'gC'))
+    units.update(dict.fromkeys(['zoop_grazing', 'Net PP'], 'gC'))
     units.update(dict.fromkeys(['Denit', 'nitrogen_assimilation']  , 'gN'))
     units['oxygen_consumption'] = 'gO'
     
@@ -202,13 +203,14 @@ for PARAM_SENS in ['Sediment Initial Conc C/N/P/Si','Diat Growth Rate', 'Light E
         
         # Normalize data 
         no3_table['Denit']                  = abs(no3_table['NO3,dDenitWat'] + no3_table['NO3,dDenitSed']) / norm
-        #primary_table['DPP']                = primary_table['Diat,dPPDiat'] / norm
-        primary_table['DPP'] = primary_table[['Diat,dPPDiat','Green,dPPGreen','DiatS1,dPPDiatS1']].sum(axis=1)/norm
+        #primary_table['Net PP']                = primary_table['Diat,dPPDiat'] / norm
+        #primary_table['Net PP'] = primary_table[['Diat,dPPDiat','Green,dPPGreen','DiatS1,dPPDiatS1']].sum(axis=1)/norm
+        primary_table['Net PP'] = primary_table[['Diat,dPPDiat','Green,dPPGreen']].sum(axis=1)/norm
         #primary_table['zoop_grazing']       = abs(primary_table['Diat,dZ_Diat']) / norm  # Grazing of diatoms by zoop
         primary_table['zoop_grazing']       = abs(primary_table[['Diat,dZ_Diat', 'Green,dZ_Grn']].sum(axis=1)) / norm
 
         #if incl_green:
-        #    primary_table['DPP']                = primary_table['DPP'] + (primary_table_g['Green,dPPGreen'] / norm )
+        #    primary_table['Net PP']                = primary_table['Net PP'] + (primary_table_g['Green,dPPGreen'] / norm )
         #    primary_table['zoop_grazing']       = primary_table['zoop_grazing'] + abs(primary_table_g['Green,dZ_Grn']) / norm  # Grazing of greens by zoop
         
         #oxy_table['oxygen_consumption']     = abs(oxy_table['OXY,dOxCon'] + oxy_table['OXY,dMinDetCS1']) / norm 
@@ -222,7 +224,7 @@ for PARAM_SENS in ['Sediment Initial Conc C/N/P/Si','Diat Growth Rate', 'Light E
         
         # Save data for each run in dictionary
         DATA[runid + 'Denit']    = no3_table
-        DATA[runid + 'DPP']      = primary_table
+        DATA[runid + 'Net PP']      = primary_table
         DATA[runid + 'time']     = pd.to_datetime(no3_table.time.values) 
         DATA[runid + 'zoop_grazing'] = primary_table
         DATA[runid + 'oxygen_consumption'] = oxy_table
@@ -426,10 +428,18 @@ for PARAM_SENS in ['Sediment Initial Conc C/N/P/Si','Diat Growth Rate', 'Light E
                             patch_.set_clim(0, param2max[param])
                         patch_.set_cmap(cmap)
                     else:
-                        if autoscale_caxis:
-                            percentage_range = max_diff
-                        else:
-                            percentage_range = param2percentagerange[param]*100
+
+                        #### hard code the range for the percent change plots, so we can compare across sensitivity tests
+                        percentage_range = max_percentage_change
+
+                        # alternatively could use autoscaling and/or paramter specific hard coding
+                        # with or without a cap
+                        #if autoscale_caxis:
+                        #    percentage_range = max_diff
+                        #else:
+                        #    percentage_range = param2percentagerange[param]*100
+                        #percentage_range = np.min([percentage_range, max_percentage_change])
+
                         patch_.set_clim(-percentage_range, percentage_range)
                         patch_.set_cmap(cmap_diff)
                     patches_.append(patch_)
@@ -472,13 +482,13 @@ for PARAM_SENS in ['Sediment Initial Conc C/N/P/Si','Diat Growth Rate', 'Light E
                 patches_[k].set_array(diff1_array)
                    
                 # clean the axes and add a title 
-                clean_axis(axs[k], 'Low: %s \n(%% diff relative to base)' % PARAM_SENS)
+                clean_axis(axs[k], '%s \n%% diff relative to base' % low_run[0])
                 k +=1
                 
 
                 patches_[k].set_array(diff2_array)
                 # clean the axes and add a title 
-                clean_axis(axs[k], 'High: %s \n(%% diff relative to base)' % PARAM_SENS )
+                clean_axis(axs[k], '%s \n%% diff relative to base' % high_run[0] )
                 k +=1
         
      
