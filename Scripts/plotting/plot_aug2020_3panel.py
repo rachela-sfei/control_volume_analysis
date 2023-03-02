@@ -59,34 +59,43 @@ autoscale_x = True
 # list or runs to plot and water years to pick out of corresponding run (each is a column in the plot)
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
 # also list servers where runs are stored
-if 1:
+isel=8
+if isel==0:
     runid_list = ['FR22_HAB_071', 'FR22_HAB_072', 'FR22_HAB_073', 'FR22_HAB_074']
     wystr_list = ['WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom']
     server_list = ['chicago','chicago','chicago','chicago']
-#if 1:
-#    runid_list = ['FR13_026', 'G141_13to18_246']
-#    wystr_list = ['WY2013', 'WY2013']
-#    server_list = ['chicago','richmond']
-#if 1:
-#    runid_list = ['FR17_003', 'FR17_019']
-#    wystr_list = ['WY2017', 'WY2017']
-#    server_list = ['richmond','chicago']
-#if 1:
-#    runid_list = ['FR17_019', 'G141_13to18_246']
-#    wystr_list = ['WY2017', 'WY2017']
-#    server_list = ['chicago','richmond']
-#if 1:
-#    runid_list = ['FR18_007', 'G141_13to18_246']
-#    wystr_list = ['WY2018', 'WY2018']
-#    server_list = ['chicago','richmond']
-#if 1:    
-#    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-#    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017','WY2018', 'WY2018']
-#    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
-#if 1:    
-#    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
-#    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017']
-#    server_list = ['richmond','chicago','richmond','chicago']
+if isel==1:
+    runid_list = ['FR13_026', 'G141_13to18_246']
+    wystr_list = ['WY2013', 'WY2013']
+    server_list = ['chicago','richmond']
+if isel==2:
+    runid_list = ['FR17_003', 'FR17_019']
+    wystr_list = ['WY2017', 'WY2017']
+    server_list = ['richmond','chicago']
+if isel==3:
+    runid_list = ['FR17_019', 'G141_13to18_246']
+    wystr_list = ['WY2017', 'WY2017']
+    server_list = ['chicago','richmond']
+if isel==4:
+    runid_list = ['FR18_007', 'G141_13to18_246']
+    wystr_list = ['WY2018', 'WY2018']
+    server_list = ['chicago','richmond']
+if isel==5:    
+    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017','WY2018', 'WY2018']
+    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
+if isel==6:    
+    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
+    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017']
+    server_list = ['richmond','chicago','richmond','chicago']
+if isel==7:
+    runid_list = ['FR13_026', 'G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+    wystr_list = ['WY2013','WY2013','WY2014','WY2015','WY2016','WY2017','WY2017','WY2018','WY2018']
+    server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','richmond','chicago','richmond']
+if isel==8:
+    runid_list = ['FR13_026', 'G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246','FR22_HAB_083']
+    wystr_list = ['WY2013','WY2013','WY2014','WY2015','WY2016','WY2017','WY2017','WY2018','WY2018','WY2022']
+    server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','richmond','chicago','richmond','chicago']
 
 
 # list of parameters to plot (must match balance table, one plot per parameter is created)
@@ -95,7 +104,8 @@ param_list = ['Algae','OXY','DIN','TN','TN_include_sediment','TotalDetNS']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily']) one plot per is created
 #tavg_list = ['Filtered','Cumulative']
-tavg_list = ['Daily']
+#tavg_list = ['Daily']
+tavg_list = ['Filtered']
 
 # list of normalizations (divide by 'None','Area','Volume')
 norm_list = ['None','Area','Volume']
@@ -104,7 +114,7 @@ norm_list = ['None','Area','Volume']
 include_mass = True
 
 # base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
+figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 
 # number of runs (corresponds to number of columns)
 nruns = len(runid_list)

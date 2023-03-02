@@ -44,7 +44,7 @@ domain_name_list = ['WB_and_RMP_Subembayments','WB_and_RMP_Channel_Shoal']
 averaging_period_list = ['Seasonal'] # can also add 'Annual', Monthly', and/or 'Weekly' assuming those time averages were created in step6 of create_balance_tables scripts
 
 # base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
+figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 
 # number of significant figures to include in the LARGEST reaction and transpor terms ... this
 # will set the format for writing the numbers on the map, note this will set sig figs for reaction

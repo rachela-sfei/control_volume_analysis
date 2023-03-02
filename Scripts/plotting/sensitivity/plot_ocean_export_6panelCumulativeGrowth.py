@@ -53,8 +53,6 @@ for PARAM_SENS in ['Phytoplankton Growth Rate','Sediment Initial Conc C/N/P/Si',
     run_labels  = list(runs2plot.keys())
     runid_list   = [runs2plot[key] for key in run_labels]
     nruns = len(runid_list)
-    low_run     = [R for R in run_labels if '-' in R]
-    high_run    = [R for R in run_labels if '+' in R]
 
     # now that we have runid_list, build server_list
     server_list = []

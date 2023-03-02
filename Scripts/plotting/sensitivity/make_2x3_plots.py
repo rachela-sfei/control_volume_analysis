@@ -52,8 +52,8 @@ figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
 
 
 # PARAM_SENS gives keys to dictionary defined in sensitivity_run_definitions.py
-for PARAM_SENS in ['Phytoplankton Growth Rate','Sediment Initial Conc C/N/P/Si', 'Light Extinction Coefficient', 
-                   'Zero growth rates', 'Zoop Ingestion Rate', 'Include Clams', 'Diagenesis Rates for Fresh Sediment', 
+for PARAM_SENS in ['Zero growth rates', 'Light Extinction Coefficient','Include Clams','Phytoplankton Growth Rate','Sediment Initial Conc C/N/P/Si',  
+                   'Zoop Ingestion Rate', 'Diagenesis Rates for Fresh Sediment', 
                    'Diagenesis Rates for Legacy Sediment']: 
                    
         
@@ -85,8 +85,8 @@ for PARAM_SENS in ['Phytoplankton Growth Rate','Sediment Initial Conc C/N/P/Si',
     run_labels  = list(runs2plot.keys())
     runid_list   = [runs2plot[key] for key in run_labels]
     nruns       = len(runid_list)
-    low_run     = [R for R in run_labels if '-' in R]
-    high_run    = [R for R in run_labels if '+' in R]
+    low_run = [run_name for run_name in runs2plot.keys() if '-' in run_name or 'Channel growth' in run_name or 'Include Clams' in run_name]
+    high_run = [run_name for run_name in runs2plot.keys() if '+' in run_name or 'Shoal growth' in run_name]
 
     # now that we have runid_list, build server_list
     server_list = []
@@ -137,7 +137,7 @@ for PARAM_SENS in ['Phytoplankton Growth Rate','Sediment Initial Conc C/N/P/Si',
     units = {} 
     units.update(dict.fromkeys(['zoop_grazing', 'Net PP'], 'gC'))
     units.update(dict.fromkeys(['Denit', 'nitrogen_assimilation']  , 'gN'))
-    units['oxygen_consumption'] = 'gO'
+    units['oxygen_consumption'] = 'gO$_2$'
     
     def param2unit(param, NORM):
         if NORM == 'Area' :
@@ -383,22 +383,28 @@ for PARAM_SENS in ['Phytoplankton Growth Rate','Sediment Initial Conc C/N/P/Si',
                 diff1_array = 100 * (diff1_array-base_array) / base_array 
 
                 # HIGH END DIFFERENCE PLOT ! 
-                diff2 = DATA[time_window_label + runs2plot[high_run[0]] + param]
-                diff2_array = [(val_at_poly(diff2, i, param)) for i in polys2plot]
-                diff2_array = np.ravel(np.array(diff2_array))
-                diff2_array = 100 * (diff2_array - base_array) / base_array 
+                if len(high_run) > 0:
+                    diff2 = DATA[time_window_label + runs2plot[high_run[0]] + param]
+                    diff2_array = [(val_at_poly(diff2, i, param)) for i in polys2plot]
+                    diff2_array = np.ravel(np.array(diff2_array))
+                    diff2_array = 100 * (diff2_array - base_array) / base_array 
 
                 # find color map range based on percentile cutoff
                 max_diff = 0
                 max_diff = np.max([max_diff, np.percentile(diff1_array, percentile_cutoff)])
-                max_diff = np.max([max_diff, np.percentile(diff2_array, percentile_cutoff)])   
                 max_diff = np.max([max_diff, -np.percentile(diff1_array, 100-percentile_cutoff)])
-                max_diff = np.max([max_diff, -np.percentile(diff2_array, 100-percentile_cutoff)])  
+                if len(high_run) > 0:
+                    max_diff = np.max([max_diff, np.percentile(diff2_array, percentile_cutoff)])   
+                    max_diff = np.max([max_diff, -np.percentile(diff2_array, 100-percentile_cutoff)])  
 
 
                 # set up the figure
-                fig, axs = plt.subplots(nrows = 2, ncols = 3, sharex = False, sharey = False, figsize=(20,10))
-        
+                if len(high_run)>0: 
+                    fig, axs = plt.subplots(nrows = 2, ncols = 3, sharex = False, sharey = False, figsize=(20,10))
+                else:
+                    fig, axs = plt.subplots(nrows = 2, ncols = 2, sharex = False, sharey = False, figsize=(14,10))
+                
+
                 # Create polygon geometries 
                 patches =  [polys.geometry[i]  for i in polys2plot]  
                 
@@ -419,14 +425,15 @@ for PARAM_SENS in ['Phytoplankton Growth Rate','Sediment Initial Conc C/N/P/Si',
                     # Don't set up last axis .. this is the bar chart
                     if i==len(axs)-1:
                         break
+
                     
                     patch_ = ax.add_collection(PATCHES[i])
-                    if i<3:
-                        if autoscale_caxis:
-                            patch_.set_clim(0, max_val)
-                        else:
-                            patch_.set_clim(0, param2max[param])
-                        patch_.set_cmap(cmap)
+                    if (i<3 and len(high_run)>0) or (i<2 and len(high_run)==0):
+                            if autoscale_caxis:
+                                patch_.set_clim(0, max_val)
+                            else:
+                                patch_.set_clim(0, param2max[param])
+                            patch_.set_cmap(cmap)
                     else:
 
                         #### hard code the range for the percent change plots, so we can compare across sensitivity tests
@@ -443,14 +450,12 @@ for PARAM_SENS in ['Phytoplankton Growth Rate','Sediment Initial Conc C/N/P/Si',
                         patch_.set_clim(-percentage_range, percentage_range)
                         patch_.set_cmap(cmap_diff)
                     patches_.append(patch_)
-                    if i==2:
+                    if (i==2 and len(high_run)>0) or (i==1 and len(high_run)==0):
                         if autoscale_caxis:
                             make_colorbar(max_val,  cmap,   ax,  unit)
                         else:
                             make_colorbar(param2max[param],  cmap,   ax,  unit)
-                    if i==3 :
-                        make_percentage_colorbar(cmap_diff,   ax,  '% Difference', percentage_range)
-                    if i==4:
+                    if (i==4 and len(high_run)>0) or (i==2 and len(high_run)==0): 
                         make_percentage_colorbar(cmap_diff,   ax,  '', percentage_range)
                     ax.autoscale_view()    
                 
@@ -485,11 +490,11 @@ for PARAM_SENS in ['Phytoplankton Growth Rate','Sediment Initial Conc C/N/P/Si',
                 clean_axis(axs[k], '%s \n%% diff relative to base' % low_run[0])
                 k +=1
                 
-
-                patches_[k].set_array(diff2_array)
-                # clean the axes and add a title 
-                clean_axis(axs[k], '%s \n%% diff relative to base' % high_run[0] )
-                k +=1
+                if len(high_run) > 0:
+                    patches_[k].set_array(diff2_array)
+                    # clean the axes and add a title 
+                    clean_axis(axs[k], '%s \n%% diff relative to base' % high_run[0] )
+                    k +=1
         
      
 

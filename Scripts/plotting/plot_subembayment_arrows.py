@@ -73,7 +73,7 @@ arrow_width_factor = 0.25
 test_arrow_direction = False
 
 # base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
+figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 group_shapefile_dir = '../../Definitions/group_shapefiles'
 
 # list of control volumes in the group shapefile that we want to plot (find these by hand -- can look in the control volume definition file to cheat)

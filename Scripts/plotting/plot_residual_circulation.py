@@ -56,7 +56,7 @@ param_list = ['din','tn','continuity','algae']
 
 # base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 #base_dir = r'X:\hpcshared'
-figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
+figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 shapefile_dir = '/richmondvol1/hpcshared/inputs/shapefiles'
 
 # some parameters controlling the algorithm for inferring flux vectors at cell centers from dot products of flux vectors at cell edges

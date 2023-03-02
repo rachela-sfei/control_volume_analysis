@@ -22,6 +22,7 @@ abort_for_mass_cons_error = True
 # 207,208,209,
 # 211,212,213,214,215,216,217,218,219,220,221,222,223
 # 227,229,230
+runid = 'FR22_HAB_083'
 #runid = 'G141_13to18_246'  # /richmondvol1          chicago
 #runid = 'G141_13to18_254'  # /fortcollinsvol1       chicago
 #runid = 'G141_13to18_255'  # /fortcollinsvol1       chicago
@@ -30,7 +31,7 @@ abort_for_mass_cons_error = True
 #runid = 'G141_13to18_258'  # /fortcollinsvol1       chicago
 #runid = 'G141_13to18_259'  # /fortcollinsvol1       chicago
 #runid = 'G141_13to18_260'  # /boisevol1             chicago
-runid = 'G141_13to18_261'  # /boisevol1             boise
+#runid = 'G141_13to18_261'  # /boisevol1             boise
 #runid = 'G141_13to18_262'  # /boisevol1             boise
 #runid = 'G141_13to18_263'  # /boisevol1             boise
 #runid = 'G141_13to18_264'  # /boisevol1             boise
@@ -51,7 +52,7 @@ lsp_path = None
 balance_table_dir = None       # will be placed inside run_dir unless otherwise specified
 
 # base directory of the model runs (this is ignored if run_dir is specified as something other than None above)
-model_run_base_dir = '/boisevol1/hpcshared'
+model_run_base_dir = '/chicagovol1/hpcshared'
 
 # base directory for model input, namely the shapefiles (this definitely runs on linux, in theory can also run this in windows and use mounted drive)
 # (this is ignored if poly_path and tran_path are specified as something other than None above)
@@ -77,7 +78,9 @@ plot_substance_list = ['tn_include_sediment','tn','din','nh4','no3','don',
 # list of time averaging schemes to apply (saves space to skip some if we don't need them) 
 # (this is used in step6_aggregate_in_time.py)
 #tavg_list = ['Cumulative', 'Filtered', 'Annual', 'Seasonal', 'Monthly', 'Weekly']
-tavg_list = ['Cumulative']#, 'Filtered', 'Annual', 'Seasonal']
+#tavg_list = ['Filtered']#, 'Filtered', 'Annual', 'Seasonal']
+#tavg_list = ['Seasonal', 'Monthly']
+tavg_list = ['Filtered','Cumulative']
 
 # float format for csv files
 float_format = '%1.6e'

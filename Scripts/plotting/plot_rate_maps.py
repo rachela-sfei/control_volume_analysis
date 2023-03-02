@@ -20,6 +20,7 @@ the results are saved in a subfolder called "rate_maps"
 # IMPORT MODULES
 ##################
 
+import sys,os
 import copy
 import datetime as dt
 import matplotlib.pyplot as plt
@@ -83,41 +84,46 @@ reload(CVPL)
 #server_list = ['chicago']
 #all_time_together = True
 
-if 1:
+isel=7
+if isel==0:
     runid_list = ['FR13_003', 'FR13_026']
     wy_list = [2013, 2013]
     server_list = ['richmond','chicago']
     all_time_together = False
-if 1:
+if isel==1:
     runid_list = ['FR13_026', 'G141_13to18_246']
     wy_list = [2013, 2013]
     server_list = ['chicago','richmond']
     all_time_together = False
-if 1:
+if isel==2:
     runid_list = ['FR17_003', 'FR17_019']
     wy_list = [2017, 2017]
     server_list = ['richmond','chicago']
     all_time_together = False
-if 1:
+if isel==3:
     runid_list = ['FR17_019', 'G141_13to18_246']
     wy_list = [2017, 2017]
     server_list = ['chicago','richmond']
     all_time_together = False
-if 1:
+if isel==4:
     runid_list = ['FR18_007', 'G141_13to18_246']
     wy_list = [2018, 2018]
     server_list = ['chicago','richmond']
     all_time_together = False
-if 1:    
-    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-    wy_list = [2013,2013,2017,2017,2018,2018]
-    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
-if 1:    
+if isel==5:    
     runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
     wy_list = [2013,2013,2017,2017]
     server_list = ['richmond','chicago','richmond','chicago']
+if isel==6:    
+    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+    wy_list = [2013,2013,2017,2017,2018,2018]
+    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
+if isel==7:    
+    runid_list = ['FR13_026', 'G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+    wy_list = [2013,2013,2014,2015,2016,2017,2017,2018,2018]
+    server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','richmond','chicago','richmond']
 
-select_a_rate_set = 4
+select_a_rate_set = 2
 
 if select_a_rate_set==0:
 
@@ -129,6 +135,7 @@ if select_a_rate_set==0:
     multiple_rates_on_same_figure = False
     multiple_rates_figure_label = None
     multiple_rates_figure_title = None
+    caxis_limit_override = None
 
 elif select_a_rate_set==1:
 
@@ -142,6 +149,7 @@ elif select_a_rate_set==1:
     multiple_rates_on_same_figure = True
     multiple_rates_figure_label = 'DIN_Rx_Summary'
     multiple_rates_figure_title = 'DIN Reaction Summary'
+    caxis_limit_override = {'Area' : 0.15, 'Volume': 0.1, 'None' : 3e6}
     
 elif select_a_rate_set==2:    
 
@@ -149,13 +157,14 @@ elif select_a_rate_set==2:
     rate_list = ['denit',     
                  'n-sed',        
                  'diats1-mort',  
-                 'diats1-buri', # seems to be zero for the time being     
-                 'diats1-aut',  # seems to be zero for the time being
+                 #'diats1-buri', # seems to be zero for the time being     
+                 #'diats1-aut',  # seems to be zero for the time being
                  'dmin_sed',   
                  'tn_loss']
     multiple_rates_on_same_figure = True
     multiple_rates_figure_label = 'TN_Rx_Summary'
     multiple_rates_figure_title = 'TN Reaction Summary'
+    caxis_limit_override = {'Area' : 0.1, 'Volume': 0.2, 'None' : 4e6}
 
 elif select_a_rate_set==3:   
 
@@ -169,6 +178,7 @@ elif select_a_rate_set==3:
     multiple_rates_on_same_figure = True
     multiple_rates_figure_label = 'TotalDetNS_Rx_Summary'
     multiple_rates_figure_title = 'Detritus Reaction Summary'
+    caxis_limit_override = None
 
 elif select_a_rate_set==4:
 
@@ -187,6 +197,7 @@ elif select_a_rate_set==4:
     multiple_rates_on_same_figure = True
     multiple_rates_figure_label = 'OXY_Rx_Summary'
     multiple_rates_figure_title = 'OXY Reaction Summary'
+    caxis_limit_override = None
 
 ################################################################################################################
 # THE FOLLOWING LISTS ARE JUST FOR BATCH PROCESSING PURPOSES, SO THE USER DOESN'T HAVE TO CHANGE THE SCRIPT
@@ -206,7 +217,7 @@ nruns = len(runid_list)
 assert nruns == len(wy_list)
 
 # base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
+figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 
 # base directory for model input (used to find shapefiles)
 input_base_dir = '/richmondvol1/hpcshared'
@@ -245,7 +256,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['oxy_Table.csv']                  # list of balance tables
         multiplier_list = [-1]                                  # multiplier for each balance table
         reaction_list = [['OXY,dOxCon']]                        # for each balance table, list of reactions to sum
-        cmap = cmocean.cm.amp                                 # color map
+        cmap = cmocean.cm.amp                                   # color map
         cmap_diverging = False                                  # center at zero (True if rate goes positive and negative)?
 
     elif rate_name=='oxycon-sed':
@@ -362,7 +373,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['algae_Table.csv']
         multiplier_list = [1]
         reaction_list = [['Diat,dPPDiat','Green,dPPGreen','DiatS1,dPPDiatS1']]
-        cmap = cmocean.cm.algae
+        cmap = cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='dpp-benthic':
@@ -372,7 +383,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['algae_Table.csv']
         multiplier_list = [1]
         reaction_list = [['DiatS1,dPPDiatS1']]
-        cmap = cmocean.cm.algae
+        cmap = cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='dpp-pelagic':
@@ -382,7 +393,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['algae_Table.csv']
         multiplier_list = [1]
         reaction_list = [['Diat,dPPDiat','Green,dPPGreen']]
-        cmap = cmocean.cm.algae
+        cmap = cmocean.cm.amp
         cmap_diverging = False
     
     elif rate_name=='denit':
@@ -402,7 +413,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['din_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DIN,dDINUpt','DIN,dDINUptS1']]
-        cmap = cmocean.cm.algae
+        cmap = cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='n-dpp-pelagic':
@@ -412,7 +423,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['din_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DIN,dDINUpt']]
-        cmap = cmocean.cm.algae
+        cmap = cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='n-dpp-benthic':
@@ -422,7 +433,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['din_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DIN,dDINUptS1']]
-        cmap = cmocean.cm.algae
+        cmap = cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='din_recycling':
@@ -445,7 +456,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['din_Table.csv']
         multiplier_list = [1]
         reaction_list = [['NH4,dMinTotalDetNS']]
-        cmap = cmocean.cm.turbid
+        cmap = cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='dmin_sed1':
@@ -456,7 +467,7 @@ def get_rate_properties(rate_name):
         multiplier_list = [-1]
         reaction_list = [['DetNS1,dMinDetNS1',
                           'OONS1,dMinOONS1']]
-        cmap = cmocean.cm.turbid
+        cmap = cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='dmin_sed2':
@@ -467,7 +478,7 @@ def get_rate_properties(rate_name):
         multiplier_list = [-1]
         reaction_list = [['DetNS2,dMinDetNS2',
                           'OONS2,dMinOONS2']]
-        cmap = cmocean.cm.matter
+        cmap = cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='det_bur':
@@ -477,7 +488,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['totaldetns_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DetNS2,dBurS2DetN','OONS2,dBurS2OON']]
-        cmap = cmocean.cm.amp
+        cmap = cmocean.cm.dense
         cmap_diverging = False
     
     elif rate_name=='din_loss':
@@ -526,7 +537,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['tn_Table.csv']
         multiplier_list = [-1]
         reaction_list = [["Algae,dSedAlgae","PON,dSedPON"]]
-        cmap = mpl.cm.Greys
+        cmap = cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='diats1-mort':
@@ -536,7 +547,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['tn_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DiatS1,dMrtDiatS1']]
-        cmap = mpl.cm.Purples
+        cmap = cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='diats1-buri':
@@ -546,7 +557,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['tn_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DiatS1,dBurS1Diat']]
-        cmap = mpl.cm.Greys
+        cmap = cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='diats1-aut':
@@ -556,7 +567,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['tn_Table.csv']
         multiplier_list = [1]
         reaction_list = [['NH4,dNH4AUTS1']]
-        cmap = mpl.cm.Oranges
+        cmap = cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='tn_include_sediment_loss':
@@ -570,7 +581,7 @@ def get_rate_properties(rate_name):
                           'DetNS2,dBurS2DetN',
                           'OONS2,dBurS2OON',
                           'DiatS1,dBurS1Diat']]
-        cmap = mpl.cm.Spectral_r
+        cmap = cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='totaldetns_rx':
@@ -588,7 +599,7 @@ def get_rate_properties(rate_name):
                           'OONS2,dMinOONS2',
                           'DetNS2,dBurS2DetN',
                           'OONS2,dBurS2OON']]
-        cmap = mpl.cm.Spectral_r
+        cmap = cmocean.cm.amp
         cmap_diverging = False
     
     return rate_title, grams_of_what, balance_table_list, multiplier_list, reaction_list, cmap, cmap_diverging
@@ -787,6 +798,15 @@ for time_period in time_period_list:
             if cmap_diverging:
                 pmax_all = np.max([pmax_all,-pmin_all])
                 pmin_all = -pmax_all
+
+            # if a min/max is hard-coded, apply it here
+            if not caxis_limit_override is None:
+                if cmap_diverging:
+                    pmax_all = caxis_limit_override[norm]
+                    pmin_all = - caxis_limit_override[norm]
+                else:
+                    pmax_all = caxis_limit_override[norm]
+                    pmin_all = 0
 
             # ######################################################################################################################
             # here is phase 2 of the meat of this script

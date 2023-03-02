@@ -79,7 +79,7 @@ norm_list = ['Area','Volume','None']
 
 # base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 #base_dir = r'X:\hpcshared'
-figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
+figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 
 # figure size scales with number of subplots
 subplot_width = 5

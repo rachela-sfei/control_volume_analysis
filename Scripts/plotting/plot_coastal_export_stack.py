@@ -54,9 +54,11 @@ autoscale_x = True
 # and a list of servers where each run is located (use 'WY13to18' to plot all years of a 6-year agg grid run, 
 # otherwise format should be 'WY2013', 'WY2018', etc.)
 
+#runid_list = ['G141_13to18_246', 'G141_13to18_255', 'G141_13to18_254']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','fortcollins','fortcollins']
 
-
-#runid_list = ['G141_13to18_246','G141_13to18_256','G141_13to18_257']
+#runid_list = ['G141_13to18_246','G141_13to18_257','G141_13to18_256']
 #wystr_list = ['WY13to18','WY13to18','WY13to18']
 #server_list = ['richmond','fortcollins','fortcollins']
 
@@ -64,32 +66,29 @@ autoscale_x = True
 #wystr_list = ['WY13to18','WY13to18','WY13to18']
 #server_list = ['richmond','fortcollins','fortcollins']
 
-
-#runid_list = ['G141_13to18_246','G141_13to18_262','G141_13to18_262']
+#runid_list = ['G141_13to18_246','G141_13to18_261','G141_13to18_260']
 #wystr_list = ['WY13to18','WY13to18','WY13to18']
 #server_list = ['richmond','boise','boise']
 
-#runid_list = ['G141_13to18_246','G141_13to18_262','G141_13to18_263']
+#runid_list = ['G141_13to18_246','G141_13to18_262']
+#wystr_list = ['WY13to18','WY13to18']
+#server_list = ['richmond','boise']
+
+#runid_list = ['G141_13to18_246','G141_13to18_264','G141_13to18_263']
 #wystr_list = ['WY13to18','WY13to18','WY13to18']
 #server_list = ['richmond','boise','boise']
-#
+
 #runid_list = ['G141_13to18_246','G141_13to18_266','G141_13to18_265']
 #wystr_list = ['WY13to18','WY13to18','WY13to18']
 #server_list = ['richmond','boise','boise']
-#
-#runid_list = ['G141_13to18_246','G141_13to18_268','G141_13to18_267']
-#wystr_list = ['WY13to18','WY13to18','WY13to18']
-#server_list = ['richmond','boise','boise']
 
-## try again later:
+runid_list = ['G141_13to18_246']
+wystr_list = ['WY13to18']
+server_list = ['richmond']
 
-#runid_list = ['G141_13to18_246', 'G141_13to18_255', 'G141_13to18_254']
-#wystr_list = ['WY13to18','WY13to18','WY13to18']
-#server_list = ['richmond','fortcollins','fortcollins']
 
-runid_list = ['G141_13to18_246','G141_13to18_261','G141_13to18_260']
-wystr_list = ['WY13to18','WY13to18','WY13to18']
-server_list = ['richmond','boise','boise']
+
+
 
 
 #runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
@@ -133,10 +132,10 @@ param_list = ['DIN','TN','TN_include_sediment','TotalDetNS']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
-tavg_list = ['Cumulative']
+tavg_list = ['Filtered','Cumulative']
 
 # base directory for the and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-figure_base_dir = '/chicagovol1/hpcshared/open_bay/bgc/figures'
+figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 
 # number of runs (corresponds to number of columns)
 nruns = len(runid_list)
@@ -627,7 +626,11 @@ for param in param_list:
                 ymax = max_rx_by_sub*1.05
             for irow in [irow_sub]:
                 for irun in range(nruns):
-                    ax[irow,irun].set_ylim((ymin,ymax))
+                    if nruns>1:
+                        ax_run = ax[:,irun]
+                    else:
+                        ax_run = ax
+                    ax_run[irow].set_ylim((ymin,ymax))
 
         # add title and save the figure
         fig.suptitle('Whole Bay %s %s Budget' % (tavg_str, param))

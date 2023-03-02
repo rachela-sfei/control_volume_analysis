@@ -39,15 +39,15 @@ param2run['Phytoplankton Growth Rate'] = runs2plot
 
 #%% (2) Light Extinction Coefficient
 runs2plot = {'Base (#246)'         : 'G141_13to18_246',
-             '-50% (#256)'         : 'G141_13to18_256',
-             '+50% (#257)'         : 'G141_13to18_257'}
+             '-50% (#257)'         : 'G141_13to18_257',
+             '+50% (#256)'         : 'G141_13to18_256'}
 param2run['Light Extinction Coefficient'] = runs2plot
 
 #%% (3) ' Zero growth rates'
 runs2plot = {
               'Base (#246)'         :           'G141_13to18_246',
-              '-Shoal growth=0 (#259)'        : 'G141_13to18_259',
-              '+Channel growth=0 (#258)'      : 'G141_13to18_258'}  
+              'Shoal growth=0 (#259)'        : 'G141_13to18_259',
+              'Channel growth=0 (#258)'      : 'G141_13to18_258'}  
 
 param2run['Zero growth rates'] = runs2plot
 
@@ -61,15 +61,14 @@ param2run['Zoop Ingestion Rate'] = runs2plot
 #%% (5) 'Include Clams' -- add + and - to this one, this is dumb, so it works with the regular script
 
 runs2plot = {'Base (#246)'         :            'G141_13to18_246',
-              '-Include Clams (#262)'         : 'G141_13to18_262',
-              '+Include Clams (#262)'         : 'G141_13to18_262'} 
+              'Include Clams (#262)'         : 'G141_13to18_262'} 
 param2run['Include Clams'] = runs2plot
 
 #%% (6) 'Sediment Initial Condition'
 
 runs2plot = {
               'Base (#246)'         : 'G141_13to18_246',
-              '-50% (#262)'         : 'G141_13to18_262',
+              '-50% (#264)'         : 'G141_13to18_264',
               '+50% (#263)'        :  'G141_13to18_263'}  
 
 param2run['Sediment Initial Conc C/N/P/Si'] = runs2plot
