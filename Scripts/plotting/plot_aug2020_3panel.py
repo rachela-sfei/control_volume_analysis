@@ -54,7 +54,11 @@ group_list = 'all'
 
 # autoscale x axis (if you set to False, script will set min/max based on water year range)
 # note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
-autoscale_x = True
+autoscale_x = False
+
+# here's another option for the x axis ... again only applies to the HAB model
+#xlim_override = None
+xlim_override = ['%d-07-20', '%d-09-10']
 
 # list or runs to plot and water years to pick out of corresponding run (each is a column in the plot)
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
@@ -100,7 +104,7 @@ if isel==8:
 
 # list of parameters to plot (must match balance table, one plot per parameter is created)
 #param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae', 'Diat', 'Green','DiatS1']
-param_list = ['Algae','OXY','DIN','TN','TN_include_sediment','TotalDetNS']
+param_list = ['OXY']#'Algae','OXY','DIN','TN','TN_include_sediment','TotalDetNS']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily']) one plot per is created
 #tavg_list = ['Filtered','Cumulative']
@@ -422,8 +426,12 @@ for param in param_list:
                     # get first and last date for time axis
                     wymin = np.array(wy_list).min()
                     wymax = np.array(wy_list).max()
-                    tmin = np.datetime64('%d-10-01' % (wymin-1))
-                    tmax = np.datetime64('%d-10-01' % wymax)
+                    if xlim_override is None:
+                        tmin = np.datetime64('%d-10-01' % (wymin-1))
+                        tmax = np.datetime64('%d-10-01' % wymax)
+                    else:
+                        tmin = np.datetime64(xlim_override[0] % wymax)
+                        tmax = np.datetime64(xlim_override[1] % wymax)
                 
                     # loop through the water years we are to plot for this run
                     nwy = len(wy_list)
@@ -628,9 +636,13 @@ for param in param_list:
                     else:
                         for ax1 in ax_run:
                             ax1.set_xlim((tmin,tmax))
-                            ax1.xaxis.set_major_locator(mdates.YearLocator())
-                            ax1.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=(1,4,7,10)))
-                            ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+                            if xlim_override is None:
+                                ax1.xaxis.set_major_locator(mdates.YearLocator())
+                                ax1.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=(1,4,7,10)))
+                                ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+                            else:
+                                ax1.xaxis.set_major_locator(mdates.MonthLocator())
+                                ax1.xaxis.set_major_formatter(mdates.DateFormatter('1-%b-%Y'))
                             ax1.grid(visible=True,which='both')
 
                 # if group was found in all runs, go ahead and finish up the plot and save it

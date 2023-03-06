@@ -48,7 +48,7 @@ reload(CVPL)
 
 # autoscale x axis (if you set to False, script will set min/max based on water year range)
 # note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
-autoscale_x = True
+autoscale_x = False
 
 # list of runs to plot, water year to pick out of corresponding run (each is a column in the plot), 
 # and a list of servers where each run is located (use 'WY13to18' to plot all years of a 6-year agg grid run, 
@@ -82,10 +82,13 @@ autoscale_x = True
 #wystr_list = ['WY13to18','WY13to18','WY13to18']
 #server_list = ['richmond','boise','boise']
 
-runid_list = ['G141_13to18_246']
-wystr_list = ['WY13to18']
-server_list = ['richmond']
+#runid_list = ['G141_13to18_246']
+#wystr_list = ['WY13to18']
+#server_list = ['richmond']
 
+runid_list = ['FR13_026', 'G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+wystr_list = ['WY2013','WY2013','WY2014','WY2015','WY2016','WY2017','WY2017','WY2018','WY2018']
+server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','richmond','chicago','richmond']
 
 
 
@@ -144,8 +147,10 @@ assert nruns==len(wystr_list)
 # figure size for (2-4 rows depending) x (nruns columns) mass budget plot 
 if 'WY13to18' in wystr_list: 
     figure_width = 7.5*(nruns+0.75)
-else:
+elif nruns<=6:
     figure_width = 4*(nruns+0.75)
+else:
+    figure_width = 2.5*(nruns+0.75)
 row_height = 3
 
 # start with the default color cycle and add even more colors because the number of reactions is OUT OF CONTROL!
@@ -260,8 +265,12 @@ for param in param_list:
         # units
         if tavg=='Cumulative':
             units = 'Mg'
+            units_plot = 'Gg'
+            divide_by = 1000 # convert Mg to Gg in plots
         else:
             units = 'Mg/d'
+            units_plot = 'Mg/d'
+            divide_by = 1 # leave as Mg/d in plots
     
         # before we plot the different runs, take a sneak peek to find a list of all the reactions
         master_source_list = []
@@ -467,11 +476,11 @@ for param in param_list:
                 df_neg[df>0] = 0
     
                 # add to figure
-                ax_run[irow].stackplot(time, df_pos.values.transpose(), colors = color_list, labels=df.columns)
-                ax_run[irow].stackplot(time, df_neg.values.transpose(), colors = color_list)
+                ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = color_list, labels=df.columns)
+                ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = color_list)
                 if iwy==0:
                     if irun==0:
-                        ax_run[irow].set_ylabel('Whole Bay Mass Balance (%s)' % units)
+                        ax_run[irow].set_ylabel('Whole Bay Mass Balance (%s)' % units_plot)
                     if irun==(nruns-1):
                         ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
@@ -499,14 +508,14 @@ for param in param_list:
                 df_neg[df>0] = 0
     
                 # add to figure 1
-                ax_run[irow].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
-                ax_run[irow].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
-                ax_run[irow].plot(time, Net_Rx, 'k', label='Net Reaction')
-                ax_run[irow].plot(time, Net_Rx_Check_Sum, 'm--', label='Net Reaction, Check Sum')
-                ax_run[irow].plot(time, Net_Rx + Storage, 'b', label='Net Reaction - dM/dt')
+                ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
+                ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
+                ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Net Reaction')
+                ax_run[irow].plot(time, Net_Rx_Check_Sum/divide_by, 'm--', label='Net Reaction, Check Sum')
+                ax_run[irow].plot(time, (Net_Rx + Storage)/divide_by, 'b', label='Net Reaction - dM/dt')
                 if iwy==0:
                     if irun==0:
-                        ax_run[irow].set_ylabel('Whole Bay Reactions (%s)' % units)
+                        ax_run[irow].set_ylabel('Whole Bay Reactions (%s)' % units_plot)
                     if irun==(nruns-1):
                         ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
@@ -528,12 +537,12 @@ for param in param_list:
                     df_neg[df>0] = 0
 
                     # add to figure 
-                    ax_run[irow].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
-                    ax_run[irow].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
-                    ax_run[irow].plot(time, Net_Rx, 'k', label='Whole Bay')
+                    ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
+                    ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
+                    ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Whole Bay')
                     if iwy==0:
                         if irun==0:
-                            ax_run[irow].set_ylabel('Net Reaction\nby Subembayment (%s)' % units)
+                            ax_run[irow].set_ylabel('Net Reaction\nby Subembayment (%s)' % units_plot)
                         if irun==(nruns-1):
                             ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
@@ -558,13 +567,13 @@ for param in param_list:
                     df_neg[df>0] = 0
         
                     # add to figure 3
-                    ax_run[irow].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
-                    ax_run[irow].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
-                    ax_run[irow].plot(time,Tribs_Plus_Loads, 'k--', label='%s Loading from Tribs and Point Sources' % param)
-                    ax_run[irow].plot(time, -GG_Outflux, 'k', label='%s Outflux Through GG' % param)
+                    ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
+                    ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
+                    ax_run[irow].plot(time,Tribs_Plus_Loads/divide_by, 'k--', label='%s Loading from Tribs and Point Sources' % param)
+                    ax_run[irow].plot(time, -GG_Outflux/divide_by, 'k', label='%s Outflux Through GG' % param)
                     if iwy==0:
                         if irun==0:
-                            ax_run[irow].set_ylabel('Whole Bay Influx vs. Outflux (%s)' % units)
+                            ax_run[irow].set_ylabel('Whole Bay Influx vs. Outflux (%s)' % units_plot)
                         if irun==(nruns-1):
                             ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
@@ -630,7 +639,7 @@ for param in param_list:
                         ax_run = ax[:,irun]
                     else:
                         ax_run = ax
-                    ax_run[irow].set_ylim((ymin,ymax))
+                    ax_run[irow].set_ylim((ymin/divide_by,ymax/divide_by))
 
         # add title and save the figure
         fig.suptitle('Whole Bay %s %s Budget' % (tavg_str, param))
