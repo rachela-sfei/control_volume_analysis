@@ -25,10 +25,10 @@ reload(CVPL)
 
 # list of run id's and corresponding water years -- these lists should be the same length
 # and each item in the list will correspond to a column in the figure
-if 1:
-    runid_list = ['FR22_HAB_054', 'FR22_HAB_055', 'FR22_HAB_056', 'FR22_HAB_057', 'FR22_HAB_058']
-    wy_list = [2022,2022,2022,2022,2022]
-    server_list = ['chicago','chicago','chicago','chicago','chicago']
+#if 1:
+#    runid_list = ['FR22_HAB_054', 'FR22_HAB_055', 'FR22_HAB_056', 'FR22_HAB_057', 'FR22_HAB_058']
+#    wy_list = [2022,2022,2022,2022,2022]
+#    server_list = ['chicago','chicago','chicago','chicago','chicago']
 
 #if 1:    
 #    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
@@ -38,9 +38,17 @@ if 1:
 #    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
 #    wy_list = [2013,2013,2017,2017]
 #    server_list = ['richmond','chicago','richmond','chicago']
+if 1:    
+    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+    wy_list = [2013,2013,2017,2017,2018,2018]
+    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
+if 1:    
+    runid_list = ['FR13_026','FR17_019','FR18_007']
+    wy_list = [2013,2017,2018]
+    server_list = ['chicago','chicago','chicago']
 
 # list of time averages to plot (must have pre-generated these w/ step6 of the create_balance_tables scripts)
-tavg_list = ['Weekly']
+tavg_list = ['Seasonal']
 
 # list of parameters to plot -- these will be processed one after the other, not compared
 param_list = ['DIN','TN','TN_include_sediment','TotalDetNS','OXY','Algae']
@@ -222,9 +230,18 @@ for param in param_list:
                 if not rx in sink_list:
                     sink_list.append(rx)
 
-            # count sources and sinks
-            nsource = len(source_list)
-            nsink = len(sink_list)
+        # sometimes a term may be a source or a sink, such as oxygen reaeration...
+        # in this case our algorithim might have flagged it as a source in one run and 
+        # a sink in the other (depending if the average was positive or negative) ... go through
+        # the source terms and make sure none of them appear as sinks as well
+        # search for any such terms and delete them from the sink list
+        for source in source_list:
+            if source in sink_list:
+                sink_list.remove(source)
+
+        # count sources and sinks
+        nsource = len(source_list)
+        nsink = len(sink_list)
 
         # initialize a list of figure handles for the different time steps
         fig_list = []
@@ -321,9 +338,10 @@ for param in param_list:
         
                     # isolate group
                     df_group = df.loc[group]
-                    if len(group) > 1:
-                        print('warning: %d duplicate time steps at time %s, using final time step' % (len(df_group), time[itime]))
-                        df_group = df_group.iloc[-1]
+                    if not isinstance(group, str):
+                        if len(group) > 1:
+                            print('warning: %d duplicate time steps at time %s, using final time step' % (len(df_group), time[itime]))
+                            df_group = df_group.iloc[-1]
         
                     # get the loading and the reactions from the balance tables
                     loading_1 = df_group['%s,Net Load (Mg/d)' % param] 
@@ -382,9 +400,10 @@ for param in param_list:
 
                     # isolate group
                     df_group = df.loc[group]
-                    if len(group) > 1:
-                        print('warning: %d duplicate time steps at time %s, using final time step' % (len(df_group), time[itime]))
-                        df_group = df_group.iloc[-1]
+                    if not isinstance(group, str):
+                        if len(group) > 1:
+                            print('warning: %d duplicate time steps at time %s, using final time step' % (len(df_group), time[itime]))
+                            df_group = df_group.iloc[-1]
                 
                     # get the flux in on the group side combo specified
                     transport_1 = df_group['%s,Flux In from %s (Mg/d)' % (param, side)]

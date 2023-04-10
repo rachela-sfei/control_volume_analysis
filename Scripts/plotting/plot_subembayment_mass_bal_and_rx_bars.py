@@ -58,6 +58,10 @@ if 1:
     runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
     wy_list = [2013,2013,2017,2017]
     server_list = ['richmond','chicago','richmond','chicago']
+if 1:
+    runid_list = ['FR13_026','FR17_019','FR18_007']
+    wy_list = [2013,2017,2018]
+    server_list = ['chicago','chicago','chicago']
 
 # list of time averaging periods (choices are 'Annual','Seasonal','Monthly')
 # each time step within a given water year will be a row in the figures
@@ -217,9 +221,19 @@ for param in param_list:
                 if not rx in sink_list:
                     sink_list.append(rx)
 
-            # count sources and sinks
-            nsource = len(source_list)
-            nsink = len(sink_list)
+        # sometimes a term may be a source or a sink, such as oxygen reaeration...
+        # in this case our algorithim might have flagged it as a source in one run and 
+        # a sink in the other (depending if the average was positive or negative) ... go through
+        # the source terms and make sure none of them appear as sinks as well
+        # search for any such terms and delete them from the sink list
+        for source in source_list:
+            if source in sink_list:
+                sink_list.remove(source)
+
+        # count sources and sinks
+        nsource = len(source_list)
+        nsink = len(sink_list)
+
 
         # trim the units for concise legend
         source_list_trimmed = []

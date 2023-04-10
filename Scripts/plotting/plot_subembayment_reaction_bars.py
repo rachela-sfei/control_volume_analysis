@@ -131,9 +131,19 @@ for param in param_list:
                 if not rx in sink_list:
                     sink_list.append(rx)
 
-            # count sources and sinks
-            nsource = len(source_list)
-            nsink = len(sink_list)
+
+        # sometimes a term may be a source or a sink, such as oxygen reaeration...
+        # in this case our algorithim might have flagged it as a source in one run and 
+        # a sink in the other (depending if the average was positive or negative) ... go through
+        # the source terms and make sure none of them appear as sinks as well
+        # search for any such terms and delete them from the sink list
+        for source in source_list:
+            if source in sink_list:
+                sink_list.remove(source)
+
+        # count sources and sinks
+        nsource = len(source_list)
+        nsink = len(sink_list)
 
         # trim the units for concise legend
         source_list_trimmed = []

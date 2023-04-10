@@ -28,17 +28,18 @@ if 1:
 if 1:
     runid = 'FR17_019'
     server = 'chicago'
-if 1:
+if 0:
     runid = 'FR18_007'
     server = 'chicago'
 
 # list of parameters to make plots for
-param_list = ['DIN', 'TN', 'TN_include_sediment', 'TotalDetNS', 'Algae', 'Diat', 'Green', 'DiatS1']
+param_list = ['DIN', 'TN', 'TN_include_sediment', 'TotalDetNS']#, 'Algae', 'Diat', 'Green', 'DiatS1']
 
 # list of "domains" which are groups of groups to plot
 #domain_name_list = ['Whole_Bay_ABC','WB_South_Bay_ABC','WB_Subembayments','WB_Channel_Shoal','RMP_Subembayments',
 #                    'RMP_Channel_Shoal','WB_and_RMP_Subembayments','WB_and_RMP_Channel_Shoal']
-domain_name_list = ['WB_and_RMP_Subembayments','WB_and_RMP_Channel_Shoal']
+#domain_name_list = ['WB_and_RMP_Subembayments','WB_and_RMP_Channel_Shoal']
+domain_name_list = ['Whole_Bay_ABC']
 
 # list of averaging periods to use for generating maps
 averaging_period_list = ['Seasonal'] # can also add 'Annual', Monthly', and/or 'Weekly' assuming those time averages were created in step6 of create_balance_tables scripts

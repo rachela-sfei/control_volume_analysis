@@ -307,14 +307,23 @@ for param in param_list:
             for rx in sink_cols:
                 if not rx in master_sink_cols:
                     master_sink_cols.append(rx)
-    
+
+        # sometimes a term may be a source or a sink, such as oxygen reaeration...
+        # in this case our algorithim might have flagged it as a source in one run and 
+        # a sink in the other (depending if the average was positive or negative) ... go through
+        # the source terms and make sure none of them appear as sinks as well
+        # search for any such terms and delete them from the sink list
+        for source in master_source_cols:
+            if source in master_sink_cols:
+                master_sink_cols.remove(source)
+
         # combine master sources and sinks to get reactions
         master_reaction_cols = []
         for rx in master_sink_cols:
             master_reaction_cols.append(rx)
         for rx in master_source_cols:
             master_reaction_cols.append(rx)
-
+            
         # trim the units for concise legend
         master_reaction_cols_trimmed = []
         for rx in master_reaction_cols:

@@ -74,11 +74,15 @@ autoscale_x = False
 #wystr_list = ['WY13to18','WY13to18']
 #server_list = ['richmond','boise']
 
-#runid_list = ['G141_13to18_246','G141_13to18_264','G141_13to18_263']
+runid_list = ['G141_13to18_246','G141_13to18_264','G141_13to18_263']
+wystr_list = ['WY13to18','WY13to18','WY13to18']
+server_list = ['richmond','boise','boise']
+
+#runid_list = ['G141_13to18_246','G141_13to18_266','G141_13to18_265']
 #wystr_list = ['WY13to18','WY13to18','WY13to18']
 #server_list = ['richmond','boise','boise']
 
-#runid_list = ['G141_13to18_246','G141_13to18_266','G141_13to18_265']
+#runid_list = ['G141_13to18_246','G141_13to18_268','G141_13to18_267']
 #wystr_list = ['WY13to18','WY13to18','WY13to18']
 #server_list = ['richmond','boise','boise']
 
@@ -86,9 +90,9 @@ autoscale_x = False
 #wystr_list = ['WY13to18']
 #server_list = ['richmond']
 
-runid_list = ['FR13_026', 'G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-wystr_list = ['WY2013','WY2013','WY2014','WY2015','WY2016','WY2017','WY2017','WY2018','WY2018']
-server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','richmond','chicago','richmond']
+#runid_list = ['FR13_026', 'G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
+#wystr_list = ['WY2013','WY2013','WY2014','WY2015','WY2016','WY2017','WY2017','WY2018','WY2018']
+#server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','richmond','chicago','richmond']
 
 
 
@@ -131,11 +135,11 @@ server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','
 #    server_list = ['richmond','chicago','richmond','chicago']
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['DIN','TN','TN_include_sediment','TotalDetNS']
+param_list = ['DetNS1','DetNS2', 'OONS1', 'OONS2', 'DIN','TN','TN_include_sediment','TotalDetNS']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
-tavg_list = ['Filtered','Cumulative']
+tavg_list = ['Cumulative']
 
 # base directory for the and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
@@ -309,6 +313,15 @@ for param in param_list:
             for rx in sink_list:
                 if not rx in master_sink_list:
                     master_sink_list.append(rx)
+
+        # sometimes a term may be a source or a sink, such as oxygen reaeration...
+        # in this case our algorithim might have flagged it as a source in one run and 
+        # a sink in the other (depending if the average was positive or negative) ... go through
+        # the source terms and make sure none of them appear as sinks as well
+        # search for any such terms and delete them from the sink list
+        for source in master_source_list:
+            if source in master_sink_list:
+                master_sink_list.remove(source)
     
         # combine master sources and sinks to get reactions
         master_reaction_list = []
@@ -512,7 +525,8 @@ for param in param_list:
                 ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
                 ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Net Reaction')
                 ax_run[irow].plot(time, Net_Rx_Check_Sum/divide_by, 'm--', label='Net Reaction, Check Sum')
-                ax_run[irow].plot(time, (Net_Rx + Storage)/divide_by, 'b', label='Net Reaction - dM/dt')
+                if not is_it_benthic(param):
+                    ax_run[irow].plot(time, -(Net_Rx + Storage)/divide_by, 'b', label='dM/dt - Net Rx. = Load + In - Out')
                 if iwy==0:
                     if irun==0:
                         ax_run[irow].set_ylabel('Whole Bay Reactions (%s)' % units_plot)
@@ -539,7 +553,9 @@ for param in param_list:
                     # add to figure 
                     ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
                     ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
-                    ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Whole Bay')
+                    ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Whole Bay: Net Rx.')
+                    if not is_it_benthic(param):
+                        ax_run[irow].plot(time, -(Net_Rx + Storage)/divide_by, 'b', label='Whole Bay: Loads + Influx - Outflux')
                     if iwy==0:
                         if irun==0:
                             ax_run[irow].set_ylabel('Net Reaction\nby Subembayment (%s)' % units_plot)
@@ -621,18 +637,23 @@ for param in param_list:
                     for irun in range(nruns):
                         ax[irow,irun].set_ylim((0,ymax))
         # ... for reaction by subembayment check if one or the other of max or min is zero
+        # ... (don't do this anymore, to accomodate line for input minus output on TN_include_sediment plot)
         if include_subembayment_net_rx:
 
-            if np.abs(max_rx_by_sub) < 1e-2:
-                ymax = 0
-                ymin = min_rx_by_sub*1.05
-            elif np.abs(min_rx_by_sub) < 1e-2:
-                ymin = 0
-                ymax = max_rx_by_sub*1.05
-            else:
-                max_rx_by_sub = np.max([np.abs(min_rx_by_sub),np.abs(max_rx_by_sub)])
-                ymin = -max_rx_by_sub*1.05
-                ymax = max_rx_by_sub*1.05
+
+            #if np.abs(max_rx_by_sub) < 1e-2:
+            #    ymax = 0
+            #    ymin = min_rx_by_sub*1.05
+            #elif np.abs(min_rx_by_sub) < 1e-2:
+            #    ymin = 0
+            #    ymax = max_rx_by_sub*1.05
+            #else:
+            #    max_rx_by_sub = np.max([np.abs(min_rx_by_sub),np.abs(max_rx_by_sub)])
+            #    ymin = -max_rx_by_sub*1.05
+            #    ymax = max_rx_by_sub*1.05
+            max_rx_by_sub = np.max([np.abs(min_rx_by_sub),np.abs(max_rx_by_sub)])
+            ymin = -max_rx_by_sub*1.05
+            ymax = max_rx_by_sub*1.05
             for irow in [irow_sub]:
                 for irun in range(nruns):
                     if nruns>1:
