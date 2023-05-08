@@ -74,9 +74,9 @@ autoscale_x = False
 #wystr_list = ['WY13to18','WY13to18']
 #server_list = ['richmond','boise']
 
-runid_list = ['G141_13to18_246','G141_13to18_264','G141_13to18_263']
-wystr_list = ['WY13to18','WY13to18','WY13to18']
-server_list = ['richmond','boise','boise']
+#runid_list = ['G141_13to18_246','G141_13to18_264','G141_13to18_263']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','boise','boise']
 
 #runid_list = ['G141_13to18_246','G141_13to18_266','G141_13to18_265']
 #wystr_list = ['WY13to18','WY13to18','WY13to18']
@@ -86,60 +86,20 @@ server_list = ['richmond','boise','boise']
 #wystr_list = ['WY13to18','WY13to18','WY13to18']
 #server_list = ['richmond','boise','boise']
 
-#runid_list = ['G141_13to18_246']
-#wystr_list = ['WY13to18']
-#server_list = ['richmond']
+#runid_list = ['G141_13to18_246','G141_13to18_270']
+#wystr_list = ['WY13to18','WY13to18']
+#server_list = ['richmond','richmond']
 
-#runid_list = ['FR13_026', 'G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-#wystr_list = ['WY2013','WY2013','WY2014','WY2015','WY2016','WY2017','WY2017','WY2018','WY2018']
-#server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','richmond','chicago','richmond']
-
-
-
-
-
-#runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
-#wystr_list = ['WY2013','WY2013','WY2017','WY2017']
-#server_list = ['richmond','richmond','richmond','richmond']
-#if 1:
-#    runid_list = ['FR22_HAB_054', 'FR22_HAB_055', 'FR22_HAB_056', 'FR22_HAB_057', 'FR22_HAB_058']
-#    wystr_list = ['WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom']
-#    server_list = ['chicago','chicago','chicago','chicago','chicago']
-#if 1:
-#    runid_list = ['FR13_003', 'FR13_026']
-#    wystr_list = ['WY2013', 'WY2013']
-#    server_list = ['richmond','chicago']
-#if 1:
-#    runid_list = ['FR13_026', 'G141_13to18_246']
-#    wystr_list = ['WY2013', 'WY2013']
-#    server_list = ['chicago','richmond']
-#if 1:
-#    runid_list = ['FR17_003', 'FR17_019']
-#    wystr_list = ['WY2017', 'WY2017']
-#    server_list = ['richmond','chicago']
-#if 1:
-#    runid_list = ['FR17_019', 'G141_13to18_246']
-#    wystr_list = ['WY2017', 'WY2017']
-#    server_list = ['chicago','richmond']
-#if 1:
-#    runid_list = ['FR18_007', 'G141_13to18_246']
-#    wystr_list = ['WY2018', 'WY2018']
-#    server_list = ['chicago','richmond']
-#if 1:    
-#    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-#    wystr_list = ['WY2013','WY2013','WY2017', 'WY2017','WY2018', 'WY2018']
-#    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
-#if 1:    
-#    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
-#    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017']
-#    server_list = ['richmond','chicago','richmond','chicago']
+runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
+server_list = ['chicago','boise','boise','boise','chicago','chicago']
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['DetNS1','DetNS2', 'OONS1', 'OONS2', 'DIN','TN','TN_include_sediment','TotalDetNS']
+param_list = ['DetNS12', 'OONS12', 'DIN', 'TN', 'TN_include_sediment']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
-tavg_list = ['Cumulative']
+tavg_list = ['Cumulative','Filtered']
 
 # base directory for the and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
@@ -151,7 +111,7 @@ assert nruns==len(wystr_list)
 # figure size for (2-4 rows depending) x (nruns columns) mass budget plot 
 if 'WY13to18' in wystr_list: 
     figure_width = 7.5*(nruns+0.75)
-elif nruns<=6:
+elif nruns<=4:
     figure_width = 4*(nruns+0.75)
 else:
     figure_width = 2.5*(nruns+0.75)
@@ -163,7 +123,7 @@ colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e3
 
 # flag to include a row with the subembayment-by-subembayment net reaction for this parameter
 # and the list of subembayments to use (let's use RMP) and a list w/ nice names for legend
-include_subembayment_net_rx = True
+include_subembayment_assim = True
 subembayment_list = ['LSB', 'SB_RMP', 'Central_Bay_RMP', 'San_Pablo_Bay', 'Suisun_Bay'] 
 subembayment_nice = ['Lower South Bay', 'South Bay (RMP)','Central Bay (RMP)', 'San Pablo Bay', 'Suisun Bay']
 
@@ -187,7 +147,7 @@ def return_components_list(param):
 # doesn't get transported, so everything is zero)
 def is_it_benthic(param):
 
-    if param in ['DetNS1','DetNS2','DetNS','OONS1','OONS2','OONS',
+    if param in ['DetNS1','DetNS2','DetNS12','OONS1','OONS2','OONS12',
                  'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1']:
         is_benthic = True
     else:
@@ -245,7 +205,7 @@ for param in param_list:
     nrows = 2
     if not is_it_benthic(param):
         nrows += 1
-    if include_subembayment_net_rx:
+    if include_subembayment_assim:
         nrows += 1
     
     # loop through different time averages: daily, spring-neap filter, cumulative
@@ -336,7 +296,7 @@ for param in param_list:
             master_reaction_list_trimmed.append(rx.replace(' (%s)' % units,''))
 
         # track the min and max reaction by subembayment to see if it is always above or below zero
-        if include_subembayment_net_rx:
+        if include_subembayment_assim:
             max_rx_by_sub = 0
             min_rx_by_sub = 0
 
@@ -373,7 +333,7 @@ for param in param_list:
                     data_components.append(data_component)
 
             # select the subembayment data and load up into a list
-            if include_subembayment_net_rx:
+            if include_subembayment_assim:
                 nsubs = len(subembayment_list)
                 data_subs = []
                 for sub in subembayment_list:
@@ -392,7 +352,7 @@ for param in param_list:
             for ic in range(ncom):
                 if not data_components[ic] is None:
                     data_components[ic]['time'] = pd.to_datetime(data_components[ic]['time']).values
-            if include_subembayment_net_rx:
+            if include_subembayment_assim:
                 for isub in range(nsubs):
                     data_subs[isub]['time'] = pd.to_datetime(data_subs[isub]['time']).values
         
@@ -433,7 +393,7 @@ for param in param_list:
                         dataf_components.append(data_components[ic].loc[ind])
                     else:
                         dataf_components.append(None)
-                if include_subembayment_net_rx:
+                if include_subembayment_assim:
                     dataf_subs = []
                     for isub in range(nsubs):
                         dataf_subs.append(data_subs[isub].loc[ind])
@@ -469,9 +429,9 @@ for param in param_list:
                 df = pd.DataFrame(index=time)
                 if not is_it_benthic(param):
                     df['Point Sources'] = Net_Loading.copy()
-                    df['Delta Influx'] = Delta_Influx.copy()
+                    df['Delta Influx\n(+Petaluma/Sonoma/Napa)'] = Delta_Influx.copy()
                     df['Minor Tribs'] = Minor_Trib_Influx.copy()
-                df['Storage (-dM/dt)'] = Storage.copy()
+                df['-1 x Storage (-dM/dt)'] = Storage.copy()
                 df['Net Reaction'] = Net_Rx.copy()
                 if not is_it_benthic(param):
                     df['Golden Gate Outflux'] = GG_Outflux.copy()
@@ -512,7 +472,7 @@ for param in param_list:
                 Net_Rx_Check_Sum = df.values.sum(axis=1)
 
                 # add storage
-                df['Storage (-dM/dt)'] = Storage.copy()
+                df['-1 x Storage (-dM/dt)'] = Storage.copy()
 
                 # divide into positive and negative
                 df_pos = df.copy(deep=True)
@@ -524,9 +484,9 @@ for param in param_list:
                 ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
                 ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
                 ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Net Reaction')
-                ax_run[irow].plot(time, Net_Rx_Check_Sum/divide_by, 'm--', label='Net Reaction, Check Sum')
+                #ax_run[irow].plot(time, Net_Rx_Check_Sum/divide_by, 'm--', label='Net Reaction, Check Sum')
                 if not is_it_benthic(param):
-                    ax_run[irow].plot(time, -(Net_Rx + Storage)/divide_by, 'b', label='dM/dt - Net Rx. = Load + In - Out')
+                    ax_run[irow].plot(time, (Net_Rx + Storage)/divide_by, 'b', label='-1 x Assimilation:\ndM/dt - Net Rx.')
                 if iwy==0:
                     if irun==0:
                         ax_run[irow].set_ylabel('Whole Bay Reactions (%s)' % units_plot)
@@ -534,15 +494,22 @@ for param in param_list:
                         ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
                 # next row of plot
-                if include_subembayment_net_rx:
+                if include_subembayment_assim:
                     irow += 1   
                     irow_sub = irow
 
-                    # make a dataframe with net reaction for each subembayment
+                    # make a dataframe with assimilation rate for each subembayment
                     df = pd.DataFrame(columns=subembayment_nice, index=time)
                     df.loc[:,:] = 0
                     for isub, sub in enumerate(subembayment_nice):
-                        df[sub] = dataf_subs[isub]['%s,Net Reaction (%s)' % (param,units)].values
+
+                        # for benthic parameters, we will plot the net storage instead of the net assimlation 
+                        # because the net assimilation is always zero
+                        if is_it_benthic(param):
+                            df[sub] = dataf_subs[isub]['%s,dMass/dt, Balance Check (%s)' % (param,units)].values
+                        else:
+                            df[sub] = (dataf_subs[isub]['%s,dMass/dt, Balance Check (%s)' % (param,units)].values - 
+                                       dataf_subs[isub]['%s,Net Reaction (%s)' % (param,units)].values )
 
                     # divide into positive and negative values
                     df_pos = df.copy(deep=True)
@@ -553,12 +520,17 @@ for param in param_list:
                     # add to figure 
                     ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
                     ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
-                    ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Whole Bay: Net Rx.')
-                    if not is_it_benthic(param):
-                        ax_run[irow].plot(time, -(Net_Rx + Storage)/divide_by, 'b', label='Whole Bay: Loads + Influx - Outflux')
+                    #ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Whole Bay: Net Rx.')
+                    if is_it_benthic(param):
+                        ax_run[irow].plot(time, -(Storage)/divide_by, 'b', label='Whole Bay Storage')
+                    else:
+                        ax_run[irow].plot(time, -(Net_Rx + Storage)/divide_by, 'b', label='Whole Bay Assimilation')
                     if iwy==0:
                         if irun==0:
-                            ax_run[irow].set_ylabel('Net Reaction\nby Subembayment (%s)' % units_plot)
+                            if is_it_benthic(param):
+                                ax_run[irow].set_ylabel('Storage: dM/dt\nby Subembayment (%s)' % units_plot)
+                            else:
+                                ax_run[irow].set_ylabel('Assimilation: dM/dt - Net Rx.\nby Subembayment (%s)' % units_plot)
                         if irun==(nruns-1):
                             ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
@@ -585,8 +557,8 @@ for param in param_list:
                     # add to figure 3
                     ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
                     ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
-                    ax_run[irow].plot(time,Tribs_Plus_Loads/divide_by, 'k--', label='%s Loading from Tribs and Point Sources' % param)
-                    ax_run[irow].plot(time, -GG_Outflux/divide_by, 'k', label='%s Outflux Through GG' % param)
+                    ax_run[irow].plot(time,Tribs_Plus_Loads/divide_by, 'k--', label='%s Loading\nfrom Tribs and Point Sources' % param)
+                    ax_run[irow].plot(time, -GG_Outflux/divide_by, 'k', label='%s Outflux\nThrough GG' % param)
                     if iwy==0:
                         if irun==0:
                             ax_run[irow].set_ylabel('Whole Bay Influx vs. Outflux (%s)' % units_plot)
@@ -638,7 +610,7 @@ for param in param_list:
                         ax[irow,irun].set_ylim((0,ymax))
         # ... for reaction by subembayment check if one or the other of max or min is zero
         # ... (don't do this anymore, to accomodate line for input minus output on TN_include_sediment plot)
-        if include_subembayment_net_rx:
+        if include_subembayment_assim:
 
 
             #if np.abs(max_rx_by_sub) < 1e-2:

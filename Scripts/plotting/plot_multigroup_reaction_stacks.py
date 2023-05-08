@@ -33,11 +33,15 @@ reload(CVPL)
 #########################################################################################
 
 # run name and server where it is located
-#runid = 'G141_13to18_246'
+runid = 'G141_13to18_246'
+server = 'richmond'
 #runid = 'FR13_003'
-if 1:
-    runid = 'FR22_HAB_058'
-    server = 'chicago'
+#if 1:
+#    runid = 'FR22_HAB_058'
+#    server = 'chicago'
+#if 1:
+#    runid = 'FR13_026'
+#    server = 'chicago'
 #if 1:
 #    runid = 'FR17_019'
 #    server = 'chicago'
@@ -58,13 +62,18 @@ time_end = None
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 
 ## list of parameters to plot
-param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae', 'Diat', 'Green', 'DiatS1']
+param_list = ['DIN','TN','TN_include_sediment','OXY','DetNS12','OONS12', 'N-Algae']
 
 # dictionary to map parameter to element corresponding to mass
 grams_of_what = {'DIN' : 'N', 
                  'TN' : 'N', 
                  'TN_include_sediment' : 'N', 
-                 'TotalDetNS' : 'N', 
+                 'DetNS12' : 'N',
+                 'OONS12' : 'N', 
+                 'N-Algae' : 'N', 
+                 'N-Diat' : 'N', 
+                 'N-Green' : 'N', 
+                 'N-DiatS1' : 'N',
                  'Algae' : 'C', 
                  'Diat' : 'C', 
                  'Green' : 'C', 
@@ -78,8 +87,8 @@ panel_list = ['All_Subs_RMP', 'All_Subs_WB', 'South_Bay_6Part']
 norm_list = ['Area','Volume','None']
 
 # list of time integration types
-#tavg_list = ['Filtered', 'Cumulative']   # can also add 'Daily' if desired
-tavg_list = ['Daily']
+tavg_list = ['Cumulative'] #,'Filtered']   # can also add 'Daily' if desired
+#tavg_list = ['Daily']
 
 # this is a function, but it's really more like user input b/c this is where you specify the properties of the different plots
 # of groups of groups that we are going to make
@@ -333,7 +342,7 @@ for param in param_list:
                     ax[igroup].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
                     ax[igroup].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
                     ax[igroup].plot(time, Net_Rx_Group, 'k', label='Net Reaction')
-                    ax[igroup].plot(time, Net_Rx_Group_Check_Sum, 'm--', label='Net Reaction, Check Sum')
+                    #ax[igroup].plot(time, Net_Rx_Group_Check_Sum, 'm--', label='Net Reaction, Check Sum')
                     ax[igroup].plot(time, Net_Rx_Group + Storage_Group, 'b', label='Net Reaction - dM/dt')
                     ax[igroup].set_title('%s\nArea = %0.0f km$^2$\nVolume = %0.0f km$^2$ x m' % (group_labels[igroup], area_km2, volume_km2xm))
                     if np.mod(igroup, ncols)==0:

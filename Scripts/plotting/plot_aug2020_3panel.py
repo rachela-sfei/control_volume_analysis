@@ -54,7 +54,7 @@ group_list = 'all'
 
 # autoscale x axis (if you set to False, script will set min/max based on water year range)
 # note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
-autoscale_x = False
+autoscale_x = True
 
 # here's another option for the x axis ... again only applies to the HAB model
 #xlim_override = None
@@ -63,7 +63,7 @@ xlim_override = ['%d-07-20', '%d-09-10']
 # list or runs to plot and water years to pick out of corresponding run (each is a column in the plot)
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
 # also list servers where runs are stored
-isel=8
+isel=9
 if isel==0:
     runid_list = ['FR22_HAB_071', 'FR22_HAB_072', 'FR22_HAB_073', 'FR22_HAB_074']
     wystr_list = ['WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom']
@@ -100,16 +100,21 @@ if isel==8:
     runid_list = ['FR13_026', 'G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246','FR22_HAB_083']
     wystr_list = ['WY2013','WY2013','WY2014','WY2015','WY2016','WY2017','WY2017','WY2018','WY2018','WY2022']
     server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','richmond','chicago','richmond','chicago']
-
+if isel==9:
+    runid_list = ['G141_13to18_246','G141_13to18_270']
+    wystr_list = ['WY13to18', 'WY13to18']
+    server_list = ['richmond','richmond']
 
 # list of parameters to plot (must match balance table, one plot per parameter is created)
 #param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae', 'Diat', 'Green','DiatS1']
-param_list = ['OXY']#'Algae','OXY','DIN','TN','TN_include_sediment','TotalDetNS']
+param_list = ['TN_include_sediment','TN','DIN','NH4','NO3','DON',
+                        'PON1','PON2','N-Algae','N-Zoopl','TotalDetNS','DetNS1','DetNS2','OONS1','OONS2',
+                        'OXY','Algae','Diat','Green','DiatS1','Zoopl']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily']) one plot per is created
 #tavg_list = ['Filtered','Cumulative']
 #tavg_list = ['Daily']
-tavg_list = ['Filtered']
+tavg_list = ['Filtered','Cumulative']
 
 # list of normalizations (divide by 'None','Area','Volume')
 norm_list = ['None','Area','Volume']
@@ -512,7 +517,7 @@ for param in param_list:
                             ax_run[irow].stackplot(time, df_pos.values.transpose(), colors = colors[0:len(df.columns)], labels=df.columns)
                             ax_run[irow].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
 
-                        if iwy==0:
+                        if iwy==(nwy-1):
 
                             if irun==0:
                                 ax_run[irow].set_ylabel('Rates in Mass Balance\n(%s)' % (units_label))
@@ -527,6 +532,12 @@ for param in param_list:
                                 else:
                                     ax_run1 = ax
                                 handles, labels = ax_run1[irow].get_legend_handles_labels()
+
+                                # there are nwy x too many handles and labels if there are multiple water years, 
+                                # need to trim them down
+                                nhl = int(len(handles)/nwy)
+                                handles = handles[0:nhl]
+                                labels = labels[0:nhl]
 
                                 # put the legend in the last column, but with contents based on first column that had data
                                 ax_run[irow].legend(handles, labels, loc='center left',bbox_to_anchor=(1, 0.5))
@@ -559,7 +570,7 @@ for param in param_list:
                                 for col, color in zip(df.columns,colors):
                                     ax_run[irow].plot(time, df[col], color=color, label=col)
 
-                            if iwy==0:
+                            if iwy==(nwy-1):
                                 if irun==0:
                                     ax_run[irow].set_ylabel('Transport Fluxes\n(%s)' % (units_label))
                                 if irun==(nruns-1):
@@ -573,6 +584,12 @@ for param in param_list:
                                     else:
                                         ax_run1 = ax
                                     handles, labels = ax_run1[irow].get_legend_handles_labels()
+
+                                    # there are nwy x too many handles and labels if there are multiple water years, 
+                                    # need to trim them down
+                                    nhl = int(len(handles)/nwy)
+                                    handles = handles[0:nhl]
+                                    labels = labels[0:nhl]
     
                                     # put the legend in the last column, but with contents based on first column that had data
                                     ax_run[irow].legend(handles, labels, loc='center left',bbox_to_anchor=(1, 0.5))
@@ -608,7 +625,7 @@ for param in param_list:
                             ax_run[irow].stackplot(time, df_neg.values.transpose(), colors = colors[0:len(df.columns)])
                             ax_run[irow].plot(time, net_rx, color='k', label = 'Net Reaction')
 
-                        if iwy==0:
+                        if iwy==(nwy-1):
                             if irun==0:
                                 ax_run[irow].set_ylabel('Reactions\n(%s)' % (units_label))
                             if irun==(nruns-1):
@@ -622,12 +639,19 @@ for param in param_list:
                                 else:
                                     ax_run1 = ax
                                 handles, labels = ax_run1[irow].get_legend_handles_labels()
+                                
+                                # there are nwy x too many handles and labels if there are multiple water years, 
+                                # need to trim them down
+                                nhl = int(len(handles)/nwy)
+                                ihl = np.concatenate([np.array([0]),np.arange(nwy,(nwy+nhl-1))])
+                                handles1 = [handles[i] for i in ihl]
+                                labels1 = [labels[i] for i in ihl]
 
                                 # sometimes we need mulitple columns in the legend to fit all the reactions
                                 ncol = int(np.ceil((len(master_reaction_cols) + 1)/max_legend_rows))
 
                                 # put the legend in the last column, but with contents based on first column that had data
-                                ax_run[irow].legend(handles, labels, loc='center left',bbox_to_anchor=(1, 0.5), ncol=ncol)
+                                ax_run[irow].legend(handles1, labels1, loc='center left',bbox_to_anchor=(1, 0.5), ncol=ncol)
 
                         # row corresponding to reactions
                         row_rx = irow
@@ -663,7 +687,7 @@ for param in param_list:
                         if not irow is None:
                             if nruns==1:
                                 ymax = np.abs(ax[irow].get_ylim()).max()
-                                ax[irow].set_ylim((0,ymax))
+                                ax[irow].set_ylim((0,1.1*ymax))
                             else:
                                 ymax = 0
                                 for irun in range(nruns):
@@ -671,14 +695,14 @@ for param in param_list:
                                         ymax1 = np.abs(ax[irow,irun].get_ylim()).max()
                                         ymax = np.max([ymax,ymax1])
                                 for irun in range(nruns):
-                                    ax[irow,irun].set_ylim((0,ymax))
+                                    ax[irow,irun].set_ylim((0,1.1*ymax))
     
                     # ... for first and 2nd rows, make y axis symmetric around zero
                     for irow in [row_budget, row_transport, row_rx]:
                         if not irow is None:
                             if nruns==1:
                                 ymax = np.abs(ax[irow].get_ylim()).max()
-                                ax[irow].set_ylim((-ymax,ymax))
+                                ax[irow].set_ylim((-1.1*ymax,1.1*ymax))
                             else:
                                 ymax = 0
                                 for irun in range(nruns):
@@ -686,7 +710,7 @@ for param in param_list:
                                         ymax1 = np.abs(ax[irow,irun].get_ylim()).max()
                                         ymax = np.max([ymax,ymax1])
                                 for irun in range(nruns):
-                                    ax[irow,irun].set_ylim((-ymax,ymax))
+                                    ax[irow,irun].set_ylim((-1.1*ymax,1.1*ymax))
     
                     # get the string to describe the group
                     if nice_names is None:

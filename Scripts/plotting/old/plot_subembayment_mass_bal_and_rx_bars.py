@@ -62,10 +62,6 @@ if 1:
     runid_list = ['FR13_026','FR17_019','FR18_007']
     wy_list = [2013,2017,2018]
     server_list = ['chicago','chicago','chicago']
-if 1:
-    runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
-    wy_list = [2013,2014,2015,2016,2017,2018]
-    server_list = ['chicago','boise','boise','boise','chicago','chicago']
 
 # list of time averaging periods (choices are 'Annual','Seasonal','Monthly')
 # each time step within a given water year will be a row in the figures
@@ -226,14 +222,14 @@ for param in param_list:
                 print('could not open %s\nit probably doesn''t exist, skipping this one' % input_fn)
                 continue
 
-            ## group reactions as specified
-            #group_rx = group_reactions(param)
-            #for rx in group_rx.keys():
-            #    if not group_rx[rx] in data.columns:
-            #        data[group_rx[rx]] = data[rx]
-            #    else:
-            #        data[group_rx[rx]] += data[rx]
-            #    data.drop(columns=[rx],inplace=True)
+            # group reactions as specified
+            group_rx = group_reactions(param)
+            for rx in group_rx.keys():
+                if not group_rx[rx] in data.columns:
+                    data[group_rx[rx]] = data[rx]
+                else:
+                    data[group_rx[rx]] += data[rx]
+                data.drop(columns=['rx'],inplace=True)
 
             # get the reaction lists
             source_list_1 = []

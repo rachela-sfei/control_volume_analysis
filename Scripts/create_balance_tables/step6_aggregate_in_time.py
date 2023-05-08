@@ -185,7 +185,7 @@ for balance_table_fn in table_list:
     yrmax = pd.Timestamp(time.max()).year
     wy_list = []
     while yr<=yrmax:
-        if sum(time>=np.datetime64('%d-10-01' % yr))>0:
+        if (np.datetime64('%d-10-01' % yr) >= time[0]) and (sum(time>=np.datetime64('%d-10-01' % yr))>0):
             wy_list.append(yr+1)
         yr += 1
 
