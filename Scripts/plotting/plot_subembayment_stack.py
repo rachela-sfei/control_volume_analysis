@@ -140,11 +140,11 @@ def return_components_list(param):
     if param == 'DIN':
         components_list = ['NH4','NO3']
     elif param == 'TN':
-        components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae'] 
+        components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae','DiatS1'] 
     elif param == 'TN_plus_DetNS12':
-        components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae','DetNS12'] 
+        components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae','DiatS1','DetNS12'] 
     elif param == 'TN_include_sediment':
-        components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae','DetNS12','OONS12'] 
+        components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae','DiatS1','DetNS12','OONS12'] 
     else:
         components_list = [param]
     ncom = len(components_list)

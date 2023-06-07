@@ -25,33 +25,16 @@ reload(CVPL)
 
 # list of run id's and corresponding water years -- these lists should be the same length
 # and each item in the list will correspond to a column in the figure
-#if 1:
-#    runid_list = ['FR22_HAB_054', 'FR22_HAB_055', 'FR22_HAB_056', 'FR22_HAB_057', 'FR22_HAB_058']
-#    wy_list = [2022,2022,2022,2022,2022]
-#    server_list = ['chicago','chicago','chicago','chicago','chicago']
+runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+wy_list = [2013,2014,2015,2016,2017,2018]
+server_list = ['chicago','boise','boise','boise','chicago','chicago']
 
-#if 1:    
-#    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-#    wy_list = [2013,2013,2017,2017,2018,2018]
-#    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
-#if 1:    
-#    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
-#    wy_list = [2013,2013,2017,2017]
-#    server_list = ['richmond','chicago','richmond','chicago']
-if 1:    
-    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-    wy_list = [2013,2013,2017,2017,2018,2018]
-    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
-if 1:    
-    runid_list = ['FR13_026','FR17_019','FR18_007']
-    wy_list = [2013,2017,2018]
-    server_list = ['chicago','chicago','chicago']
 
 # list of time averages to plot (must have pre-generated these w/ step6 of the create_balance_tables scripts)
 tavg_list = ['Seasonal']
 
 # list of parameters to plot -- these will be processed one after the other, not compared
-param_list = ['DIN','TN','TN_include_sediment','TotalDetNS','OXY','Algae']
+param_list = ['DIN','TN','TN_plus_DetNS12']
 
 # flag to put all runs and/or times on same plot
 # runs will be different columns and times will be different rows

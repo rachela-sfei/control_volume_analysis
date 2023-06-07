@@ -13,7 +13,7 @@ groups, to check for errors
 #group_subset = ['L','K','J','I','H','G','F','E','D','C','B','A','V','U1','T1','S1','U2','T2','S2','X','W','Z','Y']
 
 # is full resolution?
-FR=False
+FR=True
 
 # for FR Runs (includes new segments defined by sienna and whole bay added by allie...)
 if FR:

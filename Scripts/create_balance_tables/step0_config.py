@@ -20,10 +20,10 @@ abort_for_mass_cons_error = True
 #runid = 'FR14_001'  # /boisevol1
 #runid = 'FR15_001'  # /boisevol1
 #runid = 'FR16_001'  # /boisevol1
-#runid = 'FR13_028'  # /chicagovol1
+runid = 'FR13_028'  # /chicagovol1
 #runid = 'FR17_021'  # /chicagovol1
 #runid = 'FR18_009'  # /chicagovol1
-runid = 'G141_13to18_273'  # /boisevol1
+#runid = 'G141_13to18_274'  # /boisevol1
 #runid = 'G141_13to18_246'  # /richmondvol1          chicago
 #runid = 'G141_13to18_254'  # /fortcollinsvol1       chicago
 #runid = 'G141_13to18_255'  # /fortcollinsvol1       chicago
@@ -53,7 +53,7 @@ lsp_path = None
 balance_table_dir = None       # will be placed inside run_dir unless otherwise specified
 
 # base directory of the model runs (this is ignored if run_dir is specified as something other than None above)
-model_run_base_dir = '/boisevol1/hpcshared'
+model_run_base_dir = '/chicagovol1/hpcshared'
 
 # base directory for model input, namely the shapefiles (this definitely runs on linux, in theory can also run this in windows and use mounted drive)
 # (this is ignored if poly_path and tran_path are specified as something other than None above)
@@ -79,7 +79,7 @@ plot_substance_list = ['tn_include_sediment','tn_plus_detns12','tn','din','nh4',
 # list of time averaging schemes to apply (saves space to skip some if we don't need them) 
 # (this is used in step6_aggregate_in_time.py)
 #tavg_list = ['Cumulative', 'Filtered', 'Annual', 'Seasonal', 'Monthly', 'Weekly']
-tavg_list = ['Seasonal','Monthly','Cumulative', 'Filtered']
+tavg_list = ['Annual','Seasonal','Monthly','Cumulative', 'Filtered']
 #tavg_list = ['Seasonal', 'Monthly']
 #tavg_list = ['Filtered','Cumulative']
 

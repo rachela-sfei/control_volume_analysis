@@ -84,46 +84,34 @@ reload(CVPL)
 #server_list = ['chicago']
 #all_time_together = True
 
-isel=7
-if isel==0:
-    runid_list = ['FR13_003', 'FR13_026']
-    wy_list = [2013, 2013]
-    server_list = ['richmond','chicago']
-    all_time_together = False
-if isel==1:
-    runid_list = ['FR13_026', 'G141_13to18_246']
-    wy_list = [2013, 2013]
-    server_list = ['chicago','richmond']
-    all_time_together = False
-if isel==2:
-    runid_list = ['FR17_003', 'FR17_019']
-    wy_list = [2017, 2017]
-    server_list = ['richmond','chicago']
-    all_time_together = False
-if isel==3:
-    runid_list = ['FR17_019', 'G141_13to18_246']
-    wy_list = [2017, 2017]
-    server_list = ['chicago','richmond']
-    all_time_together = False
-if isel==4:
-    runid_list = ['FR18_007', 'G141_13to18_246']
-    wy_list = [2018, 2018]
-    server_list = ['chicago','richmond']
-    all_time_together = False
-if isel==5:    
-    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
-    wy_list = [2013,2013,2017,2017]
-    server_list = ['richmond','chicago','richmond','chicago']
-if isel==6:    
-    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-    wy_list = [2013,2013,2017,2017,2018,2018]
-    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
-if isel==7:    
-    runid_list = ['FR13_026', 'G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-    wy_list = [2013,2013,2014,2015,2016,2017,2017,2018,2018]
-    server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','richmond','chicago','richmond']
+runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+wy_list = [2013,2014,2015,2016,2017,2018]
+server_list = ['chicago','boise','boise','boise','chicago','chicago']
+all_time_together = False
 
-select_a_rate_set = 2
+select_a_rate_set = -1
+
+if select_a_rate_set==-2:
+
+    # in this example we plot all the rates that make up the net DIN reaction
+    rate_list = ['n-dpp',    
+                 'din_recycling',
+                 'dmin_sed']  
+    multiple_rates_on_same_figure = True
+    multiple_rates_figure_label = 'DIN_Uptake_Recycling'
+    multiple_rates_figure_title = 'DIN Uptake and Recycling'
+    caxis_limit_override = {'Area' : 0.2, 'Volume': 0.1, 'None' : 3e6}
+
+
+if select_a_rate_set==-1:
+
+    # in this example we plot all the rates that make up the net DIN reaction
+    rate_list = ['denit',    
+                 'din_assim']  
+    multiple_rates_on_same_figure = True
+    multiple_rates_figure_label = 'Denit_DIN-Assim_TN-Assim'
+    multiple_rates_figure_title = 'Denitrification and DIN / TN Assimilation (dM/dt - Net Rx.)\n(TN includes N in water column and sediment)'
+    caxis_limit_override = {'Area' : 0.1, 'Volume': 0.1, 'None' : 3e6}
 
 if select_a_rate_set==0:
 
@@ -140,8 +128,7 @@ if select_a_rate_set==0:
 elif select_a_rate_set==1:
 
     # in this example we plot all the rates that make up the net DIN reaction
-    rate_list = ['n-dpp-pelagic',
-                 'n-dpp-benthic',
+    rate_list = ['n-dpp',
                  'denit',             
                  'din_recycling',     
                  'dmin_sed',   
@@ -206,11 +193,11 @@ elif select_a_rate_set==4:
 
 # list of time averaging periods (choices are 'Annual','Seasonal','Monthly')
 #time_period_list = ['Annual','Seasonal','Monthly']
-time_period_list = ['Seasonal']
+time_period_list = ['Annual','Seasonal']
 
 # list of normalizations (divide by 'None','Area','Volume')
 #norm_list = ['None','Area','Volume']
-norm_list = ['Area','Volume','None']
+norm_list = ['Area']
 
 # get length of run list and wy list, make sure they're the same length, also check if all runs are the same
 nruns = len(runid_list)
@@ -223,7 +210,7 @@ figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 input_base_dir = '/richmondvol1/hpcshared'
 
 # nanpercentile for color map cutoff
-cper = 97.5
+cper = 90
 
 # set the approximate size of the figure subplots in inches (if there are N subplots the figure will be N x subplot_width wide)
 subplot_width = 4
@@ -402,8 +389,8 @@ def get_rate_properties(rate_name):
         grams_of_what = 'N'                                 
         balance_table_list = ['din_Table.csv']              
         multiplier_list = [-1]                              
-        reaction_list = [["NO3,dDenit", "NO3,dNiDen"]]      
-        cmap = cmocean.cm.dense                             
+        reaction_list = [["NO3,dDenit"]]# already lumped this in, in latest version of CV scripts:"NO3,dNiDen"]]      
+        cmap = cmocean.cm.amp # cmocean.cm.dense # make it positive to plot with assimilation                             
         cmap_diverging = False                             
 
     elif rate_name=='n-dpp':
@@ -413,7 +400,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['din_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DIN,dDINUpt','DIN,dDINUptS1']]
-        cmap = cmocean.cm.dense
+        cmap = cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='n-dpp-pelagic':
@@ -444,8 +431,10 @@ def get_rate_properties(rate_name):
         multiplier_list = [1]
         reaction_list = [["NH4,dZ_NRes",
                           "NH4,dNH4Aut",
+                          'NH4,dNH4AUTS1',
                           "NH4,dMinDON",
-                          "NH4,dMinPON"]]
+                          "NH4,dMinPON1",
+                          "NH4,dMinPON2"]]
         cmap = cmocean.cm.amp
         cmap_diverging = False
 
@@ -455,7 +444,7 @@ def get_rate_properties(rate_name):
         grams_of_what = 'N'
         balance_table_list = ['din_Table.csv']
         multiplier_list = [1]
-        reaction_list = [['NH4,dMinTotalDetNS']]
+        reaction_list = [['NH4,dMinDetNS12']] #,'NH4,dMinOONS12']] # exclude OONS1 and OONS2, Pradeep says to pretend it's loading
         cmap = cmocean.cm.amp
         cmap_diverging = False
 
@@ -491,21 +480,37 @@ def get_rate_properties(rate_name):
         cmap = cmocean.cm.dense
         cmap_diverging = False
     
-    elif rate_name=='din_loss':
+    elif rate_name=='din_assim':
     
-        rate_title = 'DIN Reactive Loss'
+        rate_title = 'DIN Assimilation\n(dM/dt - Rx)'
         grams_of_what = 'N'
-        balance_table_list = ['din_Table.csv']
-        multiplier_list = [-1]
-        reaction_list = [['NH4,dMinTotalDetNS',
-                          'DIN,dDINUpt',
-                          'DIN,dDINUptS1',
-                          'NO3,dDenit',
-                          'NO3,dNiDen',
-                          'NH4,dMinPON',
-                          'NH4,dMinDON',
-                          'NH4,dZ_NRes',
-                          'NH4,dNH4Aut']]
+        balance_table_list = ['din_Table.csv','din_Table.csv']
+        multiplier_list = [1,-1]
+        reaction_list = [['dVar/dt'], ['NH4,dMinDetNS12', 
+                                       #'NH4,dMinOONS12', # pretend this is loading
+                                       'DIN,dDINUpt', 
+                                       'DIN,dDINUptS1',
+                                       'NO3,dDenit', 
+                                       'NH4,dMinPON1', 
+                                       'NH4,dMinPON2', 
+                                       'NH4,dMinDON',
+                                       'NH4,dZ_NRes', 
+                                       'NH4,dNH4Aut', 
+                                       'NH4,dNH4AUTS1']]
+        cmap = cmocean.cm.balance
+        cmap_diverging = True
+
+    elif rate_name=='tn_plus_detns12_assim':
+
+        rate_title = 'TN Assimilation\n(dM/dt - Rx)'
+        grams_of_what = 'N'
+        balance_table_list = ['tn_plus_detns12_Table.csv','tn_plus_detns12_Table.csv']
+        multiplier_list = [1,-1]
+        reaction_list = [['dVar/dt'],['NO3,dDenit',
+                                      'DetNS2,dBurS2DetN', 
+                                      'DiatS1,dBurS1Diat'
+                                      #'NH4,dMinOONS12', # pretend this is loading 
+                                      'PON2,dSedPON2']]
         cmap = cmocean.cm.balance
         cmap_diverging = True
 
@@ -655,6 +660,9 @@ for time_period in time_period_list:
         nrates = len(rate_list)
         for irate, rate_name in enumerate(rate_list):
 
+            #if rate_name=='tn_plus_detns12_assim':
+            #    sys.exit()
+
             # load up a bunch of variables specific to this rate_name (this function is defined in the user input section above)
             rate_title, grams_of_what, balance_table_list, multiplier_list, reaction_list, cmap, cmap_diverging = get_rate_properties(rate_name)
 
@@ -730,7 +738,7 @@ for time_period in time_period_list:
 
                         # need to check that all reactions are in this run
                         reaction_list_i = []
-                        for rx in reaction_list[0]:
+                        for rx in reaction_list[i]:
                             if rx in df.columns:
                                 reaction_list_i.append(rx)
                         rate = rate + multiplier_list[i]*df[reaction_list_i].sum(axis=1)

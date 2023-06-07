@@ -25,62 +25,56 @@ reload(CVPL)
 # user input
 #############################
 
+# group the reactions for ease of reading the bar chart? see group_reactions function defined below 
+# to see or edit how they are grouped
+group_reactions_flag = True
+
+# same y axis for transport? (if false, will still make them the same for matching water years, for comparison of agg and fr runs)
+same_trans_axis = True
+
+# same y axis limits for reactions? (if false, will still make them the same for matching water years, for comparison of agg and fr runs)
+same_rx_axis = True
+
+# same y axis for BOTH reactions and transport? (if false, will still apply axis flags above and water year matching)
+same_trans_AND_rx_axis = True
+
+# to address problem that in wy2016 and wy2017 the transport in suisun bay and other embayments is out of control
+# create a second set of plots that are zoomed in so those are off the chart, here set the number of plots to cut 
+# off
+ncut_plots = 8
+
 # list of run id's and corresponding water years -- these lists should be the same length
 # and each item in the list will correspond to a column in the figure
 #runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
 #wy_list = [2013, 2013, 2017, 2017]
 
 if 1:
-    runid_list = ['FR13_003', 'FR13_026']
-    wy_list = [2013, 2013]
-    server_list = ['richmond','chicago']
-if 1:
-    runid_list = ['FR13_026', 'G141_13to18_246']
-    wy_list = [2013, 2013]
-    server_list = ['chicago','richmond']
-if 1:
-    runid_list = ['FR17_003', 'FR17_019']
-    wy_list = [2017, 2017]
-    server_list = ['richmond','chicago']
-if 1:
-    runid_list = ['FR17_019', 'G141_13to18_246']
-    wy_list = [2017, 2017]
-    server_list = ['chicago','richmond']
-if 1:
-    runid_list = ['FR18_007', 'G141_13to18_246']
-    wy_list = [2018, 2018]
-    server_list = ['chicago','richmond']
-if 1:    
-    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-    wy_list = [2013,2013,2017,2017,2018,2018]
-    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
-if 1:    
-    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
-    wy_list = [2013,2013,2017,2017]
-    server_list = ['richmond','chicago','richmond','chicago']
-if 1:
-    runid_list = ['FR13_026','FR17_019','FR18_007']
-    wy_list = [2013,2017,2018]
-    server_list = ['chicago','chicago','chicago']
-if 1:
     runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
     wy_list = [2013,2014,2015,2016,2017,2018]
     server_list = ['chicago','boise','boise','boise','chicago','chicago']
+
 
 # list of time averaging periods (choices are 'Annual','Seasonal','Monthly')
 # each time step within a given water year will be a row in the figures
 #time_period_list = ['Annual','Seasonal','Monthly']
 time_period_list = ['Seasonal']
 
+
 # list of "groups" corresponding to subembayments (these are their names in the balance tables), 
 # each "group" corresponds to one set of sourc/sink bars in each subplot of the figure
-group_list = ['LSB', 'SB_RMP', 'Central_Bay_RMP', 'San_Pablo_Bay', 'Suisun_Bay', 'Whole_Bay']  # can add 'Whole_Bay' 
+group_list_1 = ['LSB', 'SB_RMP', 'SB_WB_north_half', 'Central_Bay_WB', 'San_Pablo_Bay', 'Suisun_Bay', 'Whole_Bay']   
 
 # list of bar plot labels corresponding to these groups (must be same length)
-group_labels = ['Lower\nSouth\nBay', 'South\nBay\n(RMP)', 'Central\nBay\n(RMP)', 'San\nPablo\nBay', 'Suisun\nBay', 'Whole\nBay']
+group_labels_1 = ['Lower\nSouth\nBay', 
+                'South\nBay\n(RMP)', 
+                'South\nBay\n(WB,N.\nhalf)', 
+                'Central\nBay\n(WB)', 
+                'San\nPablo\nBay', 
+                'Suisun\nBay', 
+                'Whole\nBay']
 
 # list of parameters to plot (this is for batch processing, they appear in separate figures)
-param_list = ['DIN','TN','TN_include_sediment','DetNS12','OONS12']
+param_list = ['DIN','TN','TN_plus_DetNS12','TN_include_sediment','DetNS12','OONS12']
 
 # list of norms to use (this is for batch processing, they appear in separate figures)
 norm_list = ['Area','None']
@@ -90,8 +84,8 @@ norm_list = ['Area','None']
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 
 # figure size scales with number of subplots
-subplot_width = 5
-subplot_height = 4
+subplot_width = 4
+subplot_height = 4.5
 
 # bar zorder
 bzorder = 20
@@ -99,6 +93,7 @@ bzorder = 20
 # start with the default color cycle and add even more colors because the number of reactions is OUT OF CONTROL!
 colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
           'fuchsia','gold','lawngreen','aqua','lavender','navy','lightgray','salmon','skyblue','darkturquoise','darkkhaki','rosybrown']
+
 
 # list of directions the subembayment influx comes from, by group name key
 # each connection in the list is itself a tuple with the following 3 entries:
@@ -108,7 +103,10 @@ colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e3
 influx_dir_dict = {}
 influx_dir_dict['LSB'] = []
 influx_dir_dict['SB_RMP'] = [('SB_RMP','S',1)]
+influx_dir_dict['SB_WB'] = [('SB_WB','S',1)]
+influx_dir_dict['SB_WB_north_half'] = [('SB_WB_north_half','S',1)]
 influx_dir_dict['Central_Bay_RMP'] = [('Central_Bay_RMP','S',1),('Central_Bay_RMP','N',1)]
+influx_dir_dict['Central_Bay_WB'] = [('Central_Bay_WB','S',1),('Central_Bay_WB','N',1)]
 influx_dir_dict['Suisun_Bay'] = [('Suisun_Bay','E',1),('Suisun_Bay','N',1)]
 influx_dir_dict['Whole_Bay'] = [('Whole_Bay','E',1),('Whole_Bay','N',1)]
 influx_dir_dict['San_Pablo_Bay_FR'] = [('San_Pablo_Bay','E',1),('Sonoma','S',-1),('Petaluma','S',-1),('Napa','S',-1)]
@@ -121,10 +119,14 @@ influx_dir_dict['San_Pablo_Bay_AGG'] = [('San_Pablo_Bay','E',1),('Napa','S',-1)]
 outflux_dir_dict = {}
 outflux_dir_dict['LSB'] = [('LSB','N',-1)]
 outflux_dir_dict['SB_RMP'] = [('SB_RMP','N',-1)]
+outflux_dir_dict['SB_WB'] = [('SB_WB','N',-1)]
+outflux_dir_dict['SB_WB_north_half'] = [('SB_WB_north_half','N',-1)]
 outflux_dir_dict['Central_Bay_RMP'] = [('Central_Bay_RMP','W',-1)]
+outflux_dir_dict['Central_Bay_WB'] = [('Central_Bay_WB','W',-1)]
 outflux_dir_dict['San_Pablo_Bay'] = [('San_Pablo_Bay','S',-1)]
 outflux_dir_dict['Suisun_Bay'] = [('Suisun_Bay','W',-1)]
 outflux_dir_dict['Whole_Bay'] = [('Whole_Bay','W',-1)]
+
 
 ##########################
 # functions
@@ -135,14 +137,14 @@ def group_reactions(param):
 
     if param=='DIN':
 
-        group_rx = {'DIN,dDINUpt (Mg/d)' : 'DIN,dDINUpt +\nDIN,dDINUptS1 (Mg/d)',  
-                    'DIN,dDINUptS1 (Mg/d)' : 'DIN,dDINUpt +\nDIN,dDINUptS1 (Mg/d)',
-                    'NO3,dDenit (Mg/d)' : 'NO3,dDenit +\nNO3,dNiDen (Mg/d)', 
-                    'NO3,dNiDen (Mg/d)' : 'NO3,dDenit +\nNO3,dNiDen (Mg/d)',
-                    'NH4,dMinPON (Mg/d)' : 'NH4,dMinPON +\nNH4,dMinDON +\nNH4,dZ_NRes +\nNH4,dNH4Aut (Mg/d)', 
-                    'NH4,dMinDON (Mg/d)' : 'NH4,dMinPON +\nNH4,dMinDON +\nNH4,dZ_NRes +\nNH4,dNH4Aut (Mg/d)', 
-                    'NH4,dZ_NRes (Mg/d)' : 'NH4,dMinPON +\nNH4,dMinDON +\nNH4,dZ_NRes +\nNH4,dNH4Aut (Mg/d)',
-                    'NH4,dNH4Aut (Mg/d)' : 'NH4,dMinPON +\nNH4,dMinDON +\nNH4,dZ_NRes +\nNH4,dNH4Aut (Mg/d)'}
+        group_rx = {'DIN,dDINUpt (Mg/d)' : 'DIN,dDINUpt + DIN,dDINUptS1 (Mg/d)',  
+                    'DIN,dDINUptS1 (Mg/d)' : 'DIN,dDINUpt + DIN,dDINUptS1 (Mg/d)',
+                    'NH4,dMinPON1 (Mg/d)' : 'NH4,dMinPON1 + NH4,dMinPON2\n+ NH4,dMinDON + NH4,dZ_NRes\n+ NH4,dNH4Aut + NH4,dNH4AUTS1 (Mg/d)',
+                    'NH4,dMinPON2 (Mg/d)' : 'NH4,dMinPON1 + NH4,dMinPON2\n+ NH4,dMinDON + NH4,dZ_NRes\n+ NH4,dNH4Aut + NH4,dNH4AUTS1 (Mg/d)', 
+                    'NH4,dMinDON (Mg/d)' : 'NH4,dMinPON1 + NH4,dMinPON2\n+ NH4,dMinDON + NH4,dZ_NRes\n+ NH4,dNH4Aut + NH4,dNH4AUTS1 (Mg/d)', 
+                    'NH4,dZ_NRes (Mg/d)' : 'NH4,dMinPON1 + NH4,dMinPON2\n+ NH4,dMinDON + NH4,dZ_NRes\n+ NH4,dNH4Aut + NH4,dNH4AUTS1 (Mg/d)',
+                    'NH4,dNH4Aut (Mg/d)' : 'NH4,dMinPON1 + NH4,dMinPON2\n+ NH4,dMinDON + NH4,dZ_NRes\n+ NH4,dNH4Aut + NH4,dNH4AUTS1 (Mg/d)', 
+                    'NH4,dNH4AUTS1 (Mg/d)' : 'NH4,dMinPON1 + NH4,dMinPON2\n+ NH4,dMinDON + NH4,dZ_NRes\n+ NH4,dNH4Aut + NH4,dNH4AUTS1 (Mg/d)'}
 
     else:
 
@@ -183,8 +185,8 @@ def pos_neg(data):
 # do some checks to make sure user input makes sense
 nruns = len(runid_list)
 assert nruns == len(wy_list)
-ngroups = len(group_list)
-assert ngroups == len(group_labels)
+ngroups = len(group_list_1)
+assert ngroups == len(group_labels_1)
 
 # get strings with concise lists of runs and water years
 run_list_str = CVPL.make_concise_runid_list_string(runid_list)
@@ -198,6 +200,7 @@ print('\nfigures will be saved here: %s\n' % figure_path)
 
 # parameter to plot
 for param in param_list:
+    print(param)
 
     # loop through averaging time periods (Annual, Seasonal, Monthly)
     for time_period in time_period_list:
@@ -226,14 +229,15 @@ for param in param_list:
                 print('could not open %s\nit probably doesn''t exist, skipping this one' % input_fn)
                 continue
 
-            ## group reactions as specified
-            #group_rx = group_reactions(param)
-            #for rx in group_rx.keys():
-            #    if not group_rx[rx] in data.columns:
-            #        data[group_rx[rx]] = data[rx]
-            #    else:
-            #        data[group_rx[rx]] += data[rx]
-            #    data.drop(columns=[rx],inplace=True)
+            # group reactions as specified
+            if group_reactions_flag:
+                group_rx = group_reactions(param)
+                for rx in group_rx.keys():
+                    if not group_rx[rx] in data.columns:
+                        data[group_rx[rx]] = data[rx]
+                    else:
+                        data[group_rx[rx]] += data[rx]
+                    data.drop(columns=[rx],inplace=True)
 
             # get the reaction lists
             source_list_1 = []
@@ -282,15 +286,24 @@ for param in param_list:
         for norm in norm_list:
 
             # string for indicating norm in figure names
+            # also, if no norm, eliminate the whole bay group from group list
             if norm == 'None':
                 norm_name = ''
                 norm_label = ''
+                ind = ~(np.array(group_list_1)=='Whole_Bay')
+                group_list = np.array(group_list_1)[ind]
+                group_labels = np.array(group_labels_1)[ind]
             elif norm == 'Area':
                 norm_name = '_Per_Area'
                 norm_label = ' per Area'
+                group_list = group_list_1
+                group_labels = group_labels_1
             elif norm == 'Volume':
                 norm_name = '_Per_Volume'
                 norm_label = ' per Volume'
+                group_list = group_list_1
+                group_labels = group_labels_1
+            ngroups = len(group_list)
 
             # now loop through the runs for real 
             for irun in range(nruns):
@@ -307,6 +320,16 @@ for param in param_list:
                 # read balance table
                 df = pd.read_csv(os.path.join(balance_table_dir, balance_table_fn))
                 df['time'] = pd.to_datetime(df['time'])
+
+                # group reactions as specified
+                if group_reactions_flag:
+                    group_rx = group_reactions(param)
+                    for rx in group_rx.keys():
+                        if not group_rx[rx] in df.columns:
+                            df[group_rx[rx]] = df[rx]
+                        else:
+                            df[group_rx[rx]] += df[rx]
+                        df.drop(columns=[rx],inplace=True)
     
                 # isolate the water year
                 ind = np.logical_and(df['time'].values >= np.datetime64('%d-10-01' % (wy-1)), 
@@ -327,16 +350,20 @@ for param in param_list:
                 if irun==0:
                     fig, ax = plt.subplots(nrows=ntime, ncols=nruns, figsize=((nruns+1.5)*subplot_width, ntime*subplot_height))
                     figure_fn = '%s_%s_mass_bal_and_rx_bars_%s%s_%s.png' % (run_list_str, wy_list_str, time_period, norm_name, param)
+                    figure_zoom_fn = '%s_%s_mass_bal_and_rx_bars_ZOOM_%s%s_%s.png' % (run_list_str, wy_list_str, time_period, norm_name, param)
 
                     # make a second axis for the reactions
-                    ax_twin = ax.copy()
-                    if ntime==1 or nruns==1:
-                        for i in range(len(ax_twin)):
-                            ax_twin[i] = ax[i].twinx()
+                    if not same_trans_AND_rx_axis:
+                        ax_twin = ax.copy()
+                        if ntime==1 or nruns==1:
+                            for i in range(len(ax_twin)):
+                                ax_twin[i] = ax[i].twinx()
+                        else:
+                            for itime1 in range(ntime):
+                                for irun1 in range(nruns):
+                                    ax_twin[itime1, irun1] = ax[itime1, irun1].twinx()
                     else:
-                        for itime1 in range(ntime):
-                            for irun1 in range(nruns):
-                                ax_twin[itime1, irun1] = ax[itime1, irun1].twinx()
+                        ax_twin = ax
 
                 # now loop through the time steps and fill up this column of the figure
                 for itime in range(len(time)):
@@ -545,8 +572,9 @@ for param in param_list:
                     # label the y axes
                     if irun==0:
                         ax1.set_ylabel('Mass Balance Rates (%s)' % units)
-                    if irun==(nruns-1):
-                        ax2.set_ylabel('Reaction Rates (%s)' % units)
+                    if not same_trans_AND_rx_axis:
+                        if irun==(nruns-1):
+                            ax2.set_ylabel('Reaction Rates (%s)' % units)
 
                     # set the title, always include time period, add run name in first row
                     if itime==0:
@@ -570,33 +598,70 @@ for param in param_list:
                     # add a horizontal line at zero
                     ax1.axhline(0, linestyle='-', color='k',linewidth=0.5, zorder=0.5) # horizontal line at zero only
 
-            # if runs are for the same water year, make their y axes match
-            if nruns==1:
-                pass
-            else:
-                for itime in range(ntime):
-                    if ntime==1:
-                        ax1 = ax
-                        ax2 = ax_twin
-                    else:
-                        ax1 = ax[itime]
-                        ax2 = ax_twin[itime]
-                    wy_unique = np.unique(wy_list)
-                    for wy in wy_unique:
-                        ymax1 = 0
-                        ymax2 = 0
-                        for irun in range(nruns):
-                            if wy_list[irun] == wy:
-                                ymax1 = np.max([ymax1, np.abs(ax1[irun].get_ylim()[0]),np.abs(ax1[irun].get_ylim()[1])])
-                                ymax2 = np.max([ymax2, np.abs(ax2[irun].get_ylim()[0]),np.abs(ax2[irun].get_ylim()[1])])
-                        for irun in range(nruns):
-                            if wy_list[irun] == wy:
-                                ax1[irun].set_ylim((-1.05*ymax1, 1.05*ymax1))
-                                ax2[irun].set_ylim((-1.05*ymax2, 1.05*ymax2))
-
-            # add suptitle, tight layout, save
+            # add suptitle, tight layout
             fig.suptitle('%s Reactions (left axis) and Mass Balance (right axis) %s' % (param, norm_label))
             fig.tight_layout(rect=[0, 0., 1, 0.98])
-            fig.savefig(os.path.join(figure_path,figure_fn))
+            
+            # if these flags are set, make all axes the same regardless of water year
+            if same_trans_AND_rx_axis: 
+                ymax_all = []
+                for ax1, ax2 in zip(ax.flatten(),ax_twin.flatten()):
+                     ymax_all.append(np.max([np.abs(ax1.get_ylim()[0]),np.abs(ax1.get_ylim()[1]),np.abs(ax2.get_ylim()[0]),np.abs(ax2.get_ylim()[1])]))
+                ymax_all.sort()
+
+                # first make plots that show full scale
+                ymax1 = ymax_all[-1]
+                for ax1 in ax.flatten():
+                    ax1.set_ylim((-1.05*ymax1, 1.05*ymax1))
+                    ax1.grid(axis='y')
+                for ax1 in ax_twin.flatten():
+                    ax1.set_ylim((-1.05*ymax1, 1.05*ymax1))
+                fig.savefig(os.path.join(figure_path,figure_fn),dpi=500)
+
+                # then make plots that trim full scale to exclued the full extend of ncut_plots
+                ymax1 = ymax_all[-1 - ncut_plots]
+                for ax1 in ax.flatten():
+                    ax1.set_ylim((-1.05*ymax1, 1.05*ymax1))
+                for ax1 in ax_twin.flatten():
+                    ax1.set_ylim((-1.05*ymax1, 1.05*ymax1))
+                fig.savefig(os.path.join(figure_path,figure_zoom_fn))
+            else:
+                if nruns==1:
+                    pass
+                else:
+                    for itime in range(ntime):
+                        if ntime==1:
+                            ax1 = ax
+                            ax2 = ax_twin
+                        else:
+                            ax1 = ax[itime]
+                            ax2 = ax_twin[itime]
+                        wy_unique = np.unique(wy_list)
+                        for wy in wy_unique:
+                            ymax1 = 0
+                            ymax2 = 0
+                            for irun in range(nruns):
+                                if wy_list[irun] == wy:
+                                    ymax1 = np.max([ymax1, np.abs(ax1[irun].get_ylim()[0]),np.abs(ax1[irun].get_ylim()[1])])
+                                    ymax2 = np.max([ymax2, np.abs(ax2[irun].get_ylim()[0]),np.abs(ax2[irun].get_ylim()[1])])
+                            for irun in range(nruns):
+                                if wy_list[irun] == wy:
+                                    ax1[irun].set_ylim((-1.05*ymax1, 1.05*ymax1))
+                                    ax2[irun].set_ylim((-1.05*ymax2, 1.05*ymax2))
+                if same_trans_axis:
+                    ymax1 = 0
+                    for ax1 in ax.flatten():
+                         ymax1 = np.max([ymax1, np.abs(ax1.get_ylim()[0]),np.abs(ax1.get_ylim()[1])])
+                    for ax1 in ax.flatten():
+                        ax1.set_ylim((-1.05*ymax1, 1.05*ymax1))
+                if same_rx_axis:
+                    ymax1 = 0
+                    for ax1 in ax_twin.flatten():
+                         ymax1 = np.max([ymax1, np.abs(ax1.get_ylim()[0]),np.abs(ax1.get_ylim()[1])])
+                    for ax1 in ax_twin.flatten():
+                        ax1.set_ylim((-1.05*ymax1, 1.05*ymax1))
+                        # if runs are for the same water year, make their y axes match
+
+                fig.savefig(os.path.join(figure_path,figure_fn))
             
             plt.close('all')                        

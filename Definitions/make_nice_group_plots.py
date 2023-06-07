@@ -15,6 +15,11 @@ FR_or_AGG = 'FR'
 
 
 gdf = gpd.read_file('group_shapefiles/group_definition_shapefile_%s.shp' % FR_or_AGG)
+if FR_or_AGG=='FR':
+    gdf_outline = gpd.read_file('model_input_shapefiles/Grid_Outline.shp')
+else:
+    gdf_outline = gpd.read_file('model_input_shapefiles/Grid_Outline_141.shp')
+
 
 for domain_name in ['Whole_Bay_ABC','WB_South_Bay_ABC','WB_Subembayments',
                     'WB_Channel_Shoal','RMP_Subembayments','RMP_Channel_Shoal',
@@ -116,6 +121,9 @@ for domain_name in ['Whole_Bay_ABC','WB_South_Bay_ABC','WB_Subembayments',
     fig.set_size_inches(figure_width, figure_height)
     ax.axis('off')
     ax.axis('equal')
+    axlim = ax.axis()
+    gdf_outline.boundary.plot(ax=ax,edgecolor='blue')
+    ax.axis(axlim)
     fig.tight_layout(rect=[0, 0.03, 1, 0.98])
     
     # add title
