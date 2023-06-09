@@ -90,7 +90,7 @@ float_format = '%1.6e'
 error_tol_percent = 1#0.1
 
 # delete all balance tables before re-running step1_create_balance_tables?
-delete_balance_tables = True
+delete_balance_tables = False
 
 # is this a delta run? a couple of notes about using these scripts for delta runs
 # 1. for now we assume it is a full resolution delta run

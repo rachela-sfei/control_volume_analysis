@@ -29,6 +29,14 @@ runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_00
 wy_list = [2013,2014,2015,2016,2017,2018]
 server_list = ['chicago','boise','boise','boise','chicago','chicago']
 
+# flad to fudge the budgets, lumping OONS12 mineralization with loading instead of reactions
+fudge_oons = True
+
+# flag to plot loading and assimilation only (if false, plot will contain sources, sinks, net reaction, and storage as well)
+load_assim_only = True
+
+# plot all times on the same plot?
+all_time_together = True
 
 # list of time averages to plot (must have pre-generated these w/ step6 of the create_balance_tables scripts)
 tavg_list = ['Seasonal']
@@ -42,8 +50,8 @@ runs_on_same_plot = True
 times_on_same_plot = True
 
 # figure size
-subplot_height = 10
-subplot_width = 6
+subplot_height = 5
+subplot_width = 4
 
 # arrow scale (m2 per Mg/d)
 # later in code will compute arrow_scale = arrow_scale_area / arrow_scale_Mgd
@@ -51,7 +59,7 @@ arrow_scale_area = 5000**2
 arrow_scale_Mgd = {'DIN' : 50,
                    'TN' : 50,
                    'TN_include_sediment' : 50,
-                   'TotalDetNS' : 25,
+                   'TN_plus_DetNS12' : 50,
                    'OXY' : 400,
                    'Algae' : 75,
                    'DiatS1' : 50}
@@ -106,7 +114,7 @@ center_arrow_dict[5] = [(584700, 4216900), 'Suisun_Bay']
 center_arrow_offset = 2000
 
 # axis window 
-axis_window = (527515.336093358, 601052.0291024673, 4134193.7827598574, 4237441.867634327)
+axis_window = (527515.336093358, 601052.0291024673, 4134193.7827598574, 4224350.9842707915)
 #(509062.33981440606, 614035.4169852139, 4134370.722411021, 4236807.203694713)
 
 # arrow colors and map color
@@ -116,9 +124,10 @@ boundary_color = 'k'
 transport_color = 'green'
 loading_color = 'red'
 source_color = 'magenta'
-sink_color = 'cyan'
-reaction_color = 'black'
+sink_color = 'orange'
+reaction_color = 'cyan'
 storage_color = 'yellow'
+assim_color = 'black'
 
 # fontsize for legend, title, etc
 fontsize = 16
@@ -222,6 +231,14 @@ for param in param_list:
             if source in sink_list:
                 sink_list.remove(source)
 
+        # remove oons
+        if fudge_oons:
+            oons_col = 'NH4,dMinOONS12 (Mg/d)'
+            if oons_col in source_list:
+                source_list.remove(oons_col)
+            if oons_col in sink_list:
+                sink_list.remove(oons_col)
+
         # count sources and sinks
         nsource = len(source_list)
         nsink = len(sink_list)
@@ -256,6 +273,14 @@ for param in param_list:
             df_1 = pd.read_csv(os.path.join(balance_table_dir, balance_table_fn))
             df_1['time'] = pd.to_datetime(df_1['time'])
     
+            # make oons correction, subtracting the oons mineralization from net reaction and
+            # adding it to the loading
+            if fudge_oons:
+                oons_col = 'NH4,dMinOONS12 (Mg/d)'
+                if oons_col in df_1.columns:
+                    df_1['%s,Net Reaction (Mg/d)' % param] -= df_1[oons_col]
+                    df_1['%s,Net Load (Mg/d)' % param] += df_1[oons_col]
+
             # isolate the water year
             ind = np.logical_and(df_1['time'].values >= np.datetime64('%d-10-01' % (wy-1)), 
                                  df_1['time'].values <  np.datetime64('%d-10-01' % wy))
@@ -274,17 +299,27 @@ for param in param_list:
                 if shp.iloc[i]['feature'] in poly_list:
                     iplot.append(i) 
 
+            # on first run, initialize a figure and add it to the list
+            if all_time_together:
+                if irun==0:
+                    fig, ax0 = plt.subplots(ntime,nruns+1,figsize=((nruns+1)*subplot_width, ntime*subplot_height), constrained_layout=True)
+
             # loop through the time steps
             for itime in range(ntime):
         
                 # on first run, initialize a figure and add it to the list
-                if irun==0:
-                    fig, ax = plt.subplots(1,nruns+1,figsize=((nruns+1)*subplot_width, subplot_height))
-                    fig_list.append(fig)
-                    ax_list.append(ax)
+                if all_time_together:
+                    if irun==0:
+                        ax_list.append(ax0[itime,:])
+                if not all_time_together:
+                    if irun==0:
+                        fig, ax = plt.subplots(1,nruns+1,figsize=((nruns+1)*subplot_width, subplot_height))
+                        fig_list.append(fig)
+                        ax_list.append(ax)
 
                 # select the correct figure for this time step and the correct axis for this run
-                fig = fig_list[itime]
+                if not all_time_together:
+                    fig = fig_list[itime]
                 ax = ax_list[itime][irun]
 
                 # get data at this time step
@@ -308,11 +343,14 @@ for param in param_list:
                 dyM = []
                 dxR = [] # R is for net reaction
                 dyR = []
+                dxA = []
+                dyA = [] # A is for assimilation
                 loading = []
                 storage = []
                 source = []
                 sink = []
                 reaction = []
+                assim = []
                 for key in center_arrow_dict.keys():
                 
                     # get the coordinates and the group name
@@ -340,32 +378,39 @@ for param in param_list:
                     reaction_1 = df_group['%s,Net Reaction (Mg/d)' % param] 
                     if (reaction_1 - (source_1+sink_1))/reaction_1 > 0.01:
                         print('warning (param=%s, tavg=%s, irun=%d, itime=%d) not exactly equal reaction = %f vs. sources-sinks = %f' % (param, tavg, irun, itime, reaction_1,source_1+sink_1))
-        
+                    
+                    # compute assimilation
+                    assim_1 = storage_1 - reaction_1
+
                     # append to the list
                     xC.append(x)
                     yC.append(y)
                     dxL.append(0)
                     dyL.append(1)
                     dxS.append(0)
-                    dyS.append(1)
+                    dyS.append(-1)
                     dxP.append(0)
                     dyP.append(1)
                     dxM.append(0)
                     dyM.append(1)
                     dxR.append(0)
                     dyR.append(1)
+                    dxA.append(0)
+                    dyA.append(-1)
                     if test_arrow_direction:
                         loading.append(1)
                         storage.append(1)
                         source.append(1)
                         sink.append(-1)
                         reaction.append(-1)
+                        assim.append(1)
                     else:
                         loading.append(loading_1)
                         storage.append(storage_1)
                         source.append(source_1)
                         sink.append(sink_1)
                         reaction.append(reaction_1)
+                        assim.append(assim_1)
                 
                 # get the transect arrow info from the dictionaries and the balance tables
                 xT = []
@@ -416,6 +461,8 @@ for param in param_list:
                 dyM = np.array(dyM)
                 dxR = np.array(dxR)
                 dyR = np.array(dyR)
+                dxA = np.array(dxA)
+                dyA = np.array(dyA)
                 dxT = np.array(dxT)
                 dyT = np.array(dyT)
                 loading = np.array(loading)
@@ -423,6 +470,7 @@ for param in param_list:
                 source = np.array(source)
                 sink = np.array(sink)
                 reaction = np.array(reaction)
+                assim = np.array(assim)
                 transport = np.array(transport)
                 
         
@@ -458,6 +506,11 @@ for param in param_list:
                         reaction[i] = -reaction[i]
                         dyR[i] = -dyR[i]
                         dxR[i] = -dxR[i]
+                for i in range(len(assim)):
+                    if assim[i] < 0:
+                        assim[i] = -assim[i]
+                        dyA[i] = -dyA[i]
+                        dxA[i] = -dxA[i]
                 for i in range(len(transport)):
                     if transport[i] < 0:
                         transport[i] = -transport[i]
@@ -466,6 +519,14 @@ for param in param_list:
             
                 # create the map
                 shp.iloc[iplot].plot(ax=ax, color = map_color, edgecolor=edge_color, zorder=0.5)
+
+                # offsets depend on how many arrow are getting plotted
+                if load_assim_only:
+                    load_offset = 0
+                    assim_offset = 0
+                else:
+                    load_offset = -center_arrow_offset
+                    assim_offset = 2*center_arrow_offset
                 
                 # add transport, loading, storage, and reaction arrows
                 for i in range(len(transport)):
@@ -483,45 +544,55 @@ for param in param_list:
                     width = arrow_width_factor * length
                     head_width = 2*width
                     head_length = 1.5*width
-                    ax.arrow(xC[i]-center_arrow_offset, yC[i], dxL[i]*length, dyL[i]*length, zorder = 2,
+                    ax.arrow(xC[i]+load_offset, yC[i], dxL[i]*length, dyL[i]*length, zorder = 2,
                              width = width, head_width=head_width, head_length=head_width, 
                              length_includes_head=True, color=loading_color, linewidth=0, edgecolor=None, alpha=1)
-                for i in range(len(source)):
-                    area = source[i]*arrow_scale
+                if not load_assim_only:
+                    for i in range(len(source)):
+                        area = source[i]*arrow_scale
+                        length = np.sqrt(area / arrow_width_factor)
+                        width = arrow_width_factor * length
+                        head_width = 2*width
+                        head_length = 1.5*width
+                        ax.arrow(xC[i], yC[i], dxP[i]*length, dyP[i]*length,  zorder = 1,
+                                 width = width, head_width=head_width, head_length=head_width, 
+                                 length_includes_head=True, color=source_color, linewidth=0, edgecolor=None, alpha=1)
+                    for i in range(len(sink)):
+                        area = sink[i]*arrow_scale
+                        length = np.sqrt(area / arrow_width_factor)
+                        width = arrow_width_factor * length
+                        head_width = 2*width
+                        head_length = 1.5*width
+                        ax.arrow(xC[i], yC[i], dxM[i]*length, dyM[i]*length,  zorder = 1,
+                                 width = width, head_width=head_width, head_length=head_width, 
+                                 length_includes_head=True, color=sink_color, linewidth=0, edgecolor=None, alpha=1)
+                    for i in range(len(reaction)):
+                        area = reaction[i]*arrow_scale
+                        length = np.sqrt(area / arrow_width_factor)
+                        width = arrow_width_factor * length
+                        head_width = 2*width
+                        head_length = 1.5*width
+                        ax.arrow(xC[i], yC[i], dxR[i]*length, dyR[i]*length, zorder = 4, 
+                                 width = width, head_width=head_width, head_length=head_width, 
+                                 length_includes_head=True, color=reaction_color, linewidth=0, edgecolor=None, alpha=1)
+                    for i in range(len(storage)):
+                        area = storage[i]*arrow_scale
+                        length = np.sqrt(area / arrow_width_factor)
+                        width = arrow_width_factor * length
+                        head_width = 2*width
+                        head_length = 1.5*width
+                        ax.arrow(xC[i]+center_arrow_offset, yC[i], dxS[i]*length, dyS[i]*length,  zorder = 5,
+                                 width = width, head_width=head_width, head_length=head_width, 
+                                 length_includes_head=True, color=storage_color, linewidth=0, edgecolor=None, alpha=1)
+                for i in range(len(assim)):
+                    area = assim[i]*arrow_scale
                     length = np.sqrt(area / arrow_width_factor)
                     width = arrow_width_factor * length
                     head_width = 2*width
                     head_length = 1.5*width
-                    ax.arrow(xC[i], yC[i], dxP[i]*length, dyP[i]*length,  zorder = 1,
+                    ax.arrow(xC[i]+assim_offset, yC[i], dxA[i]*length, dyA[i]*length,  zorder = 5,
                              width = width, head_width=head_width, head_length=head_width, 
-                             length_includes_head=True, color=source_color, linewidth=0, edgecolor=None, alpha=1)
-                for i in range(len(sink)):
-                    area = sink[i]*arrow_scale
-                    length = np.sqrt(area / arrow_width_factor)
-                    width = arrow_width_factor * length
-                    head_width = 2*width
-                    head_length = 1.5*width
-                    ax.arrow(xC[i], yC[i], dxM[i]*length, dyM[i]*length,  zorder = 1,
-                             width = width, head_width=head_width, head_length=head_width, 
-                             length_includes_head=True, color=sink_color, linewidth=0, edgecolor=None, alpha=1)
-                for i in range(len(reaction)):
-                    area = reaction[i]*arrow_scale
-                    length = np.sqrt(area / arrow_width_factor)
-                    width = arrow_width_factor * length
-                    head_width = 2*width
-                    head_length = 1.5*width
-                    ax.arrow(xC[i], yC[i], dxR[i]*length, dyR[i]*length, zorder = 4, 
-                             width = width, head_width=head_width, head_length=head_width, 
-                             length_includes_head=True, color=reaction_color, linewidth=0, edgecolor=None, alpha=1)
-                for i in range(len(storage)):
-                    area = storage[i]*arrow_scale
-                    length = np.sqrt(area / arrow_width_factor)
-                    width = arrow_width_factor * length
-                    head_width = 2*width
-                    head_length = 1.5*width
-                    ax.arrow(xC[i]+center_arrow_offset, yC[i], dxS[i]*length, dyS[i]*length,  zorder = 5,
-                             width = width, head_width=head_width, head_length=head_width, 
-                             length_includes_head=True, color=storage_color, linewidth=0, edgecolor=None, alpha=1)
+                             length_includes_head=True, color=assim_color, linewidth=0, edgecolor=None, alpha=1)
 
                 # fix the axis, add a title, etc
                 ax.axis(axis_window)
@@ -529,7 +600,7 @@ for param in param_list:
                 ax.set_title('%s: %s' % (runid, time_label), fontsize=fontsize)
                 
                 # add a legend to final run
-                if irun==(nruns-1):
+                if irun==(nruns-1) and ((not all_time_together) or itime==0):
 
                     # dummy axis
                     ax = ax_list[itime][irun+1]
@@ -540,7 +611,7 @@ for param in param_list:
                     # legend specs - coordinates and space between entries, we draw the legend manually instead of calling plt.legend()
                     #legend_loc = (582700, 4190300)
                     legend_loc = (axis_window[0] + 6000, axis_window[3] - 25000)
-                    legend_yspace = 6000
+                    legend_yspace = 8000
 
                     # arrow size stuff
                     length = np.sqrt(arrow_scale_area / arrow_width_factor)
@@ -551,45 +622,61 @@ for param in param_list:
                     # ... legend title
                     leg_offset = legend_yspace
                     ax.text(legend_loc[0],legend_loc[1]+2*leg_offset,'Magnitudes are Proportional\nto Arrow Base Area', fontsize=fontsize, va='center')
-                    leg_offset = leg_offset - legend_yspace
                     # ... transport arrow
+                    leg_offset = leg_offset - legend_yspace
                     ax.arrow(legend_loc[0], legend_loc[1]+leg_offset, length, 0, width = width, head_width=head_width, head_length=head_length, length_includes_head=True, color=transport_color, edgecolor=None, alpha=1)
                     ax.text(legend_loc[0]+1.5*length,legend_loc[1]+leg_offset,'%0.0f Mg/d Transport' % arrow_scale_Mgd[param], fontsize=fontsize, va='center')
-                    leg_offset = leg_offset - legend_yspace
                     # ... loading arrow
                     if is_there_loading(param):
+                        leg_offset = leg_offset - legend_yspace
                         ax.arrow(legend_loc[0], legend_loc[1]+leg_offset, length, 0, width = width, head_width=head_width, head_length=head_length, length_includes_head=True, color=loading_color, edgecolor=None, alpha=1)
                         ax.text(legend_loc[0]+1.5*length,legend_loc[1]+leg_offset,'%0.0f Mg/d Loading' % arrow_scale_Mgd[param],fontsize=fontsize, va='center')
+                    if not load_assim_only:
+                        # ... source arrow
                         leg_offset = leg_offset - legend_yspace
-                    # ... source arrow
-                    ax.arrow(legend_loc[0], legend_loc[1]+leg_offset, length, 0, width = width, head_width=head_width, head_length=head_length, length_includes_head=True, color=source_color, edgecolor=None, alpha=1)
-                    ax.text(legend_loc[0]+1.5*length,legend_loc[1]+leg_offset,'%0.0f Mg/d Sources' % arrow_scale_Mgd[param],fontsize=fontsize, va='center')
+                        ax.arrow(legend_loc[0], legend_loc[1]+leg_offset, length, 0, width = width, head_width=head_width, head_length=head_length, length_includes_head=True, color=source_color, edgecolor=None, alpha=1)
+                        ax.text(legend_loc[0]+1.5*length,legend_loc[1]+leg_offset,'%0.0f Mg/d Sources' % arrow_scale_Mgd[param],fontsize=fontsize, va='center')
+                        # ... sink arrow
+                        leg_offset = leg_offset - legend_yspace
+                        ax.arrow(legend_loc[0], legend_loc[1]+leg_offset, length, 0, width = width, head_width=head_width, head_length=head_length, length_includes_head=True, color=sink_color, edgecolor=None, alpha=1)
+                        ax.text(legend_loc[0]+1.5*length,legend_loc[1]+leg_offset,'%0.0f Mg/d Sinks' % arrow_scale_Mgd[param],fontsize=fontsize, va='center')
+                        # ... reaction arrow
+                        leg_offset = leg_offset - legend_yspace
+                        ax.arrow(legend_loc[0], legend_loc[1]+leg_offset, length, 0, width = width, head_width=head_width, head_length=head_length, length_includes_head=True, color=reaction_color, edgecolor=None, alpha=1)
+                        ax.text(legend_loc[0]+1.5*length,legend_loc[1]+leg_offset,'%0.0f Mg/d Net Reaction' % arrow_scale_Mgd[param],fontsize=fontsize, va='center')
+                        # ... storage arrow
+                        leg_offset = leg_offset - legend_yspace
+                        ax.arrow(legend_loc[0], legend_loc[1]+leg_offset, length, 0, width = width, head_width=head_width, head_length=head_length, length_includes_head=True, color=storage_color, edgecolor=None, alpha=1)
+                        ax.text(legend_loc[0]+1.5*length,legend_loc[1]+leg_offset,'%0.0f Mg/d Storage\n(down is dM/dt>0)' % arrow_scale_Mgd[param],fontsize=fontsize, va='center')
+                    # ... assim arrow
                     leg_offset = leg_offset - legend_yspace
-                    # ... sink arrow
-                    ax.arrow(legend_loc[0], legend_loc[1]+leg_offset, length, 0, width = width, head_width=head_width, head_length=head_length, length_includes_head=True, color=sink_color, edgecolor=None, alpha=1)
-                    ax.text(legend_loc[0]+1.5*length,legend_loc[1]+leg_offset,'%0.0f Mg/d Sinks' % arrow_scale_Mgd[param],fontsize=fontsize, va='center')
-                    leg_offset = leg_offset - legend_yspace
-                    # ... reaction arrow
-                    ax.arrow(legend_loc[0], legend_loc[1]+leg_offset, length, 0, width = width, head_width=head_width, head_length=head_length, length_includes_head=True, color=reaction_color, edgecolor=None, alpha=1)
-                    ax.text(legend_loc[0]+1.5*length,legend_loc[1]+leg_offset,'%0.0f Mg/d Net Reaction' % arrow_scale_Mgd[param],fontsize=fontsize, va='center')
-                    leg_offset = leg_offset - legend_yspace
-                    # ... storage arrow
-                    ax.arrow(legend_loc[0], legend_loc[1]+leg_offset, length, 0, width = width, head_width=head_width, head_length=head_length, length_includes_head=True, color=storage_color, edgecolor=None, alpha=1)
-                    ax.text(legend_loc[0]+1.5*length,legend_loc[1]+leg_offset,'%0.0f Mg/d Storage (dM/dt)' % arrow_scale_Mgd[param],fontsize=fontsize, va='center')
+                    ax.arrow(legend_loc[0], legend_loc[1]+leg_offset, length, 0, width = width, head_width=head_width, head_length=head_length, length_includes_head=True, color=assim_color, edgecolor=None, alpha=1)
+                    ax.text(legend_loc[0]+1.5*length,legend_loc[1]+leg_offset,'%0.0f Mg/d Assimilation\n(down is dM/dt - Net Rx. > 0)' % arrow_scale_Mgd[param],fontsize=fontsize, va='center')
 
                     ax.axis(axis_window)
                     ax.axis('off')
                     ax.set_title('')
 
-        # now that all the runs are plotted, loop through the times one last time and finish up the figures
-        for itime in range(ntime):
 
-            fig = fig_list[itime]
-            ax = ax_list[itime]
+        if all_time_together:
 
+            for ax in ax0[1:,-1]:
+                ax.axis('off')
             fig.suptitle('%s Budget' % param, fontsize=fontsize)
             fig.canvas.draw()
-            fig.tight_layout(rect=[0, 0, 1, 0.98])
-            fig.savefig(os.path.join(figure_path, '%s_Subembayment_Arrow_Map_%s_%s_Time%04d.png' % (run_list_str, tavg, param, itime)))
+            #fig.tight_layout(rect=[0, 0, 1, 0.98])
+            fig.savefig(os.path.join(figure_path, '%s_Subembayment_Arrow_Map_%s_%s_ALLTIME.png' % (run_list_str, tavg, param)), dpi=300)
+
+        # now that all the runs are plotted, loop through the times one last time and finish up the figures
+        else:
+            for itime in range(ntime):
+    
+                fig = fig_list[itime]
+    
+                fig.suptitle('%s Budget' % param, fontsize=fontsize)
+                fig.canvas.draw()
+                fig.tight_layout(rect=[0, 0, 1, 0.98])
+                fig.savefig(os.path.join(figure_path, '%s_Subembayment_Arrow_Map_%s_%s_Time%04d.png' % (run_list_str, tavg, param, itime)))
              
+
         plt.close('all')                    
