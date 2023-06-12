@@ -10,6 +10,10 @@ alliek august 2022
 # user input
 ##############################
 
+# the "mixing efficiency" for estimating horizontal dispersion. this is what rusty used in the aggregated model
+# assuming the dispersive exchange in m3/s is equal to alpha x <(Q - <Q>)^2>^0.5 where <> is a semidurnal tidal filter
+alpha = 0.12 
+
 # abort if error tolerance is exceeded? set to False for troubleshooting only. (this is used in step4_check_mass_conservation.py)
 # NOTE THAT FOR FR13_003 AND FR13_007 RUNS, THERE IS A MASS CONSERVATION ERROR BUT IT IS NOT A DEAL BREAKER, SO WE SET THIS TO FALSE
 # WHEN GENERATING BALANCE TABLES FOR THOSE RUNS (the error is that algae that settles to the bed does not go into detritus, it just 
@@ -17,12 +21,18 @@ alliek august 2022
 abort_for_mass_cons_error = True
 
 # this is the run you want to process
-#runid = 'FR14_001'  # /boisevol1
-#runid = 'FR15_001'  # /boisevol1
-#runid = 'FR16_001'  # /boisevol1
-runid = 'FR13_028'  # /chicagovol1
-#runid = 'FR17_021'  # /chicagovol1
-#runid = 'FR18_009'  # /chicagovol1
+#runid = 'FR14_001'
+#model_run_base_dir = '/boisevol1/hpcshared'
+#runid = 'FR15_001'
+#model_run_base_dir = '/boisevol1/hpcshared'
+#runid = 'FR16_001'
+#model_run_base_dir = '/boisevol1/hpcshared'
+#runid = 'FR13_028'
+#model_run_base_dir = '/chicagovol1/hpcshared'
+#runid = 'FR17_021'
+#model_run_base_dir = '/chicagovol1/hpcshared'
+runid = 'FR18_009'
+model_run_base_dir = '/chicagovol1/hpcshared'
 #runid = 'G141_13to18_274'  # /boisevol1
 #runid = 'G141_13to18_246'  # /richmondvol1          chicago
 #runid = 'G141_13to18_254'  # /fortcollinsvol1       chicago
@@ -52,9 +62,6 @@ run_dir = None  #run_dir = '/chicagovol1/hpcshared/open_bay/bgc/full_res/WY2022_
 lsp_path = None
 balance_table_dir = None       # will be placed inside run_dir unless otherwise specified
 
-# base directory of the model runs (this is ignored if run_dir is specified as something other than None above)
-model_run_base_dir = '/chicagovol1/hpcshared'
-
 # base directory for model input, namely the shapefiles (this definitely runs on linux, in theory can also run this in windows and use mounted drive)
 # (this is ignored if poly_path and tran_path are specified as something other than None above)
 model_input_dir = '/richmondvol1/hpcshared'
@@ -71,7 +78,7 @@ substance_list = ['continuity', 'nh4', 'no3', 'pon1', 'pon2', 'don', 'diat', 'di
 
 # list of substances we think we are actually going to want to plot -- to save space, the 
 # step5_compile_balance_tables_into_groups.py and step6_aggregate_in_time.py scripts will only process these substances
-plot_substance_list = ['tn_include_sediment','tn_plus_detns12','tn','din','nh4','no3','don',
+plot_substance_list = ['continuity','tn_include_sediment','tn_plus_detns12','tn','din','nh4','no3','don',
                         'pon1','pon2','n-algae','n-zoopl','detns12','oons12','detns1','detns2','oons1','oons2',
                         'oxy','algae','diat','green','diats1','zoopl','mussel','grazer4','clams']
 
@@ -79,7 +86,7 @@ plot_substance_list = ['tn_include_sediment','tn_plus_detns12','tn','din','nh4',
 # list of time averaging schemes to apply (saves space to skip some if we don't need them) 
 # (this is used in step6_aggregate_in_time.py)
 #tavg_list = ['Cumulative', 'Filtered', 'Annual', 'Seasonal', 'Monthly', 'Weekly']
-tavg_list = ['Annual','Seasonal','Monthly','Cumulative', 'Filtered']
+tavg_list = ['Annual','Seasonal','Monthly','Cumulative', 'Filtered','Weekly']
 #tavg_list = ['Seasonal', 'Monthly']
 #tavg_list = ['Filtered','Cumulative']
 
@@ -90,7 +97,7 @@ float_format = '%1.6e'
 error_tol_percent = 1#0.1
 
 # delete all balance tables before re-running step1_create_balance_tables?
-delete_balance_tables = False
+delete_balance_tables = True
 
 # is this a delta run? a couple of notes about using these scripts for delta runs
 # 1. for now we assume it is a full resolution delta run

@@ -222,7 +222,7 @@ for varname in varnames:
         # convert the units to m3/s and shift the time axis so it represents the flow rate 
         # during the following time step instead
         deltat_HF = time_HF[1] - time_HF[0]
-        varT_HF = varT_HF * deltat_HF / np.timedelta64(1,'s') # convert the flow rate to m3/s
+        varT_HF = varT_HF * np.timedelta64(1,'s')/deltat_HF # convert the flow rate to m3/s
         time_HF = time_HF - deltat_HF # shift time so flow rate represents flow in the coming time step
 
     # check the frequency of the data, and if frequency is higher than daily, resample onto a daily axis
@@ -323,7 +323,8 @@ for varname in varnames:
         if varname=='continuity':
             pi_df_HF = pd.DataFrame(index=time_HF)
             Fluxes_HF = varT_HF[:,p2t_i['transect']]*p2t_i['sign']
-            for t in np.arange(np.shape(Fluxes)[1]):
+            Fluxes_HF[np.isnan(Fluxes_HF)] = 0                     # replace nan values with zero (assume this means the transect is dry)
+            for t in np.arange(np.shape(Fluxes_HF)[1]):
                 cname = 'To_poly'+str(t)
                 fname = 'Flux'+str(t)
                 pi_df_HF[cname] = p2t_i['adjacent'][t]
@@ -361,7 +362,7 @@ for varname in varnames:
         df_output = pd.concat([df_output,pi_df_comb])
         if varname=='continuity':
             df_HF = pd.concat([df_HF, pi_df_comb_HF])
-            
+
     df_output = df_output[column_list]    
     if varname=='continuity':
         df_HF = df_HF[column_list_HF]
@@ -372,6 +373,7 @@ for varname in varnames:
     if varname=='continuity':
         time = pd.to_datetime(df_HF.index + offset_time)
         df_HF.set_index(time, inplace=True)
+        df_HF.index.name = 'time'
 
     # save
     df_output.to_csv(outfile,columns=column_list,float_format=step0_config.float_format)   
