@@ -21,6 +21,8 @@ alpha = 0.12
 abort_for_mass_cons_error = True
 
 # this is the run you want to process
+runid = 'G141_22_006'
+model_run_base_dir = '/fortcollinsvol1/hpcshared'
 #runid = 'FR14_001'
 #model_run_base_dir = '/boisevol1/hpcshared'
 #runid = 'FR15_001'
@@ -31,8 +33,8 @@ abort_for_mass_cons_error = True
 #model_run_base_dir = '/chicagovol1/hpcshared'
 #runid = 'FR17_021'
 #model_run_base_dir = '/chicagovol1/hpcshared'
-runid = 'FR18_009'
-model_run_base_dir = '/chicagovol1/hpcshared'
+#runid = 'FR18_009'
+#model_run_base_dir = '/chicagovol1/hpcshared'
 #runid = 'G141_13to18_274'  # /boisevol1
 #runid = 'G141_13to18_246'  # /richmondvol1          chicago
 #runid = 'G141_13to18_254'  # /fortcollinsvol1       chicago

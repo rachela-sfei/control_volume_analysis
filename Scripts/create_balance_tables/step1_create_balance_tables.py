@@ -135,7 +135,7 @@ hdata = xr.open_dataset(histfn)
 # added this in august 2023 to make non-nefis style dwaq_hist.nc work too
 if 'bal' in hdata.variables:
     print('WARNING: dwaq_hist.nc is not in the nefis based format, doing a kludgey reformat to make these scripts work...')
-    nSegment = np.arange(0,len(region))
+    nSegment = np.arange(0,len(hdata.region))
     hdata1 = xr.Dataset({'location_names': xr.DataArray(data = np.tile(hdata.region.values,(1,1)))})
     for field1 in hdata.field.values:
         hdata1[field1.lower()] = xr.DataArray(data   = hdata.sel(field=field1).bal.values,
