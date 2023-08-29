@@ -288,13 +288,12 @@ for varname in varnames:
     varP_bal = varP_bal.where(varP_bal.time<=tmin,drop=True)
      
     
-    # get the units and determine if per area or per volume, then compute dMass/dt accordingly
-    units1 = varP.units
+    # get the units and determine if per area or per volume, then compute dMass/dt accordingly 
     if varname in step0_config.units_override.keys():
         units = step0_config.units_override[varname]
-        logging.info('units in dwaq_hist.nc are %s, overriding with %s' % (units1, units))
+        logging.info('overriding units with %s' % units)
     else:
-        units = units1
+        units = varP.units
     if '/m2' in units:
         logging.info('units are %s, multiplying by area to get dVar/dt and converting concentration to volumetric' % units)
         diffVar = (varP*Area).diff(dim='time')

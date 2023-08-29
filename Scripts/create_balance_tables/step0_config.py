@@ -20,6 +20,13 @@ alpha = 0.12
 # leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
 abort_for_mass_cons_error = True
 
+
+#G141_22_006
+#G141_22_010
+#G141_22_011
+#G141_22_018
+#G141_22_021
+
 # this is the run you want to process
 runid = 'G141_22_006'
 model_run_base_dir = '/fortcollinsvol1/hpcshared'
@@ -115,7 +122,17 @@ is_delta = False
 units_override = {'zoopl_e' : 'gC/m3',
                   'zoopl_r' : 'gC/m3',
                   'zoopl_v' : 'gC/m3',
-                  'zoopl_n' : '#/m3',}
+                  'zoopl_n' : '#/m3',
+                  # added all these too in august 2023 to make things work with non-nefis dwaq_hist.nc
+                  'diat' : 'gC/m3','green' : 'gC/m3','nh4' : 'gN/m3','no3' : 'gN/m3',
+                  'po4' : 'gP/m3','si' : 'gSi/m3','continuity' : 'g/m3','oxy' : 'g/m3',
+                  'poc1' : 'gC/m3','pon1' : 'gN/m3','pop1' : 'gP/m3','doc' : 'gC/m3',
+                  'don' : 'gN/m3','dop' : 'gP/m3','opal' : 'gSi/m3','poc2' : 'gC/m3',
+                  'pon2' : 'gN/m3','pop2' : 'gP/m3','detcs1' : 'gC/m2','detcs2' : 'gC/m2',
+                  'detns1' : 'gN/m2','detns2' : 'gN/m2','detps1' : 'gP/m2','detps2' : 'gP/m2',
+                  'detsis1' : 'gSi/m2','detsis2' : 'gSi/m2','diats1' : 'gC/m2','oocs1' : 'gC/m2',
+                  'oocs2' : 'gC/m2','oons1' : 'gN/m2','oons2' : 'gN/m2','oops1' : 'gP/m2',
+                  'oops2' : 'gP/m2','oosis1' : 'gSi/m2','oosis2' : 'gSi/m2','volume' : 'm3',}
 
 # list of composite parameters -- include all possible component parameters, script will automatically 
 # check if they were included in this run and leave it out if needed (this is used in 
