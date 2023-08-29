@@ -20,8 +20,6 @@ import pandas as pd
 import datetime 
 import socket
 hostname = socket.gethostname()
-if hostname == 'richmond':
-    raise Exception("Do not run this script on richmond until we update the conda environment... run on chicago or your laptop instead")
 try:
     import geopandas as gpd 
 except:
@@ -133,6 +131,19 @@ logging.info('reading %s and %s' % (histfn,histbal_fn))
 
 # open hist file (if you get an error here, may need to create it first)
 hdata = xr.open_dataset(histfn)
+
+# added this in august 2023 to make non-nefis style dwaq_hist.nc work too
+if 'bal' in hdata.variables:
+    print('WARNING: dwaq_hist.nc is not in the nefis based format, doing a kludgey reformat to make these scripts work...')
+    nSegment = np.arange(0,len(region))
+    hdata1 = xr.Dataset({'location_names': xr.DataArray(data = np.tile(hdata.region.values,(1,1)))})
+    for field1 in hdata.field.values:
+        hdata1[field1.lower()] = xr.DataArray(data   = hdata.sel(field=field1).bal.values,
+                                          dims   = ['time','nSegment'],
+                                          coords = {'time': hdata.time.values,
+                                                    'nSegment' : nSegment})
+    hdata = hdata1
+    del hdata1
 
 # open hist-bal file, create it from the *-bal.his file if needed
 try:

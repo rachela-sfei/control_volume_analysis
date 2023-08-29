@@ -18,8 +18,6 @@ import logging
 import datetime
 import socket
 hostname = socket.gethostname()
-if hostname == 'richmond':
-    raise Exception("Do not run this script on richmond until we update the conda environment... run on chicago or your laptop instead")
 import step0_config
 
 # if running the script alone, load the configuration module (in this folder)
