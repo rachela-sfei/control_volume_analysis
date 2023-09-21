@@ -28,8 +28,8 @@ abort_for_mass_cons_error = True
 #G141_22_021
 
 # this is the run you want to process
-runid = 'G141_22_006'
-model_run_base_dir = '/fortcollinsvol1/hpcshared'
+runid = 'FR22_004'
+model_run_base_dir = '/boisevol1/hpcshared'
 #runid = 'FR14_001'
 #model_run_base_dir = '/boisevol1/hpcshared'
 #runid = 'FR15_001'

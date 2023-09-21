@@ -84,16 +84,34 @@ reload(CVPL)
 #server_list = ['chicago']
 #all_time_together = True
 
-runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
-wy_list = [2013,2014,2015,2016,2017,2018]
-server_list = ['chicago','boise','boise','boise','chicago','chicago']
-all_time_together = False
+#runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+#wy_list = [2013,2014,2015,2016,2017,2018]
+#server_list = ['chicago','boise','boise','boise','chicago','chicago']
+#all_time_together = False
 
-select_a_rate_set = -1
+runid_list = ['G141_22_010','G141_22_011','G141_22_006','G141_22_018','G141_22_021']
+wy_list=[2022,2022,2022,2022,2022]
+server_list = ['fortcollins','fortcollins','fortcollins','fortcollins','fortcollins']
+all_time_together=False
+
+select_a_rate_set = -3
+
+if select_a_rate_set==-3:
+
+    # subset DIN budget for CV manuscript
+    rate_list = ['dpp-pelagic','settling',
+                 'grazing','mortality-pelagic',
+                 'dpp-benthic','mortality-benthic',
+                 'burial','total-algae-rx']  
+    multiple_rates_on_same_figure = True
+    multiple_rates_figure_label = 'Algae_Rx_Summary'
+    multiple_rates_figure_title = 'Mass Budget for Diat + Green + DiatS1'
+    caxis_limit_override = {'Area' : 1.4, 'Volume': 0.7, 'None' : None}
+
 
 if select_a_rate_set==-2:
 
-    # in this example we plot all the rates that make up the net DIN reaction
+    # subset DIN budget for CV manuscript
     rate_list = ['n-dpp',    
                  'din_recycling',
                  'dmin_sed']  
@@ -105,7 +123,7 @@ if select_a_rate_set==-2:
 
 if select_a_rate_set==-1:
 
-    # in this example we plot all the rates that make up the net DIN reaction
+    # subset DIN budget for CV manuscript
     rate_list = ['denit',    
                  'din_assim']  
     multiple_rates_on_same_figure = True
@@ -118,7 +136,7 @@ if select_a_rate_set==0:
     # in this example we plot ALL the available rates (unless the user has defined some more I didn't include here)
     # but we plot them separately
     rate_list = ['oxycon-water','oxycon-sed','dpp','dpp-benthic','dpp-pelagic','denit','n-dpp','n-dpp-pelagic',
-                 'n-dpp-benthic','din_recycling','dmin_water','dmin_sed','din_loss','tn_loss','n-algae-sed','pon-sed',
+                 'n-dpp-benthic','din_recycling','dmin_water','dmin_sed','din_rx','tn_rx','n-algae-sed','pon-sed',
                  'diats1-loss','diats1-aut','tn_include_sediment_loss']
     multiple_rates_on_same_figure = False
     multiple_rates_figure_label = None
@@ -132,32 +150,32 @@ elif select_a_rate_set==1:
                  'denit',             
                  'din_recycling',     
                  'dmin_sed',   
-                 'din_loss']  
+                 'din_rx']  
     multiple_rates_on_same_figure = True
     multiple_rates_figure_label = 'DIN_Rx_Summary'
     multiple_rates_figure_title = 'DIN Reaction Summary'
-    caxis_limit_override = {'Area' : 0.15, 'Volume': 0.1, 'None' : 3e6}
+    caxis_limit_override = {'Area' : 0.25, 'Volume': 0.12, 'None' : None}
     
 elif select_a_rate_set==2:    
 
     ### in this example we plot all the rates that make up the net TN reaction
     rate_list = ['denit',     
                  'n-sed',        
-                 'diats1-mort',  
-                 #'diats1-buri', # seems to be zero for the time being     
+                 'n-diats1-mort',  
+                 #'n-diats1-buri', # seems to be zero for the time being     
                  #'diats1-aut',  # seems to be zero for the time being
                  'dmin_sed',   
-                 'tn_loss']
+                 'tn_rx']
     multiple_rates_on_same_figure = True
     multiple_rates_figure_label = 'TN_Rx_Summary'
     multiple_rates_figure_title = 'TN Reaction Summary'
-    caxis_limit_override = {'Area' : 0.1, 'Volume': 0.2, 'None' : 4e6}
+    caxis_limit_override = {'Area' : 0.075, 'Volume': 0.05, 'None' : None}
 
 elif select_a_rate_set==3:   
 
     # in this example we plot all the rates that make up the net TotalDetNS reaction
     rate_list = ['n-sed',
-                 'diats1-mort',
+                 'n-diats1-mort',
                  'dmin_sed1',             
                  'dmin_sed2',     
                  'det_bur',
@@ -192,12 +210,12 @@ elif select_a_rate_set==4:
 ################################################################################################################
 
 # list of time averaging periods (choices are 'Annual','Seasonal','Monthly')
-#time_period_list = ['Annual','Seasonal','Monthly']
-time_period_list = ['Annual','Seasonal']
+time_period_list = ['Seasonal','Monthly']
+#time_period_list = ['Annual','Seasonal']
 
 # list of normalizations (divide by 'None','Area','Volume')
-#norm_list = ['None','Area','Volume']
-norm_list = ['Area']
+norm_list = ['Area','Volume']
+#norm_list = ['Area']
 
 # get length of run list and wy list, make sure they're the same length, also check if all runs are the same
 nruns = len(runid_list)
@@ -382,6 +400,72 @@ def get_rate_properties(rate_name):
         reaction_list = [['Diat,dPPDiat','Green,dPPGreen']]
         cmap = cmocean.cm.amp
         cmap_diverging = False
+
+    elif rate_name=='mortality-pelagic':
+    
+        rate_title = 'Mortailty (Pelagic)'
+        grams_of_what = 'C'
+        balance_table_list = ['algae_Table.csv']
+        multiplier_list = [-1]
+        reaction_list = [['Diat,dMrtDiat', 'Green,dMrtGreen']]
+        cmap = cmocean.cm.amp
+        cmap_diverging = False
+
+    elif rate_name=='mortality-benthic':
+    
+        rate_title = 'Mortailty (Benthic)'
+        grams_of_what = 'C'
+        balance_table_list = ['algae_Table.csv']
+        multiplier_list = [-1]
+        reaction_list = [['DiatS1,dMrtDiatS1']]
+        cmap = cmocean.cm.amp
+        cmap_diverging = False
+    elif rate_name=='grazing':
+    
+        rate_title = 'Grazing'
+        grams_of_what = 'C'
+        balance_table_list = ['algae_Table.csv']
+        multiplier_list = [-1]
+        reaction_list = [['Diat,dZ_Diat', 'Green,dZ_Grn']]
+        cmap = cmocean.cm.amp
+        cmap_diverging = False
+
+    elif rate_name=='settling':
+    
+        rate_title = 'Settling'
+        grams_of_what = 'C'
+        balance_table_list = ['algae_Table.csv']
+        multiplier_list = [-1]
+        reaction_list = [['Diat,dSedDiat','Green,dSedGreen']]
+        cmap = cmocean.cm.amp
+        cmap_diverging = False
+
+    elif rate_name=='burial':
+    
+        rate_title = 'Burial'
+        grams_of_what = 'C'
+        balance_table_list = ['algae_Table.csv']
+        multiplier_list = [-1]
+        reaction_list = [['DiatS1,dBurS1Diat']]
+        cmap = cmocean.cm.amp
+        cmap_diverging = False
+
+    elif rate_name=='total-algae-rx':
+    
+        rate_title = 'Net Rx.'
+        grams_of_what = 'C'
+        balance_table_list = ['algae_Table.csv']
+        multiplier_list = [1]
+        reaction_list = [['Diat,dPPDiat', 'Green,dPPGreen',
+                          'DiatS1,dPPDiatS1', 
+                          'Diat,dMrtDiat', 'Green,dMrtGreen','DiatS1,dMrtDiatS1', 
+                          'Diat,dZ_Diat', 'Green,dZ_Grn', 
+                          'Diat,dSedDiat','Green,dSedGreen', 
+                          'DiatS1,dBurS1Diat']]
+        cmap = cmocean.cm.balance
+        cmap_diverging = True
+
+
     
     elif rate_name=='denit':
         
@@ -514,12 +598,25 @@ def get_rate_properties(rate_name):
         cmap = cmocean.cm.balance
         cmap_diverging = True
 
-    elif rate_name=='tn_loss':
+    elif rate_name=='din_rx':
 
-        rate_title = 'TN Reactive Loss'  
+        rate_title = 'Net DIN Rx'  
+        grams_of_what = 'N'
+        balance_table_list = ['din_Table.csv']
+        multiplier_list = [1]
+        reaction_list = [['DIN,dDINUpt','DIN,dDINUptS1',
+                          "NO3,dDenit","NH4,dZ_NRes",
+                          "NH4,dNH4Aut",'NH4,dNH4AUTS1',"NH4,dMinDON","NH4,dMinPON1",
+                          "NH4,dMinPON2",'NH4,dMinDetNS12']]
+        cmap = cmocean.cm.balance
+        cmap_diverging = True
+
+    elif rate_name=='tn_rx':
+
+        rate_title = 'Net TN Rx.'  
         grams_of_what = 'N'
         balance_table_list = ['tn_Table.csv']
-        multiplier_list = [-1]
+        multiplier_list = [1]
         reaction_list = [['NO3,dDenit',
                           'NO3,dNiDen',
                           'Algae,dSedAlgae',
@@ -545,7 +642,7 @@ def get_rate_properties(rate_name):
         cmap = cmocean.cm.dense
         cmap_diverging = False
 
-    elif rate_name=='diats1-mort':
+    elif rate_name=='n-diats1-mort':
     
         rate_title = 'Benthic Algae Mortality'
         grams_of_what = 'N'
@@ -555,7 +652,7 @@ def get_rate_properties(rate_name):
         cmap = cmocean.cm.dense
         cmap_diverging = False
 
-    elif rate_name=='diats1-buri':
+    elif rate_name=='n-diats1-buri':
     
         rate_title = 'Benthic Algae Burial'
         grams_of_what = 'N'

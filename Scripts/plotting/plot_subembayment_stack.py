@@ -53,15 +53,22 @@ fudge_oons = True
 # note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
 autoscale_x = False
 
+# override min/max time
+tmin_override = np.datetime64('2021-10-01')
+tmax_override = np.datetime64('2022-02-06')
+
 # list of runs to plot, water year to pick out of corresponding run (each is a column in the plot), 
 # and a list of servers where each run is located (use 'WY13to18' to plot all years of a 6-year agg grid run, 
 # otherwise format should be 'WY2013', 'WY2018', etc.)
-runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
-wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
-server_list = ['chicago','boise','boise','boise','chicago','chicago']
+#runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+#wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
+#server_list = ['chicago','boise','boise','boise','chicago','chicago']
+runid_list = ['FR22_005', 'FR22_004']
+wystr_list = ['WY2022','WY2022']
+server_list = ['chicago','boise']
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['TN_plus_DetNS12','TN_include_sediment', 'TN', 'DIN', 'DetNS12', 'OONS12']
+param_list = ['DIN', 'TN_plus_DetNS12','TN_include_sediment', 'TN', 'DetNS12', 'OONS12']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
@@ -340,7 +347,7 @@ for param in param_list:
                 # load up the balance table data for the parameter of interest
                 input_fn = os.path.join(balance_table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_BT_str))
                 data1 = pd.read_csv(input_fn)
-        
+
                 # also load up balance tables for the component parameters, and keep track of which components don't exist in this model 
                 data1_components = []
                 com_exists = []
@@ -412,8 +419,14 @@ for param in param_list:
                 # get first and last date for time axis
                 wymin = np.array(wy_list).min()
                 wymax = np.array(wy_list).max()
-                tmin = np.datetime64('%d-10-01' % (wymin-1))
-                tmax = np.datetime64('%d-10-01' % wymax)
+                if tmin_override is None:
+                    tmin = np.datetime64('%d-10-01' % (wymin-1))
+                else:
+                    tmin = tmin_override
+                if tmax_override is None:
+                    tmax = np.datetime64('%d-10-01' % wymax)
+                else:
+                    tmax = tmax_override
             
                 # loop through the water years we are to plot for this run
                 nwy = len(wy_list)
@@ -537,7 +550,7 @@ for param in param_list:
                     ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = color_list)
                     if iwy==0:
                         if irun==0:
-                            ax_run[irow].set_ylabel('%s Mass Balance (%s)' % (group_labels[igroup], units_plot))
+                            ax_run[irow].set_ylabel('Mass Balance (%s)' % units_plot)
                         if irun==(nruns-1):
                             ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5),ncol=2)
 

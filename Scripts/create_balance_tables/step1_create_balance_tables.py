@@ -129,8 +129,22 @@ histbal_fn  = os.path.join(step0_config.run_dir,'dwaq_hist_bal.nc')
 # log start of readin files
 logging.info('reading %s and %s' % (histfn,histbal_fn))
 
-# open hist file (if you get an error here, may need to create it first)
-hdata = xr.open_dataset(histfn)
+
+# open hist file, create it from the *.his file if needed
+try:
+    hdata = xr.open_dataset(histfn)
+except:
+    fn = None
+    for fn1 in os.listdir(step0_config.run_dir):
+        if ('.his' in fn1) and (not ('-bal.his' in fn1)):
+            fn = fn1
+    if fn is None:
+        raise Exception('Cannot find *.his file in %s' % step0_config.run_dir)
+    else:
+        print('could not find dwaq_hist.nc, creating it now...')
+        hdata = step0_config.dio.his_file_xarray(os.path.join(step0_config.run_dir,fn))
+        hdata.to_netcdf(histfn)
+        hdata = xr.open_dataset(histfn)
 
 # added this in august 2023 to make non-nefis style dwaq_hist.nc work too
 if 'bal' in hdata.variables:
@@ -156,6 +170,7 @@ except:
     if fn is None:
         raise Exception('Cannot find *-bal.his file in %s' % step0_config.run_dir)
     else:
+        print('could not find dwaq_hist_bal.nc, creating it now...')
         hbdata = step0_config.dio.bal_his_file_xarray(os.path.join(step0_config.run_dir,fn))
         hbdata.to_netcdf(histbal_fn)
         hbdata = xr.open_dataset(histbal_fn)
