@@ -19,7 +19,7 @@ CV_gpd = gpd.read_file(CV_fn)
 EL_gpd = gpd.read_file(EL_fn)
            
 # plot control volumes, including their numbers
-fig, ax = plt.subplots(figsize=(24,18))
+fig, ax = plt.subplots(figsize=(48,36))
 CV_gpd.plot(ax=ax,color='w',edgecolor='b')
 EL_gpd.plot(ax=ax,edgecolor='r')
 for i in range(len(CV_gpd)):
@@ -28,7 +28,7 @@ for i in range(len(CV_gpd)):
 plt.savefig(CV_fig_fn)
        
 # plot exchange lines, including their numbers
-fig, ax = plt.subplots(figsize=(24,18))
+fig, ax = plt.subplots(figsize=(48,36))
 CV_gpd.plot(ax=ax,color='w',edgecolor='b')
 EL_gpd.plot(ax=ax,edgecolor='r')
 for i in range(len(EL_gpd)):

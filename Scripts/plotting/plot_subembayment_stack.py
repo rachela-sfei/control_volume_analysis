@@ -63,16 +63,16 @@ tmax_override = np.datetime64('2022-02-06')
 #runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
 #wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
 #server_list = ['chicago','boise','boise','boise','chicago','chicago']
-runid_list = ['FR22_005', 'FR22_004']
-wystr_list = ['WY2022','WY2022']
-server_list = ['chicago','boise']
+runid_list = ['FR22_006', 'G141_22_078','G141_22_079','G141_22_081','G141_22_082']
+wystr_list = ['WY2022','WY2022','WY2022','WY2022','WY2022']
+server_list = ['boise','fortcollins','fortcollins','fortcollins','fortcollins']
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['DIN', 'TN_plus_DetNS12','TN_include_sediment', 'TN', 'DetNS12', 'OONS12']
+param_list = ['DIN', 'TN_plus_DetNS12','TN_include_sediment', 'TN', 'DetNS12', 'OONS12','OXY']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
-tavg_list = ['Daily','Cumulative','Filtered']
+tavg_list = ['Filtered','Cumulative']
 
 # base directory for the and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
@@ -83,9 +83,9 @@ colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e3
 
 # list of "groups" corresponding to subembayments (these are their names in the balance tables), 
 # each "group" corresponds to one set of sourc/sink bars in each subplot of the figure
-group_list = ['LSB', 'SB_RMP', 'SB_WB', 'SB_WB_north_half', 
+group_list = [ 'Whole_Bay','LSB', 'SB_RMP', 'SB_WB', 'SB_WB_north_half', 
               'Central_Bay_RMP', 'Central_Bay_WB',
-              'San_Pablo_Bay', 'Suisun_Bay', 'Whole_Bay']  # can add 'Whole_Bay' 
+              'San_Pablo_Bay', 'Suisun_Bay']  # can add 'Whole_Bay' 
 
 # list of bar plot labels corresponding to these groups (must be same length)
 group_labels = ['Lower South Bay', 'South Bay (RMP)', 'South Bay (WB)', 'South Bay (WB, north half)', 
@@ -324,6 +324,9 @@ for param in param_list:
             # loop through the runs, each one is a column in the figure
             for irun in range(nruns):
 
+                # get the run id
+                runid = runid_list[irun]
+
                 ### SAN PABLO BAY INFLUX COMPONENTS ARE DIFFERENT FOR AGG AND FULL RES RUNS SO SET THEM HERE
                 if 'FR' in runid:
                     influx_dir_dict['San_Pablo_Bay'] = influx_dir_dict['San_Pablo_Bay_FR']
@@ -335,9 +338,6 @@ for param in param_list:
                     ax_run = ax[:,irun]
                 else:
                     ax_run = ax
-
-                # get the run id
-                runid = runid_list[irun]
         
                 # get path to the balance table folder in the run folder
                 run_base_dir = '/%svol1/hpcshared' % server_list[irun]
@@ -369,6 +369,8 @@ for param in param_list:
                 for ic in range(ncom):
                     if com_exists[ic]:
                         data_components.append(data1_components[ic].loc[ind])
+                    else:
+                        data_components.append(None)
                 npts = len(data)
         
                 # initialize influx and outflux data
@@ -400,7 +402,8 @@ for param in param_list:
                     # add the influx, mutliplying by the multiplier to get the direction right
                     data_outflux += outflux_mult * data1.loc[data1['group'] == outflux_group]['%s,Flux In from %s (%s)' % (param, outflux_dir, units)].values
                     for ic in range(ncom):
-                        data_outflux_components[ic] += outflux_mult * data1_components[ic].loc[data1_components[ic]['group'] == outflux_group]['%s,Flux In from %s (%s)' % (components_list[ic], outflux_dir, units)].values
+                        if com_exists[ic]:
+                            data_outflux_components[ic] += outflux_mult * data1_components[ic].loc[data1_components[ic]['group'] == outflux_group]['%s,Flux In from %s (%s)' % (components_list[ic], outflux_dir, units)].values
         
                 # convert times from string to datetime64
                 data['time'] = pd.to_datetime(data['time'])
@@ -488,9 +491,10 @@ for param in param_list:
                             Net_Rx = Net_Rx - oons_rx
                     Net_Loading = dataf['%s,Net Load (%s)' % (param,units)].values
                     Influx_Plus_Tribs = Upstream_Influx + Minor_Trib_Influx
-                    if fudge_oons: 
-                        if param in ['DIN','TN','TN_plus_DetNS12']:
-                            Net_Loading = Net_Loading + oons_rx 
+                    # do NOT add OONS min to net loading because track it separately
+                    #if fudge_oons: 
+                    #    if param in ['DIN','TN','TN_plus_DetNS12']:
+                    #        Net_Loading = Net_Loading + oons_rx 
                     Net_Assimilation = -(Storage + Net_Rx)
 
                     # compute all the same things by components

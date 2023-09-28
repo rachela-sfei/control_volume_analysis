@@ -57,13 +57,13 @@ group_list = 'all'
 autoscale_x = True
 
 # here's another option for the x axis ... again only applies to the HAB model
-#xlim_override = None
-xlim_override = ['%d-07-20', '%d-09-10']
+xlim_override = None
+#xlim_override = ['%d-07-20', '%d-09-10']
 
 # list or runs to plot and water years to pick out of corresponding run (each is a column in the plot)
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
 # also list servers where runs are stored
-isel=9
+isel=10
 if isel==0:
     runid_list = ['FR22_HAB_071', 'FR22_HAB_072', 'FR22_HAB_073', 'FR22_HAB_074']
     wystr_list = ['WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom']
@@ -104,12 +104,14 @@ if isel==9:
     runid_list = ['G141_13to18_246','G141_13to18_270']
     wystr_list = ['WY13to18', 'WY13to18']
     server_list = ['richmond','richmond']
+if isel==10:
+    runid_list = ['G141_22_078','G141_22_079','G141_22_081','G141_22_082']
+    wystr_list = ['WY2022','WY2022','WY2022','WY2022']
+    server_list = ['fortcollins','fortcollins','fortcollins','fortcollins']
 
 # list of parameters to plot (must match balance table, one plot per parameter is created)
 #param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae', 'Diat', 'Green','DiatS1']
-param_list = ['TN_include_sediment','TN','DIN','NH4','NO3','DON',
-                        'PON1','PON2','N-Algae','N-Zoopl','TotalDetNS','DetNS1','DetNS2','OONS1','OONS2',
-                        'OXY','Algae','Diat','Green','DiatS1','Zoopl']
+param_list = ['DIN', 'TN_plus_DetNS12','TN_include_sediment', 'TN', 'DetNS12', 'OONS12','OXY']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily']) one plot per is created
 #tavg_list = ['Filtered','Cumulative']
@@ -117,7 +119,7 @@ param_list = ['TN_include_sediment','TN','DIN','NH4','NO3','DON',
 tavg_list = ['Filtered','Cumulative']
 
 # list of normalizations (divide by 'None','Area','Volume')
-norm_list = ['None','Area','Volume']
+norm_list = ['Volume','Area','None']
 
 # do you want to include mass in the figure? if so it will go in first row, but we skip this one for cumulative time aggregation
 include_mass = True
