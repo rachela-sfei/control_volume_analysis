@@ -28,8 +28,8 @@ abort_for_mass_cons_error = True
 #G141_22_021
 
 # this is the run you want to process
-runid = 'G141_22_092'
-model_run_base_dir = '/fortcollinsvol1/hpcshared'
+runid = 'FR22_004'
+model_run_base_dir = '/boisevol1/hpcshared'
 #runid = 'FR14_001'
 #model_run_base_dir = '/boisevol1/hpcshared'
 #runid = 'FR15_001'
@@ -83,13 +83,15 @@ stompy_dir = '/opt/software/rusty/stompy/newest_commit/stompy'
 substance_list = ['continuity', 'nh4', 'no3', 'pon1', 'pon2', 'don', 'diat', 'diats1', 'green', 'oxy', 
                   'zoopl_e', 'zoopl_r', 'zoopl_v', 
                   'mussel_v','mussel_e','mussel_r','grazer4_v','grazer4_e','grazer4_r',
-                  'detns1', 'detns2', 'oons1', 'oons2']
+                  'detns1', 'detns2', 'oons1', 'oons2',
+                  'poc1', 'poc2','detcs1', 'detcs2', 'oocs1', 'oocs2']
 
 # list of substances we think we are actually going to want to plot -- to save space, the 
 # step5_compile_balance_tables_into_groups.py and step6_aggregate_in_time.py scripts will only process these substances
 plot_substance_list = ['continuity','tn_include_sediment','tn_plus_detns12','tn','din','nh4','no3','don',
                         'pon1','pon2','n-algae','n-zoopl','detns12','oons12','detns1','detns2','oons1','oons2',
-                        'oxy','algae','diat','green','diats1','zoopl','mussel','grazer4','clams']
+                        'oxy','algae','diat','green','diats1','zoopl','mussel','grazer4','clams',
+                        'poc1', 'poc2','detcs1', 'detcs2', 'oocs1', 'oocs2']
 
 
 # list of time averaging schemes to apply (saves space to skip some if we don't need them) 

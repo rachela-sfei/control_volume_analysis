@@ -379,8 +379,12 @@ for param in param_list:
                 data_influx_components = []
                 data_outflux_components = []
                 for ic in range(ncom):
-                    data_influx_components.append(np.zeros(npts))
-                    data_outflux_components.append(np.zeros(npts))
+                    if com_exists[ic]:
+                        data_influx_components.append(np.zeros(npts))
+                        data_outflux_components.append(np.zeros(npts))
+                    else:
+                        data_influx_components.append(None)
+                        data_outflux_components.append(None)
 
                 # add up the influxes using dictionary that gives list of connections that are influxes for this group
                 for influx in influx_dir_dict[group_list[igroup]]:
@@ -391,7 +395,8 @@ for param in param_list:
                     # add the influx, mutliplying by the multiplier to get the direction right
                     data_influx += influx_mult * data1.loc[data1['group'] == influx_group]['%s,Flux In from %s (%s)' % (param, influx_dir, units)].values
                     for ic in range(ncom):
-                        data_influx_components[ic] += influx_mult * data1_components[ic].loc[data1_components[ic]['group'] == influx_group]['%s,Flux In from %s (%s)' % (components_list[ic], influx_dir, units)].values
+                        if com_exists[ic]:
+                            data_influx_components[ic] += influx_mult * data1_components[ic].loc[data1_components[ic]['group'] == influx_group]['%s,Flux In from %s (%s)' % (components_list[ic], influx_dir, units)].values
 
                 # add up the outfluxed using dictionary that gives list of connections that are outfluxes for this group
                 for outflux in outflux_dir_dict[group_list[igroup]]:
@@ -507,7 +512,7 @@ for param in param_list:
                     Influx_Plus_Tribs_Com = np.zeros((ntime, ncom))
                     Net_Assimilation_Com = np.zeros((ntime, ncom))
                     for icom in range(ncom):
-                        if com_exists[ic]:
+                        if com_exists[icom]:
                             Upstream_Influx_Com[:,icom] = dataf_influx_components[icom]
                             Downstream_Outflux_Com[:,icom] = -dataf_outflux_components[icom]#dataf_components[icom].loc[ind]['%s,Flux In from W (%s)' % (components_list[icom],units)].values
                             Minor_Trib_Influx_Com[:,icom] = (dataf_components[icom]['%s,Net Transport In (%s)' % (components_list[icom],units)].values
@@ -612,6 +617,7 @@ for param in param_list:
                         df = pd.DataFrame(index=time)
                         for icom in range(ncom):
                             df[components_list[icom] + ' Load'] = Net_Loading_Com[:,icom]
+
                         if fudge_oons and (param in ['DIN','TN','TN_plus_DetNS12']):
                             df['NH4,dMinOONS12'] = oons_rx
 

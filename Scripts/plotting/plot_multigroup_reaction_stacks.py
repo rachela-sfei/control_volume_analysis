@@ -33,8 +33,8 @@ reload(CVPL)
 #########################################################################################
 
 # run name and server where it is located
-runid = 'G141_13to18_246'
-server = 'richmond'
+runid = 'G141_22_078'
+server = 'fortcollins'
 #runid = 'FR13_003'
 #if 1:
 #    runid = 'FR22_HAB_058'
@@ -62,7 +62,7 @@ time_end = None
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 
 ## list of parameters to plot
-param_list = ['DIN','TN','TN_include_sediment','OXY','DetNS12','OONS12', 'N-Algae']
+param_list = ['Algae','DIN','TN','TN_include_sediment','DetNS12','OONS12','OXY']
 
 # dictionary to map parameter to element corresponding to mass
 grams_of_what = {'DIN' : 'N', 
@@ -81,13 +81,13 @@ grams_of_what = {'DIN' : 'N',
                  'OXY' : 'O'}
 
 # list of panels to plot (a "panel" is a bad name for a plot of a collection of groups, each group in one subplot)
-panel_list = ['All_Subs_RMP', 'All_Subs_WB', 'South_Bay_6Part']
+panel_list = ['South_Bay_ABC','All_Subs_RMP']#, 'All_Subs_WB', 'South_Bay_6Part']
 
 # list of normalizations (divide by area, volume, or nothing)
-norm_list = ['Area','Volume','None']
+norm_list = ['Area']#,'Volume','None']
 
 # list of time integration types
-tavg_list = ['Cumulative'] #,'Filtered']   # can also add 'Daily' if desired
+tavg_list = ['Filtered']#,'Cumulative']   # can also add 'Daily' if desired
 #tavg_list = ['Daily']
 
 # this is a function, but it's really more like user input b/c this is where you specify the properties of the different plots
@@ -137,6 +137,20 @@ def panel_properties(panel):
         group_list = ['SB_WB_west_shoal_north_half','SB_WB_channel_north_half','SB_WB_east_shoal_north_half',
                          'SB_WB_west_shoal_south_half','SB_WB_channel_south_half','SB_WB_east_shoal_south_half']
         group_labels = ['NW Shoal','N Channel','NE Shoal','SW Shoal','S Channel','SE Shoal']
+        panel_label = 'Across South Bay'
+
+    elif panel == 'South_Bay_ABC':
+    
+        if len(wy_list)>=6:
+            figure_size = (20, 10)
+        else:
+            figure_size = (18, 15)
+        ncols = 4
+        nrows = 3
+    
+        # list of south bay chunks (note this could be any list of groups, doesn't have to be subembayments)
+        group_list = ['D','C','B','A','H','G','F','E','L','K','J','I']
+        group_labels = ['D','C','B','A','H','G','F','E','L','K','J','I']
         panel_label = 'Across South Bay'
 
     return (figure_size, nrows, ncols, group_list, group_labels, panel_label)
