@@ -28,37 +28,48 @@ abort_for_mass_cons_error = True
 #G141_22_021
 
 # this is the run you want to process
-runid = 'FR22_004'
-model_run_base_dir = '/boisevol1/hpcshared'
-#runid = 'FR14_001'
-#model_run_base_dir = '/boisevol1/hpcshared'
-#runid = 'FR15_001'
-#model_run_base_dir = '/boisevol1/hpcshared'
-#runid = 'FR16_001'
-#model_run_base_dir = '/boisevol1/hpcshared'
-#runid = 'FR13_028'
-#model_run_base_dir = '/chicagovol1/hpcshared'
-#runid = 'FR17_021'
-#model_run_base_dir = '/chicagovol1/hpcshared'
-#runid = 'FR18_009'
-#model_run_base_dir = '/chicagovol1/hpcshared'
-#runid = 'G141_13to18_274'  # /boisevol1
-#runid = 'G141_13to18_246'  # /richmondvol1          chicago
-#runid = 'G141_13to18_254'  # /fortcollinsvol1       chicago
-#runid = 'G141_13to18_255'  # /fortcollinsvol1       chicago
-#runid = 'G141_13to18_256'  # /fortcollinsvol1       chicago
-#runid = 'G141_13to18_257'  # /fortcollinsvol1       chicago
-#runid = 'G141_13to18_258'  # /fortcollinsvol1       chicago
-#runid = 'G141_13to18_259'  # /fortcollinsvol1       chicago
-#runid = 'G141_13to18_260'  # /boisevol1             chicago
-#runid = 'G141_13to18_261'  # /boisevol1             boise
-#runid = 'G141_13to18_262'  # /boisevol1             boise
-#runid = 'G141_13to18_263'  # /boisevol1             boise
-#runid = 'G141_13to18_264'  # /boisevol1             boise
-#runid = 'G141_13to18_265'  # /boisevol1             boise
-#runid = 'G141_13to18_266'  # /boisevol1             boise
-#runid = 'G141_13to18_267'  # /boisevol1             boise
-#runid = 'G141_13to18_268'  # /boisevol1             boise
+#runid = 'FR22_004'
+#server = 'boise'
+#runid = 'FR22_005'
+#server = 'chicago'
+#runid = 'FR22_007'
+#server = 'boise'
+#runid = 'FR22_008'
+#server = 'boise'
+runid = 'FR22_011'
+server='chicago'
+
+#server = 'fortcollins'
+#runid = 'G141_22_078'
+#runid = 'G141_22_079'
+#runid = 'G141_22_080'
+#runid = 'G141_22_081'
+#runid = 'G141_22_082'
+#runid = 'G141_22_083'
+#runid = 'G141_22_084'
+#runid = 'G141_22_085'
+#runid = 'G141_22_086'
+#runid = 'G141_22_087'
+#runid = 'G141_22_088'
+#runid = 'G141_22_089'
+#runid = 'G141_22_090'
+#runid = 'G141_22_091'
+#runid = 'G141_22_092'
+#runid = 'G141_22_093'
+#runid = 'G141_22_094'
+#runid = 'G141_22_095'
+#runid = 'G141_22_096'
+#runid = 'G141_22_097'
+#runid = 'G141_22_098'
+#runid = 'G141_22_099'
+#runid = 'G141_22_100'
+#runid = 'G141_22_101'
+#runid = 'G141_22_102'
+#runid = 'G141_22_103'
+#runid = 'G141_22_104'
+#runid = 'G141_22_105'
+
+model_run_base_dir = '/%svol1/hpcshared' % server
 
 # if the user sets the following variables to None, they are calculated automatically, by making some assumptions about
 # how our computers are organized (see below). if your run doesn't fit the usual mold, you can override the automatic stuff

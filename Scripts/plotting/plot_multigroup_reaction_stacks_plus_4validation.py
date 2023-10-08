@@ -38,12 +38,12 @@ reload(CVPL)
 #server = 'fortcollins'
 #runid = 'FR22_004'
 #server='boise'
-runid = 'FR22_005'
-server='chicago'
+#runid = 'FR22_005'
+#server='chicago'
 #runid = 'FR22_007'
 #server='boise'
-#runid = 'FR22_008'
-#server='boise'
+runid = 'FR22_008'
+server='boise'
 
 # autoscale x axis (if you set to False, script will set min/max based on water year range)
 # note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
@@ -199,7 +199,7 @@ for inorm, norm in enumerate(norm_list):
     # loop through the sets of panels we want to plot
     for panel in panel_list:
 
-        # figure names
+        # figure names, plot concentration only for first norm, since it doesn't follow the norm anyway
         pdffile1 = '%s_%s_Control_Volume_Reactions_Norm=%s.pdf' % (run_list_str,panel,norm)
         pdffile3 = '%s_%s_Control_Volume_Mass_Balance_Norm=%s.pdf' % (run_list_str,panel,norm)
         pdffile4 = '%s_%s_Control_Volume_Transport_Norm=%s.pdf' % (run_list_str,panel,norm)
