@@ -38,7 +38,7 @@ reload(CVPL)
 #server_list = ['fortcollins','fortcollins','fortcollins','fortcollins','fortcollins','fortcollins']
 
 #please do this for Run078 vs Run012 [BACWA], Run103[40%], Run104[60%], Run105[82%]) –
-runid_list = ['G141_22_078','G141_22_102','G141_22_103','G141_22_104','G141_22_105']
+runid_list = ['G141_22_078','G141_22_115','G141_22_116','G141_22_117','G141_22_118']
 wy_list=[2022,2022,2022,2022,2022]
 server_list = ['fortcollins','fortcollins','fortcollins','fortcollins','fortcollins']
 

@@ -20,54 +20,9 @@ alpha = 0.12
 # leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
 abort_for_mass_cons_error = True
 
-
-#G141_22_006
-#G141_22_010
-#G141_22_011
-#G141_22_018
-#G141_22_021
-
-# this is the run you want to process
-#runid = 'FR22_004'
-#server = 'boise'
-#runid = 'FR22_005'
-#server = 'chicago'
-#runid = 'FR22_007'
-#server = 'boise'
-#runid = 'FR22_008'
-#server = 'boise'
+# name of server and runid
+server = 'boise'
 runid = 'FR22_011'
-server='chicago'
-
-#server = 'fortcollins'
-#runid = 'G141_22_078'
-#runid = 'G141_22_079'
-#runid = 'G141_22_080'
-#runid = 'G141_22_081'
-#runid = 'G141_22_082'
-#runid = 'G141_22_083'
-#runid = 'G141_22_084'
-#runid = 'G141_22_085'
-#runid = 'G141_22_086'
-#runid = 'G141_22_087'
-#runid = 'G141_22_088'
-#runid = 'G141_22_089'
-#runid = 'G141_22_090'
-#runid = 'G141_22_091'
-#runid = 'G141_22_092'
-#runid = 'G141_22_093'
-#runid = 'G141_22_094'
-#runid = 'G141_22_095'
-#runid = 'G141_22_096'
-#runid = 'G141_22_097'
-#runid = 'G141_22_098'
-#runid = 'G141_22_099'
-#runid = 'G141_22_100'
-#runid = 'G141_22_101'
-#runid = 'G141_22_102'
-#runid = 'G141_22_103'
-#runid = 'G141_22_104'
-#runid = 'G141_22_105'
 
 model_run_base_dir = '/%svol1/hpcshared' % server
 
@@ -108,7 +63,7 @@ plot_substance_list = ['continuity','tn_include_sediment','tn_plus_detns12','tn'
 # list of time averaging schemes to apply (saves space to skip some if we don't need them) 
 # (this is used in step6_aggregate_in_time.py)
 #tavg_list = ['Cumulative', 'Filtered', 'Annual', 'Seasonal', 'Monthly', 'Weekly']
-tavg_list = ['Annual','Seasonal','Monthly','Cumulative', 'Filtered','Weekly']
+tavg_list = ['Annual','Seasonal','Monthly','Cumulative','Filtered','Weekly']
 #tavg_list = ['Seasonal', 'Monthly']
 #tavg_list = ['Filtered','Cumulative']
 
