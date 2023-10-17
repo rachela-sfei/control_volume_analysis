@@ -77,7 +77,7 @@ grams_of_what = {'DIN' : 'N',
 panel_list = ['South_Bay_ABC','South_Bay_6Part','All_Subs_RMP']#, 'All_Subs_WB', 'South_Bay_6Part']
 
 # list of normalizations (divide by area, volume, or nothing)
-norm_list = ['None','Area']#,'Volume']
+norm_list = ['None','Area','Volume']
 
 # list of time integration types
 tavg_list = ['Filtered']#,'Cumulative']   # can also add 'Daily' if desired
