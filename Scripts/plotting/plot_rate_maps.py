@@ -33,6 +33,8 @@ import numpy as np
 import os, sys
 import pandas as pd
 import cmocean 
+import nmmn.plots
+turbo=nmmn.plots.turbocmap()
 import geopandas as gpd
 from importlib import reload
 import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
@@ -84,17 +86,22 @@ reload(CVPL)
 #server_list = ['chicago']
 #all_time_together = True
 
-#runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
-#wy_list = [2013,2014,2015,2016,2017,2018]
-#server_list = ['chicago','boise','boise','boise','chicago','chicago']
-#all_time_together = False
+runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+wy_list = [2013,2014,2015,2016,2017,2018]
+server_list = ['chicago','boise','boise','boise','chicago','chicago']
+all_time_together = False
 
-runid_list = ['G141_22_010','G141_22_011','G141_22_006','G141_22_018','G141_22_021']
-wy_list=[2022,2022,2022,2022,2022]
-server_list = ['fortcollins','fortcollins','fortcollins','fortcollins','fortcollins']
-all_time_together=False
+#runid_list = ['G141_22_010','G141_22_011','G141_22_006','G141_22_018','G141_22_021']
+#wy_list=[2022,2022,2022,2022,2022]
+#server_list = ['fortcollins','fortcollins','fortcollins','fortcollins','fortcollins']
+#all_time_together=False
 
-select_a_rate_set = -3
+#runid_list = ['FR22_012','FR22_013']
+#wy_list=[2022,2022]
+#server_list = ['fortcollins','fortcollins']
+#all_time_together=False
+
+select_a_rate_set = -1
 
 if select_a_rate_set==-3:
 
@@ -124,12 +131,12 @@ if select_a_rate_set==-2:
 if select_a_rate_set==-1:
 
     # subset DIN budget for CV manuscript
-    rate_list = ['denit',    
-                 'din_assim']  
-    multiple_rates_on_same_figure = True
-    multiple_rates_figure_label = 'Denit_DIN-Assim_TN-Assim'
-    multiple_rates_figure_title = 'Denitrification and DIN / TN Assimilation (dM/dt - Net Rx.)\n(TN includes N in water column and sediment)'
-    caxis_limit_override = {'Area' : 0.1, 'Volume': 0.1, 'None' : 3e6}
+    rate_list = ['denit']  
+    multiple_rates_on_same_figure = False
+    multiple_rates_figure_label = 'Denit'
+    multiple_rates_figure_title = 'Denitrification'
+    caxis_limit_override = {'Area' : None, 'Volume': None, 'None' : None}
+    all_time_together=True
 
 if select_a_rate_set==0:
 
@@ -154,7 +161,8 @@ elif select_a_rate_set==1:
     multiple_rates_on_same_figure = True
     multiple_rates_figure_label = 'DIN_Rx_Summary'
     multiple_rates_figure_title = 'DIN Reaction Summary'
-    caxis_limit_override = {'Area' : 0.25, 'Volume': 0.12, 'None' : None}
+    caxis_limit_override = {'Area' : None, 'Volume': None, 'None' : None}
+    #caxis_limit_override = {'Area' : 0.25, 'Volume': 0.12, 'None' : None}
     
 elif select_a_rate_set==2:    
 
@@ -169,7 +177,8 @@ elif select_a_rate_set==2:
     multiple_rates_on_same_figure = True
     multiple_rates_figure_label = 'TN_Rx_Summary'
     multiple_rates_figure_title = 'TN Reaction Summary'
-    caxis_limit_override = {'Area' : 0.075, 'Volume': 0.05, 'None' : None}
+    caxis_limit_override = {'Area' : None, 'Volume': None, 'None' : None}
+    #caxis_limit_override = {'Area' : 0.075, 'Volume': 0.05, 'None' : None}
 
 elif select_a_rate_set==3:   
 
@@ -210,12 +219,12 @@ elif select_a_rate_set==4:
 ################################################################################################################
 
 # list of time averaging periods (choices are 'Annual','Seasonal','Monthly')
-time_period_list = ['Seasonal','Monthly']
+time_period_list = ['Seasonal2','Seasonal3']
 #time_period_list = ['Annual','Seasonal']
 
 # list of normalizations (divide by 'None','Area','Volume')
-norm_list = ['Area','Volume']
-#norm_list = ['Area']
+#norm_list = ['Area','Volume']
+norm_list = ['Area']
 
 # get length of run list and wy list, make sure they're the same length, also check if all runs are the same
 nruns = len(runid_list)
@@ -228,7 +237,7 @@ figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 input_base_dir = '/richmondvol1/hpcshared'
 
 # nanpercentile for color map cutoff
-cper = 90
+cper = 95
 
 # set the approximate size of the figure subplots in inches (if there are N subplots the figure will be N x subplot_width wide)
 subplot_width = 4
@@ -238,7 +247,7 @@ subplot_height = 5
 plt.rcParams['font.size'] = '16'
 
 # path to the shapefile for full res / aggregated runs
-shp_fn_FR = os.path.join(input_base_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
+shp_fn_FR = os.path.join(input_base_dir,'inputs','shapefiles','Agg_mod_contiguous.shp')
 shp_fn_AGG = os.path.join(input_base_dir,'inputs','shapefiles','Agg_mod_contiguous_141.shp')
 
 # this gigantic function is really user input because this is where the user can define different rates to plot.
@@ -261,7 +270,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['oxy_Table.csv']                  # list of balance tables
         multiplier_list = [-1]                                  # multiplier for each balance table
         reaction_list = [['OXY,dOxCon']]                        # for each balance table, list of reactions to sum
-        cmap = cmocean.cm.amp                                   # color map
+        cmap = turbo#cmocean.cm.amp                                   # color map
         cmap_diverging = False                                  # center at zero (True if rate goes positive and negative)?
 
     elif rate_name=='oxycon-sed':
@@ -272,7 +281,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['oxy_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['OXY,dMinDetCS1', 'OXY,dMinDetCS2', 'OXY,dMinOOCS1', 'OXY,dMinOOCS2']]
-        cmap = cmocean.cm.amp  
+        cmap = turbo#cmocean.cm.amp  
         cmap_diverging = False
 
     elif rate_name=='oxy1':
@@ -282,7 +291,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['oxy_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['OXY,dNitrif']]
-        cmap = cmocean.cm.amp  
+        cmap = turbo#cmocean.cm.amp  
         cmap_diverging = False
 
     elif rate_name=='oxy2':
@@ -292,7 +301,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['oxy_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['OXY,dZ_Resp']]
-        cmap = cmocean.cm.amp  
+        cmap = turbo#cmocean.cm.amp  
         cmap_diverging = False
 
     elif rate_name=='oxy3':
@@ -302,7 +311,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['oxy_Table.csv']
         multiplier_list = [1]
         reaction_list = [['OXY,dDenitWat']]
-        cmap = cmocean.cm.dense  
+        cmap = turbo#cmocean.cm.dense  
         cmap_diverging = False
 
     elif rate_name=='oxy4':
@@ -312,7 +321,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['oxy_Table.csv']
         multiplier_list = [1]
         reaction_list = [['OXY,dPPDiat', 'OXY,dcPPDiat', 'OXY,dPPGreen', 'OXY,dcPPGreen']]
-        cmap = cmocean.cm.dense  
+        cmap = turbo#cmocean.cm.dense  
         cmap_diverging = False
 
     elif rate_name=='oxy5':
@@ -322,7 +331,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['oxy_Table.csv']
         multiplier_list = [1]
         reaction_list = [['OXY,dPPDiatS1']]
-        cmap = cmocean.cm.dense  
+        cmap = turbo#cmocean.cm.dense  
         cmap_diverging = False
 
     elif rate_name=='oxy6':
@@ -332,7 +341,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['oxy_Table.csv']
         multiplier_list = [1]
         reaction_list = [['OXY,dNO3Upt']]
-        cmap = cmocean.cm.dense  
+        cmap = turbo#cmocean.cm.dense  
         cmap_diverging = False
 
 
@@ -343,7 +352,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['oxy_Table.csv']
         multiplier_list = [1]
         reaction_list = [['OXY,dNO3UptS1']]
-        cmap = cmocean.cm.dense  
+        cmap = turbo#cmocean.cm.dense  
         cmap_diverging = False
 
 
@@ -354,7 +363,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['oxy_Table.csv']
         multiplier_list = [1]
         reaction_list = [['OXY,dREAROXY']]
-        cmap = cmocean.cm.balance_r  
+        cmap = turbo#cmocean.cm.balance_r  
         cmap_diverging = True
 
     elif rate_name=='oxy_rx':
@@ -368,7 +377,7 @@ def get_rate_properties(rate_name):
                           'OXY,dOxCon', 'OXY,dZ_Resp', 'OXY,dREAROXY', 'OXY,dPPGreen',
                           'OXY,dPPDiat', 'OXY,dPPDiatS1', 'OXY,dNO3UptS1', 'OXY,dcPPGreen',
                           'OXY,dcPPDiat', 'OXY,dNO3Upt']]
-        cmap = cmocean.cm.balance_r
+        cmap = turbo#cmocean.cm.balance_r
         cmap_diverging = True
 
     elif rate_name=='dpp':
@@ -378,7 +387,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['algae_Table.csv']
         multiplier_list = [1]
         reaction_list = [['Diat,dPPDiat','Green,dPPGreen','DiatS1,dPPDiatS1']]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='dpp-benthic':
@@ -388,7 +397,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['algae_Table.csv']
         multiplier_list = [1]
         reaction_list = [['DiatS1,dPPDiatS1']]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='dpp-pelagic':
@@ -398,7 +407,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['algae_Table.csv']
         multiplier_list = [1]
         reaction_list = [['Diat,dPPDiat','Green,dPPGreen']]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='mortality-pelagic':
@@ -408,7 +417,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['algae_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['Diat,dMrtDiat', 'Green,dMrtGreen']]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='mortality-benthic':
@@ -418,7 +427,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['algae_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DiatS1,dMrtDiatS1']]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
     elif rate_name=='grazing':
     
@@ -427,7 +436,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['algae_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['Diat,dZ_Diat', 'Green,dZ_Grn']]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='settling':
@@ -437,7 +446,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['algae_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['Diat,dSedDiat','Green,dSedGreen']]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='burial':
@@ -447,7 +456,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['algae_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DiatS1,dBurS1Diat']]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='total-algae-rx':
@@ -462,7 +471,7 @@ def get_rate_properties(rate_name):
                           'Diat,dZ_Diat', 'Green,dZ_Grn', 
                           'Diat,dSedDiat','Green,dSedGreen', 
                           'DiatS1,dBurS1Diat']]
-        cmap = cmocean.cm.balance
+        cmap = turbo#cmocean.cm.balance
         cmap_diverging = True
 
 
@@ -474,7 +483,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['din_Table.csv']              
         multiplier_list = [-1]                              
         reaction_list = [["NO3,dDenit"]]# already lumped this in, in latest version of CV scripts:"NO3,dNiDen"]]      
-        cmap = cmocean.cm.amp # cmocean.cm.dense # make it positive to plot with assimilation                             
+        cmap = turbo#cmocean.cm.amp # cmocean.cm.dense # make it positive to plot with assimilation                             
         cmap_diverging = False                             
 
     elif rate_name=='n-dpp':
@@ -484,7 +493,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['din_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DIN,dDINUpt','DIN,dDINUptS1']]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='n-dpp-pelagic':
@@ -494,7 +503,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['din_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DIN,dDINUpt']]
-        cmap = cmocean.cm.dense
+        cmap = turbo#cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='n-dpp-benthic':
@@ -504,7 +513,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['din_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DIN,dDINUptS1']]
-        cmap = cmocean.cm.dense
+        cmap = turbo#cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='din_recycling':
@@ -519,7 +528,7 @@ def get_rate_properties(rate_name):
                           "NH4,dMinDON",
                           "NH4,dMinPON1",
                           "NH4,dMinPON2"]]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='dmin_sed':
@@ -529,7 +538,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['din_Table.csv']
         multiplier_list = [1]
         reaction_list = [['NH4,dMinDetNS12']] #,'NH4,dMinOONS12']] # exclude OONS1 and OONS2, Pradeep says to pretend it's loading
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='dmin_sed1':
@@ -540,7 +549,7 @@ def get_rate_properties(rate_name):
         multiplier_list = [-1]
         reaction_list = [['DetNS1,dMinDetNS1',
                           'OONS1,dMinOONS1']]
-        cmap = cmocean.cm.dense
+        cmap = turbo#cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='dmin_sed2':
@@ -551,7 +560,7 @@ def get_rate_properties(rate_name):
         multiplier_list = [-1]
         reaction_list = [['DetNS2,dMinDetNS2',
                           'OONS2,dMinOONS2']]
-        cmap = cmocean.cm.dense
+        cmap = turbo#cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='det_bur':
@@ -561,7 +570,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['totaldetns_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DetNS2,dBurS2DetN','OONS2,dBurS2OON']]
-        cmap = cmocean.cm.dense
+        cmap = turbo#cmocean.cm.dense
         cmap_diverging = False
     
     elif rate_name=='din_assim':
@@ -581,7 +590,7 @@ def get_rate_properties(rate_name):
                                        'NH4,dZ_NRes', 
                                        'NH4,dNH4Aut', 
                                        'NH4,dNH4AUTS1']]
-        cmap = cmocean.cm.balance
+        cmap = turbo#cmocean.cm.balance
         cmap_diverging = True
 
     elif rate_name=='tn_plus_detns12_assim':
@@ -595,7 +604,7 @@ def get_rate_properties(rate_name):
                                       'DiatS1,dBurS1Diat'
                                       #'NH4,dMinOONS12', # pretend this is loading 
                                       'PON2,dSedPON2']]
-        cmap = cmocean.cm.balance
+        cmap = turbo#cmocean.cm.balance
         cmap_diverging = True
 
     elif rate_name=='din_rx':
@@ -608,7 +617,7 @@ def get_rate_properties(rate_name):
                           "NO3,dDenit","NH4,dZ_NRes",
                           "NH4,dNH4Aut",'NH4,dNH4AUTS1',"NH4,dMinDON","NH4,dMinPON1",
                           "NH4,dMinPON2",'NH4,dMinDetNS12']]
-        cmap = cmocean.cm.balance
+        cmap = turbo#cmocean.cm.balance
         cmap_diverging = True
 
     elif rate_name=='tn_rx':
@@ -629,7 +638,7 @@ def get_rate_properties(rate_name):
                           'PON1,dClam_NDef',
                           'Algae,dClam_Algae',
                           'PON1,dClam_PON1']]
-        cmap = cmocean.cm.balance
+        cmap = turbo#cmocean.cm.balance
         cmap_diverging = True
 
     elif rate_name=='n-sed':
@@ -639,7 +648,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['tn_Table.csv']
         multiplier_list = [-1]
         reaction_list = [["Algae,dSedAlgae","PON,dSedPON"]]
-        cmap = cmocean.cm.dense
+        cmap = turbo#cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='n-diats1-mort':
@@ -649,7 +658,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['tn_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DiatS1,dMrtDiatS1']]
-        cmap = cmocean.cm.dense
+        cmap = turbo#cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='n-diats1-buri':
@@ -659,7 +668,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['tn_Table.csv']
         multiplier_list = [-1]
         reaction_list = [['DiatS1,dBurS1Diat']]
-        cmap = cmocean.cm.dense
+        cmap = turbo#cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='diats1-aut':
@@ -669,7 +678,7 @@ def get_rate_properties(rate_name):
         balance_table_list = ['tn_Table.csv']
         multiplier_list = [1]
         reaction_list = [['NH4,dNH4AUTS1']]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
 
     elif rate_name=='tn_include_sediment_loss':
@@ -683,7 +692,7 @@ def get_rate_properties(rate_name):
                           'DetNS2,dBurS2DetN',
                           'OONS2,dBurS2OON',
                           'DiatS1,dBurS1Diat']]
-        cmap = cmocean.cm.dense
+        cmap = turbo#cmocean.cm.dense
         cmap_diverging = False
 
     elif rate_name=='totaldetns_rx':
@@ -701,7 +710,7 @@ def get_rate_properties(rate_name):
                           'OONS2,dMinOONS2',
                           'DetNS2,dBurS2DetN',
                           'OONS2,dBurS2OON']]
-        cmap = cmocean.cm.amp
+        cmap = turbo#cmocean.cm.amp
         cmap_diverging = False
     
     return rate_title, grams_of_what, balance_table_list, multiplier_list, reaction_list, cmap, cmap_diverging
@@ -905,7 +914,7 @@ for time_period in time_period_list:
                 pmin_all = -pmax_all
 
             # if a min/max is hard-coded, apply it here
-            if not caxis_limit_override is None:
+            if not caxis_limit_override[norm] is None:
                 if cmap_diverging:
                     pmax_all = caxis_limit_override[norm]
                     pmin_all = - caxis_limit_override[norm]

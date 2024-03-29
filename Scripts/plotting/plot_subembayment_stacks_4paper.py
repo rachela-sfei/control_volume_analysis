@@ -58,8 +58,8 @@ group_list = 'all'
 autoscale_x = True
 
 # here's another option for the x axis ... again only applies to the HAB model
-#xlim_override = None
-xlim_override = ['%d-07-20', '%d-09-10']
+xlim_override = None
+#xlim_override = ['%d-07-20', '%d-09-10']
 
 # list or runs to plot and water years to pick out of corresponding run (each is a column in the plot)
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
@@ -76,21 +76,33 @@ if panel == 'Middle_Subs_RMP_and_WB':
     group_labels = ['San Pablo Bay','Central Bay (WB)','South Bay (WB, N. half)','South Bay (RMP)']
     panel_label = 'by Subembayment (RMP / WB)'
 
+elif panel == 'Middle_Subs_WB':
+    group_list = ['San_Pablo_Bay','Central_Bay_WB','SB_WB']
+    group_labels = ['San Pablo Bay','Central Bay (WB)','South Bay (WB)']
+    panel_label = 'by Subembayment (Water Board)'
+
 elif panel == 'All_Subs_RMP':
     group_list = ['Whole_Bay','Suisun_Bay','San_Pablo_Bay','Central_Bay_RMP','SB_RMP','LSB']
     group_labels = ['Whole Bay','Suisun Bay','San Pablo Bay','Central Bay (RMP)','South Bay (RMP)','Lower South Bay']
     panel_label = 'by Subembayment (RMP)'
 
 elif panel == 'All_Subs_WB':
-    group_list = ['Whole_Bay','Suisun_Bay','San_Pablo_Bay','Central_Bay_WB','SB_WB','LSB']
-    group_labels = ['Whole Bay','Suisun Bay','San Pablo Bay','Central Bay (WB)','South Bay (WB)','Lower South Bay']
+    group_list = ['Suisun_Bay','San_Pablo_Bay','Central_Bay_WB','SB_WB','LSB']
+    group_labels = ['Suisun Bay','San Pablo Bay','Central Bay (WB)','South Bay (WB)','Lower South Bay']
     panel_label = 'by Subembayment (Water Board)'
 
-elif panel == 'South_Bay_6Part':
-    group_list = ['SB_WB_west_shoal_north_half','SB_WB_channel_north_half','SB_WB_east_shoal_north_half',
-                     'SB_WB_west_shoal_south_half','SB_WB_channel_south_half','SB_WB_east_shoal_south_half']
-    group_labels = ['NW Shoal','N Channel','NE Shoal','SW Shoal','S Channel','SE Shoal']
-    panel_label = 'Across South Bay'
+# list of directions for the subembayment outflux (influx will be caluclated as 
+# net flux in minus outflus)
+outflux_dir_dict = {}
+outflux_dir_dict['LSB'] = 'N'
+outflux_dir_dict['SB_RMP'] = 'N'
+outflux_dir_dict['SB_WB'] = 'N'
+outflux_dir_dict['SB_WB_north_half'] = 'N'
+outflux_dir_dict['Central_Bay_RMP'] = 'W'
+outflux_dir_dict['Central_Bay_WB'] = 'W'
+outflux_dir_dict['Suisun_Bay'] = 'W'
+outflux_dir_dict['Whole_Bay'] = 'W'
+outflux_dir_dict['San_Pablo_Bay'] = 'S'
 
 # list of parameters to plot (must match balance table, one plot per parameter is created)
 param_list = ['DIN','TN']#,'TN_plus_DetNS12','OXY','DetNS12','OONS12', 'N-Algae']
@@ -226,7 +238,7 @@ wy_list = CVPL.list_of_wy_str_2_list_of_int_wys(wystr_list)   # note this variab
 wy_list_str = CVPL.make_concise_water_year_list_string(wy_list)
 
 # path to figures, create if it does not exist
-figure_path = os.path.join(figure_base_dir, run_list_str, 'reaction_stacks_multigroup_multirun')
+figure_path = os.path.join(figure_base_dir, run_list_str, 'subembayment_stacks_4paper')
 if not os.path.exists(figure_path):
     os.makedirs(figure_path)
 print('\nfigures will be saved here: %s\n' % figure_path)
@@ -294,13 +306,7 @@ for param in param_list:
             if param in rx_grouping.keys():
                 source_cols = []
                 sink_cols = []
-                data1 = data[['group', 'time', 'Volume (m^3)', 'Volume (Mean, m^3)', 
-                              'Area (m^2)','%s,Mass (Mg)' % param, 
-                              '%s,dMass/dt (%s)' % (param,units), 
-                              '%s,Net Flux In (%s)' % (param,units),
-                              '%s,Net Load (%s)' % (param,units), 
-                              '%s,Net Transport In (%s)' % (param,units),
-                              '%s,dMass/dt, Balance Check (%s)' % (param,units)]]
+                data1 = data[['group', 'time']]
                 for key in rx_grouping[param].keys():
                     key1 = key.replace('Mg/d',units)
                     rx_list = [rx.replace('Mg/d',units) for rx in rx_grouping[param][key]]
@@ -340,6 +346,7 @@ for param in param_list:
         for rx in master_reaction_cols:
             master_reaction_cols_trimmed.append(rx.replace(' (%s)' % units,''))
 
+
         # loop through the norms
         for norm in norm_list:
 
@@ -366,12 +373,17 @@ for param in param_list:
 
                 # group the reactions if indicated 
                 if param in rx_grouping.keys():
+
                     source_cols = []
                     sink_cols = []
                     data1 = data[['group', 'time', 'Volume (m^3)', 'Volume (Mean, m^3)', 
                                   'Area (m^2)','%s,Mass (Mg)' % param, 
                                   '%s,dMass/dt (%s)' % (param,units), 
                                   '%s,Net Flux In (%s)' % (param,units),
+                                  '%s,Flux In from N (%s)' % (param,units), 
+                                  '%s,Flux In from S (%s)' % (param,units),
+                                  '%s,Flux In from E (%s)' % (param,units), 
+                                  '%s,Flux In from W (%s)' % (param,units),
                                   '%s,Net Load (%s)' % (param,units), 
                                   '%s,Net Transport In (%s)' % (param,units),
                                   '%s,dMass/dt, Balance Check (%s)' % (param,units)]]
@@ -380,7 +392,6 @@ for param in param_list:
                         rx_list = [rx.replace('Mg/d',units) for rx in rx_grouping[param][key]]
                         data1[key1] = data[rx_list].sum(axis=1)
                     data = data1.copy()
-
 
                 # get the list of columns we want to normalize (anythign with Mg in the name)
                 norm_cols = []
@@ -433,6 +444,7 @@ for param in param_list:
 
                     # get the figure axis
                     ax1 = ax[igroup,irun]
+                    ax1.set_xlim((t_window[0],t_window[1]))
 
                     # find indices of data in this group
                     ind = data['group'] == group
@@ -458,19 +470,11 @@ for param in param_list:
                     df = df.fillna(0)
                     df.columns = master_reaction_cols_trimmed
 
-                    # add terms to close the mass budget 
-                    df.insert(loc=0,
-                              column='Loads',
-                              value=data_group['%s,Net Load (%s)' % (param,units)])
-                    #df.insert(loc=2,
-                    #          column='Net Transport In',
-                    #          value=data_group['%s,Net Transport In (%s)' % (param,units)])
+                    # add storage term, load, net transport
                     df['-dM/dt']=-data_group['%s,dMass/dt, Balance Check (%s)' % (param,units)]
-                    
+                    df['Point Source Load']=data_group['%s,Net Load (%s)' % (param,units)]
+                    df['Net Transport In']=data_group['%s,Net Transport In (%s)' % (param,units)]
 
-                    # compute net reaction
-                    #net_rx = df.values.sum(axis=1)
-            
                     # divide into positive and negative
                     df_pos = df.copy(deep=True)
                     df_neg = df.copy(deep=True)
@@ -497,7 +501,7 @@ for param in param_list:
             
                 # format time axis for all rows
                 for ax1 in ax[:,irun]:
-                    ax1.set_xlim((t_window[0],t_window[1]))
+                    
                     ax1.xaxis.set_major_locator(mdates.YearLocator())
                     ax1.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=(1,4,7,10)))
                     ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))

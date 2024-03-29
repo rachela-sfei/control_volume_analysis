@@ -415,7 +415,7 @@ for balance_table_fn in table_list:
             df_tavg = df_tavg.loc[ind]
 
         # seasonal, monthly, and weekly averages
-        elif tavg in ['Annual','Seasonal','Monthly','Weekly']:
+        elif tavg in ['Annual','Seasonal','Seasonal2','Seasonal3','Monthly','Weekly']:
 
             # print
             logging.info('    Taking %s average ...' % tavg) 
@@ -443,6 +443,27 @@ for balance_table_fn in table_list:
                     time_windows.append(['%d-07-01' % wy,'%d-10-01' % wy])
                     time_titles.append('Jul, Aug, Sep of %d' % wy)
 
+
+            elif tavg == 'Seasonal2':
+
+                for wy in wy_list:
+
+                    time_windows.append(['%d-10-01' % (wy-1),'%d-02-01' % wy])
+                    time_titles.append('Oct, Nov, Dec, Jan of %d/%d' % (wy-1, wy))
+                    time_windows.append(['%d-02-01' % wy,'%d-06-01' % wy])
+                    time_titles.append('Feb, Mar, Apr, May of %d' % wy)
+                    time_windows.append(['%d-06-01' % wy,'%d-10-01' % wy])
+                    time_titles.append('Jun, Jul, Aug, Sep of %d' % wy)
+
+            elif tavg == 'Seasonal3':
+
+                for wy in wy_list:
+
+                    time_windows.append(['%d-10-01' % (wy-1),'%d-02-01' % wy])
+                    time_titles.append('Oct-Jan of %d/%d' % (wy-1, wy))
+                    time_windows.append(['%d-02-01' % wy,'%d-10-01' % wy])
+                    time_titles.append('Feb-Sep of %d' % wy)
+                    
             elif tavg == 'Monthly':
 
                 for wy in wy_list:

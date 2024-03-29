@@ -47,12 +47,12 @@ reload(CVPL)
 #water_year = 2013
 #runid = 'FR17_018'
 #water_year = 2017
-runid = 'FR13_003'
-water_year = 2013
-server = 'richmond'
+runid = 'FR22_014'
+water_year = 2022
+server = 'fortcollins'
 
 # parameter list
-param_list = ['din','tn','continuity','algae']
+param_list = ['din']
 
 # base directory for the model runs and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 #base_dir = r'X:\hpcshared'
@@ -293,7 +293,7 @@ for param in param_list:
 
     else:
 
-        filter_option_list = ['seasonal']
+        filter_option_list = ['monthly']
 
     for filter_option in filter_option_list:
 
@@ -437,7 +437,53 @@ for param in param_list:
         
             # plot title
             plot_title = '%s: %s Flux, Tidally Filtered' % (runid, plotname_prefix)
+
+        elif filter_option == 'monthly':
+            ind1 = np.logical_and(time>=pd.Timestamp('%d-10-01' % (water_year-1)), time<pd.Timestamp('%d-11-01' % (water_year-1)))
+            ind2 = np.logical_and(time>=pd.Timestamp('%d-11-01' % (water_year-1)), time<pd.Timestamp('%d-12-01' % (water_year-1)))
+            ind3 = np.logical_and(time>=pd.Timestamp('%d-12-01' % (water_year-1)), time<pd.Timestamp('%d-01-01' % water_year))
+            ind4 = np.logical_and(time<pd.Timestamp('%d-01-01' % water_year), time<pd.Timestamp('%d-02-01' % water_year))
+            ind5 = np.logical_and(time<pd.Timestamp('%d-02-01' % water_year), time<pd.Timestamp('%d-03-01' % water_year))
+            ind6 = np.logical_and(time<pd.Timestamp('%d-03-01' % water_year), time<pd.Timestamp('%d-04-01' % water_year))
+            ind7 = np.logical_and(time<pd.Timestamp('%d-04-01' % water_year), time<pd.Timestamp('%d-05-01' % water_year))
+            ind8 = np.logical_and(time<pd.Timestamp('%d-05-01' % water_year), time<pd.Timestamp('%d-06-01' % water_year))
+            ind9 = np.logical_and(time<pd.Timestamp('%d-06-01' % water_year), time<pd.Timestamp('%d-07-01' % water_year))
+            ind10 = np.logical_and(time<pd.Timestamp('%d-07-01' % water_year), time<pd.Timestamp('%d-08-01' % water_year))
+            ind11 = np.logical_and(time<pd.Timestamp('%d-08-01' % water_year), time<pd.Timestamp('%d-09-01' % water_year))
+            ind12 = np.logical_and(time<pd.Timestamp('%d-09-01' % water_year), time<pd.Timestamp('%d-10-01' % water_year))
+            ntime, ntran = varT.shape
+            varT_AVG = np.zeros((12,ntran))
+            varT_RMS = np.zeros((12,ntran))
+            varT_AVG[0,:] = np.mean(varT [ind1 ,:],axis=0)
+            varT_AVG[1 ,:] = np.mean(varT[ind2 ,:],axis=0)
+            varT_AVG[2 ,:] = np.mean(varT[ind3 ,:],axis=0)
+            varT_AVG[3 ,:] = np.mean(varT[ind4 ,:],axis=0)
+            varT_AVG[4 ,:] = np.mean(varT[ind5 ,:],axis=0)
+            varT_AVG[5 ,:] = np.mean(varT[ind6 ,:],axis=0)
+            varT_AVG[6 ,:] = np.mean(varT[ind7 ,:],axis=0)
+            varT_AVG[7 ,:] = np.mean(varT[ind8 ,:],axis=0)
+            varT_AVG[8 ,:] = np.mean(varT[ind9 ,:],axis=0)
+            varT_AVG[9 ,:] = np.mean(varT[ind10,:],axis=0)
+            varT_AVG[10,:] = np.mean(varT[ind11,:],axis=0)
+            varT_AVG[11,:] = np.mean(varT[ind12,:],axis=0)
+            varT_RMS[0,:] = np.sqrt(np.mean((varT_tidal_residual[ind1 ,:])**2,axis=0))
+            varT_RMS[1 ,:] = np.sqrt(np.mean((varT_tidal_residual[ind2 ,:])**2,axis=0))
+            varT_RMS[2 ,:] = np.sqrt(np.mean((varT_tidal_residual[ind3 ,:])**2,axis=0))
+            varT_RMS[3 ,:] = np.sqrt(np.mean((varT_tidal_residual[ind4 ,:])**2,axis=0))
+            varT_RMS[4 ,:] = np.sqrt(np.mean((varT_tidal_residual[ind5 ,:])**2,axis=0))
+            varT_RMS[5 ,:] = np.sqrt(np.mean((varT_tidal_residual[ind6 ,:])**2,axis=0))
+            varT_RMS[6 ,:] = np.sqrt(np.mean((varT_tidal_residual[ind7 ,:])**2,axis=0))
+            varT_RMS[7 ,:] = np.sqrt(np.mean((varT_tidal_residual[ind8 ,:])**2,axis=0))
+            varT_RMS[8 ,:] = np.sqrt(np.mean((varT_tidal_residual[ind9 ,:])**2,axis=0))
+            varT_RMS[9 ,:] = np.sqrt(np.mean((varT_tidal_residual[ind10,:])**2,axis=0))
+            varT_RMS[10,:] = np.sqrt(np.mean((varT_tidal_residual[ind11,:])**2,axis=0))
+            varT_RMS[11,:] = np.sqrt(np.mean((varT_tidal_residual[ind12,:])**2,axis=0))
         
+            time = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']
+        
+            # plot title
+            plot_title = '%s: %s Flux, Monthly Average' % (runid, plotname_prefix)
+
         elif filter_option == 'seasonal':
             ind1 = np.logical_and(time>=pd.Timestamp('%d-10-01' % (water_year-1)), time<pd.Timestamp('%d-01-01' % water_year))
             ind2 = np.logical_and(time<pd.Timestamp('%d-01-01' % water_year), time<pd.Timestamp('%d-04-01' % water_year))

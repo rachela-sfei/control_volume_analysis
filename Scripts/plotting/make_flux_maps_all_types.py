@@ -39,49 +39,30 @@ reload(CVPL)
 #################
 
 # run folder and water year'
-
-isel=4
-if isel==0:
-    runid = 'FR13_028'
-    wystr = 'WY2013'
-    server = 'chicago'
-    water_year = 2013 # this script doesn't work with agg runs yet
-if isel==1:
-    runid = 'FR14_001'
-    wystr = 'WY2014'
-    server = 'boise'
-    water_year = 2014 # this script doesn't work with agg runs yet
-if isel==2:
-    runid = 'FR15_001'
-    wystr = 'WY2015'
-    server = 'boise'
-    water_year = 2015 # this script doesn't work with agg runs yet
-if isel==3:
-    runid = 'FR16_001'
-    wystr = 'WY2016'
-    server = 'boise'
-    water_year = 2016 # this script doesn't work with agg runs yet
-if isel==4:
-    runid = 'FR17_021'
-    wystr = 'WY2017'
-    server = 'chicago'
-    water_year = 2017 # this script doesn't work with agg runs yet
-if isel==5:
-    runid = 'FR18_009'
-    wystr = 'WY2018'
-    server = 'chicago'
-    water_year = 2018 # this script doesn't work with agg runs yet
+runid = 'FR22_012'
+wystr = 'WY2022'
+server = 'fortcollins'
+water_year = 2022 # this script doesn't work with agg runs yet
 
 # name of composite variable to plot and units
-plotname_prefix = 'Volume'
-units = 'm2/d'
+#plotname_prefix = 'Volume'
+#units = 'm2/d'
+plotname_prefix = 'TN'
+units = 'g/m/d'
+
+# colorbar max and min
+qmax_override = 1000
+qmin_override = 10
 
 # names of variables to sum over and stoichiometric multipliers to arrive at composite variable
-variables = ['continuity']
-multipliers = [1.00]
+#variables = ['continuity']
+#multipliers = [1.00]
+variables = ['no3','nh4']
+multipliers = [1.00, 1.00]
+
            
 # filter option (chose from 'spring-neap','seasonal','daily')
-filter_option = 'spring-neap'
+filter_option = 'seasonal'
 
 # base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
@@ -472,9 +453,6 @@ varT_RMS = varT_RMS/np.tile(edge_length,(ntime,1))
 # adjust RMS by mixing efficiency
 varT_RMS = alpha * varT_RMS
 
-# set max colorbar values for average fluxes using 95th percentile
-qmax = np.nanpercentile(np.abs(varT_AVG),95)
-
 # set max for plotting both average fluxes and 2-way dispersive fluxes using 95th percentile, with trump
 # using only the edges greater than 
 ind = edge_length > min_edge_length
@@ -487,7 +465,12 @@ qmin1 = np.nanpercentile(varT_RMS[:,ind],5)
 if qmin0<qmin1:
     qmin1 = qmin0
 
-# find 
+if not qmax_override is None:
+    qmax1 = qmax_override
+if not qmin_override is None:
+    qmin1 = qmin_override
+
+
 
 # loop through times, interpolate to centroids and to regular grid (using least squares approach), and plot
 ntime = len(time)
@@ -666,7 +649,7 @@ for itime in range(ntime):
     fig = plt.figure(figsize=(8.5,11))
     ax = fig.subplots()
     fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-    norm = mpl.colors.Normalize(vmin = 0, vmax = qmax)
+    norm = mpl.colors.Normalize(vmin = 0, vmax = qmax1)
     plt.streamplot(xg,yg,qxg,qyg,color=np.sqrt(qxg**2+qyg**2),cmap='jet',norm=norm,density=5)
     cbar = plt.colorbar(fraction=0.02, pad=0.01, orientation='horizontal')
     cbar.set_label('Mean Flux Magnitude (%s)' % units)

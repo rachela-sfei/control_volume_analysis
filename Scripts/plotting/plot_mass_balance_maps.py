@@ -22,24 +22,17 @@ reload(CVPL)
 # run name and server where it is located
 #runid = 'G141_13to18_246'
 #runid = 'FR13_003'
-if 1:
-    runid = 'FR13_026'
-    server = 'chicago'
-if 1:
-    runid = 'FR17_019'
-    server = 'chicago'
-if 0:
-    runid = 'FR18_007'
-    server = 'chicago'
+runid = 'FR22_013'
+server = 'fortcollins'
+
 
 # list of parameters to make plots for
 param_list = ['DIN', 'TN', 'TN_include_sediment', 'TotalDetNS']#, 'Algae', 'Diat', 'Green', 'DiatS1']
 
 # list of "domains" which are groups of groups to plot
-#domain_name_list = ['Whole_Bay_ABC','WB_South_Bay_ABC','WB_Subembayments','WB_Channel_Shoal','RMP_Subembayments',
-#                    'RMP_Channel_Shoal','WB_and_RMP_Subembayments','WB_and_RMP_Channel_Shoal']
+domain_name_list = ['WB_South_Bay_ABC','WB_and_RMP_Subembayments','WB_and_RMP_Channel_Shoal']
 #domain_name_list = ['WB_and_RMP_Subembayments','WB_and_RMP_Channel_Shoal']
-domain_name_list = ['Whole_Bay_ABC']
+
 
 # list of averaging periods to use for generating maps
 averaging_period_list = ['Seasonal'] # can also add 'Annual', Monthly', and/or 'Weekly' assuming those time averages were created in step6 of create_balance_tables scripts

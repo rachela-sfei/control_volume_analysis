@@ -20,17 +20,37 @@ alpha = 0.12
 # leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
 abort_for_mass_cons_error = True
 
-# name of server and runid
-server = 'boise'
-runid = 'FR22_011'
 
-model_run_base_dir = '/%svol1/hpcshared' % server
+#runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+#wy_list = [2013,2014,2015,2016,2017,2018]
+#server_list = ['chicago','boise','boise','boise','chicago','chicago']
+#all_time_together = False
+
+# name of server and runid
+#server = 'chicago'
+#runid = 'FR13_028'
+#server = 'boise'
+#runid = 'FR14_001'
+#server = 'boise'
+#runid = 'FR15_001'
+#server = 'boise'
+#runid = 'FR16_001'
+#server = 'chicago'
+#runid = 'FR17_021'
+server = 'fortcollins'
+#runid = 'G141_22_135'
+#runid = 'G141_22_137'
+#runid = 'G141_22_138'
+#runid = 'G141_22_139'
+runid = 'G141_22_141'
+
+model_run_base_dir = '/%svol2/hpcshared' % server
 
 # if the user sets the following variables to None, they are calculated automatically, by making some assumptions about
 # how our computers are organized (see below). if your run doesn't fit the usual mold, you can override the automatic stuff
 # by setting some or all of these variables directly
-poly_path = None
-tran_path = None
+poly_path = None#'/richmondvol1/hpcshared/inputs/shapefiles/Agg_mod_contiguous_plus_Dumbarton.shp'
+tran_path = None#'/richmondvol1/hpcshared/inputs/shapefiles/Agg_exchange_lines_plus_Dumbarton.shp'
 group_def_path = None          
 group_con_path = None
 run_dir = None  #run_dir = '/chicagovol1/hpcshared/open_bay/bgc/full_res/WY2022_bloom/%s' % runid 
@@ -62,10 +82,10 @@ plot_substance_list = ['continuity','tn_include_sediment','tn_plus_detns12','tn'
 
 # list of time averaging schemes to apply (saves space to skip some if we don't need them) 
 # (this is used in step6_aggregate_in_time.py)
-#tavg_list = ['Cumulative', 'Filtered', 'Annual', 'Seasonal', 'Monthly', 'Weekly']
-tavg_list = ['Annual','Seasonal','Monthly','Cumulative','Filtered','Weekly']
-#tavg_list = ['Seasonal', 'Monthly']
-#tavg_list = ['Filtered','Cumulative']
+# in Dec 2023 added Seasonal2 which defines 3 seasons (Oct,Nov,Dec,Jan + Feb,Mar,Apr,May + Jun,Jul,Aug,Sep)
+# in contrast to Seasonal which defines 4 seasons (Oct,Nov,Dec + Jan,Feb,Mar + Apr,May,Jun + Jul,Aug,Sep)
+tavg_list = ['Annual','Seasonal','Seasonal2','Seasonal3','Monthly','Cumulative','Filtered','Weekly']
+
 
 # float format for csv files
 float_format = '%1.6e'
@@ -627,19 +647,17 @@ def get_shapefile_paths(model_input_dir, runid, is_delta):
 		# path to shapefiles used in final delta runs
 	    tran_path =  os.path.join(model_input_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Transects_Dave_Plus_WB_v4.shp') 
 	    poly_path = os.path.join(model_input_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Polygons_Dave_Plus_WB_v4.shp')
-	
-	elif 'FR' in runid:
-
-	    ## path to the full res shapefile
-	    tran_path =  os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_plus_subembayments_shoal_channel.shp') 
-	    poly_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
 
 	elif 'G141' in runid:
-	    
+
 		# path to shapefiles used in aggregated grid runs
-	    tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_141.shp')
-	    poly_path =  os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_141.shp')
+		tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_141.shp')
+		poly_path =  os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_141.shp')
 	
+	elif 'FR' in runid:
+		tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_plus_subembayments_shoal_channel.shp')
+		poly_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
+
 	return poly_path, tran_path
 
 def get_group_def_path(runid):

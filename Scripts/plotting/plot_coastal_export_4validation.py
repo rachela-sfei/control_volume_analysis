@@ -46,32 +46,56 @@ reload(CVPL)
 ## user input
 #########################################################################################
 
-# flad to fudge the budgets, lumping OONS12 mineralization with loading instead of reactions
-fudge_oons = True
-
 # autoscale x axis (if you set to False, script will set min/max based on water year range)
 # note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
 autoscale_x = False
-
-# override min/max time
-tmin_override = None #np.datetime64('2021-10-01')
-tmax_override = np.datetime64('2022-09-15')
 
 # list of runs to plot, water year to pick out of corresponding run (each is a column in the plot), 
 # and a list of servers where each run is located (use 'WY13to18' to plot all years of a 6-year agg grid run, 
 # otherwise format should be 'WY2013', 'WY2018', etc.)
 
-#runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
-#wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
-#server_list = ['chicago','boise','boise','boise','chicago','chicago']
+#runid_list = ['G141_13to18_246', 'G141_13to18_255', 'G141_13to18_254']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','fortcollins','fortcollins']
 
-runid_list = ['FR22_012', 'FR22_013']
-wystr_list = ['WY2022','WY2022']
-server_list = ['fortcollins','fortcollins']
+#runid_list = ['G141_13to18_246','G141_13to18_257','G141_13to18_256']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','fortcollins','fortcollins']
 
+#runid_list = ['G141_13to18_246','G141_13to18_259','G141_13to18_258']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','fortcollins','fortcollins']
+
+#runid_list = ['G141_13to18_246','G141_13to18_261','G141_13to18_260']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','boise','boise']
+
+#runid_list = ['G141_13to18_246','G141_13to18_262']
+#wystr_list = ['WY13to18','WY13to18']
+#server_list = ['richmond','boise']
+
+#runid_list = ['G141_13to18_246','G141_13to18_264','G141_13to18_263']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','boise','boise']
+
+#runid_list = ['G141_13to18_246','G141_13to18_266','G141_13to18_265']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','boise','boise']
+
+#runid_list = ['G141_13to18_246','G141_13to18_268','G141_13to18_267']
+#wystr_list = ['WY13to18','WY13to18','WY13to18']
+#server_list = ['richmond','boise','boise']
+
+#runid_list = ['G141_13to18_246','G141_13to18_270']
+#wystr_list = ['WY13to18','WY13to18']
+#server_list = ['richmond','richmond']
+
+runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
+server_list = ['chicago','boise','boise','boise','chicago','chicago']
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['DIN', 'TN', 'TN_plus_DetNS12', 'DetNS12', 'OONS12']
+param_list = ['DetNS12', 'OONS12', 'DIN', 'TN', 'TN_include_sediment']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
@@ -111,7 +135,7 @@ def return_components_list(param):
         components_list = ['NH4','NO3']
     elif param == 'TN':
         components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae'] 
-    elif param == 'TN_plus_DetNS12':
+    elif param == 'TN_include_sediment':
         components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae'] 
     else:
         components_list = [param]
@@ -271,16 +295,6 @@ for param in param_list:
         for rx in master_reaction_list:
             master_reaction_list_trimmed.append(rx.replace(' (%s)' % units,''))
 
-        # if we are fudging the oons budget, remove OONS mineralization from the master reaction list
-        if fudge_oons and (param in ['DIN','TN','TN_plus_DetNS12']):
-            master_reaction_list.remove('NH4,dMinOONS12 (%s)' % units)
-            master_reaction_list_trimmed.remove('NH4,dMinOONS12')
-            minus_oons_rx_str = '\n- NH4,dMinOONS12'
-            plus_oons_rx_str = '\n+ NH4,dMinOONS12'
-        else:
-            minus_oons_rx_str = ''
-            plus_oons_rx_str = ''
-
         # track the min and max reaction by subembayment to see if it is always above or below zero
         if include_subembayment_assim:
             max_rx_by_sub = 0
@@ -353,14 +367,8 @@ for param in param_list:
             # get first and last date for time axis
             wymin = np.array(wy_list).min()
             wymax = np.array(wy_list).max()
-            if tmin_override is None:
-                tmin = np.datetime64('%d-10-01' % (wymin-1))
-            else:
-                tmin = tmin_override
-            if tmax_override is None:
-                tmax = np.datetime64('%d-10-01' % wymax)
-            else:
-                tmax = tmax_override
+            tmin = np.datetime64('%d-10-01' % (wymin-1))
+            tmax = np.datetime64('%d-10-01' % wymax)
         
             # loop through the water years we are to plot for this run
             nwy = len(wy_list)
@@ -401,11 +409,6 @@ for param in param_list:
                 # first row of plot
                 irow = 0
 
-                # if we are fudging the oons budget, isolate the oons mineralization term
-                if fudge_oons:
-                    if param in ['DIN','TN','TN_plus_DetNS12']:
-                        oons_rx = dataf['NH4,dMinOONS12 (%s)' % units].values
-
                 # get stats for whole bay
                 Delta_Influx = dataf['%s,Flux In from E (%s)' % (param,units)].values
                 GG_Outflux = dataf['%s,Flux In from W (%s)' % (param,units)].values
@@ -414,11 +417,6 @@ for param in param_list:
                 Net_Rx = dataf['%s,Net Reaction (%s)' % (param,units)].values
                 Net_Loading = dataf['%s,Net Load (%s)' % (param,units)].values
                 Tribs_Plus_Loads = Delta_Influx + Minor_Trib_Influx + Net_Loading
-
-                # if we are fudging the oons budget, subtract oons from the net reaction
-                if fudge_oons:
-                    if param in ['DIN','TN','TN_plus_DetNS12']:
-                        Net_Rx = Net_Rx - oons_rx
     
                 # golden gate outflux by components
                 GG_Outflux_Com = np.zeros((ntime, ncom))
@@ -433,9 +431,6 @@ for param in param_list:
                     df['Point Sources'] = Net_Loading.copy()
                     df['Delta Influx\n(+Petaluma/Sonoma/Napa)'] = Delta_Influx.copy()
                     df['Minor Tribs'] = Minor_Trib_Influx.copy()
-                    if fudge_oons:
-                        if param in ['DIN','TN','TN_plus_DetNS12']:
-                            df['NH4,dMinOONS12'] = oons_rx.copy()
                 df['-1 x Storage (-dM/dt)'] = Storage.copy()
                 df['Net Reaction'] = Net_Rx.copy()
                 if not is_it_benthic(param):
@@ -446,9 +441,6 @@ for param in param_list:
                     color_list = colors[3:5]
                 else:
                     color_list = colors[0:6]
-                    if fudge_oons:
-                        if param in ['DIN','TN','TN_plus_DetNS12']:
-                            color_list.append(colors[6]) 
     
                 # divide into positive and negative
                 df_pos = df.copy(deep=True)
@@ -491,10 +483,10 @@ for param in param_list:
                 # add to figure 1
                 ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
                 ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
-                ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Net Reaction%s' % minus_oons_rx_str)
+                ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Net Reaction')
                 #ax_run[irow].plot(time, Net_Rx_Check_Sum/divide_by, 'm--', label='Net Reaction, Check Sum')
                 if not is_it_benthic(param):
-                    ax_run[irow].plot(time, (Net_Rx + Storage)/divide_by, 'b', label='-1 x Assimilation:\ndM/dt - Net Rx.%s' % plus_oons_rx_str)
+                    ax_run[irow].plot(time, (Net_Rx + Storage)/divide_by, 'b', label='-1 x Assimilation:\ndM/dt - Net Rx.')
                 if iwy==0:
                     if irun==0:
                         ax_run[irow].set_ylabel('Whole Bay Reactions (%s)' % units_plot)
@@ -518,10 +510,6 @@ for param in param_list:
                         else:
                             df[sub] = (dataf_subs[isub]['%s,dMass/dt, Balance Check (%s)' % (param,units)].values - 
                                        dataf_subs[isub]['%s,Net Reaction (%s)' % (param,units)].values )
-                        if fudge_oons:
-                            if param in ['DIN','TN','TN_plus_DetNS12']:
-                                df[sub] = df[sub] + dataf_subs[isub]['NH4,dMinOONS12 (%s)' % units].values
-
 
                     # divide into positive and negative values
                     df_pos = df.copy(deep=True)
@@ -542,7 +530,7 @@ for param in param_list:
                             if is_it_benthic(param):
                                 ax_run[irow].set_ylabel('Storage: dM/dt\nby Subembayment (%s)' % units_plot)
                             else:
-                                ax_run[irow].set_ylabel('Assimilation: dM/dt - Net Rx.%s\nby Subembayment (%s)' % (plus_oons_rx_str,units_plot))
+                                ax_run[irow].set_ylabel('Assimilation: dM/dt - Net Rx.\nby Subembayment (%s)' % units_plot)
                         if irun==(nruns-1):
                             ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
@@ -565,16 +553,11 @@ for param in param_list:
                     df_neg = df.copy(deep=True)
                     df_pos[df<0] = 0
                     df_neg[df>0] = 0
-
-                    # if we are fudging the oons budget, add oons mineralization to the loading
-                    if fudge_oons:
-                        if param in ['DIN','TN','TN_plus_DetNS12']:
-                            Tribs_Plus_Loads = Tribs_Plus_Loads + oons_rx
-
+        
                     # add to figure 3
                     ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
                     ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
-                    ax_run[irow].plot(time,Tribs_Plus_Loads/divide_by, 'k--', label='%s Loading\nfrom Tribs and Point Sources%s' % (param,plus_oons_rx_str))
+                    ax_run[irow].plot(time,Tribs_Plus_Loads/divide_by, 'k--', label='%s Loading\nfrom Tribs and Point Sources' % param)
                     ax_run[irow].plot(time, -GG_Outflux/divide_by, 'k', label='%s Outflux\nThrough GG' % param)
                     if iwy==0:
                         if irun==0:

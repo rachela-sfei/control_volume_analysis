@@ -54,8 +54,8 @@ fudge_oons = True
 autoscale_x = False
 
 # override min/max time
-tmin_override = np.datetime64('2021-10-01')
-tmax_override = np.datetime64('2022-02-06')
+tmin_override = None#np.datetime64('2021-08-01')
+tmax_override = np.datetime64('2022-09-15')
 
 # list of runs to plot, water year to pick out of corresponding run (each is a column in the plot), 
 # and a list of servers where each run is located (use 'WY13to18' to plot all years of a 6-year agg grid run, 
@@ -63,16 +63,16 @@ tmax_override = np.datetime64('2022-02-06')
 #runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
 #wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
 #server_list = ['chicago','boise','boise','boise','chicago','chicago']
-runid_list = ['FR22_006', 'G141_22_078','G141_22_079','G141_22_081','G141_22_082']
-wystr_list = ['WY2022','WY2022','WY2022','WY2022','WY2022']
-server_list = ['boise','fortcollins','fortcollins','fortcollins','fortcollins']
+runid_list = ['FR22_012', 'G141_22_130', 'FR22_013', 'G141_22_078']
+wystr_list = ['WY2022','WY2022','WY2022','WY2022']
+server_list = ['fortcollins','fortcollins','fortcollins','fortcollins']
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['DIN', 'TN_plus_DetNS12','TN_include_sediment', 'TN', 'DetNS12', 'OONS12','OXY']
+param_list = ['DIN', 'TN_plus_DetNS12', 'TN', 'DetNS12', 'OONS12','OXY']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
-tavg_list = ['Filtered','Cumulative']
+tavg_list = ['Daily','Filtered','Cumulative']
 
 # base directory for the and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
@@ -83,9 +83,9 @@ colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e3
 
 # list of "groups" corresponding to subembayments (these are their names in the balance tables), 
 # each "group" corresponds to one set of sourc/sink bars in each subplot of the figure
-group_list = [ 'Whole_Bay','LSB', 'SB_RMP', 'SB_WB', 'SB_WB_north_half', 
+group_list = ['LSB', 'SB_RMP', 'SB_WB', 'SB_WB_north_half', 
               'Central_Bay_RMP', 'Central_Bay_WB',
-              'San_Pablo_Bay', 'Suisun_Bay']  # can add 'Whole_Bay' 
+              'San_Pablo_Bay', 'Suisun_Bay','Whole_Bay']  # can add 'Whole_Bay' 
 
 # list of bar plot labels corresponding to these groups (must be same length)
 group_labels = ['Lower South Bay', 'South Bay (RMP)', 'South Bay (WB)', 'South Bay (WB, north half)', 
@@ -648,7 +648,7 @@ for param in param_list:
                         # make a dataframe with influx plus loads components
                         df = pd.DataFrame(index=time)
                         for icom in range(ncom):
-                            df[components_list[icom] + ' Influx'] = Upstream_Influx_Com[:,icom]
+                            df[components_list[icom] + ' Influx'] = Upstream_Influx_Com[:,icom] + Minor_Trib_Influx_Com[:,icom]
             
                         # divide into positive and negative values
                         df_pos = df.copy(deep=True)
@@ -659,7 +659,7 @@ for param in param_list:
                         # add to figure 
                         ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
                         ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
-                        ax_run[irow].plot(time,Upstream_Influx/divide_by, 'k', label='%s Influx' % param, linewidth=linewidth)
+                        ax_run[irow].plot(time,(Upstream_Influx+Minor_Trib_Influx)/divide_by, 'k', label='%s Influx' % param, linewidth=linewidth)
                         #ax_run[irow].plot(time, -Downstream_Outflux/divide_by, 'k', label='%s Outflux\nThrough GG' % param, linewidth=linewidth)
                         if iwy==0:
                             if irun==0:
