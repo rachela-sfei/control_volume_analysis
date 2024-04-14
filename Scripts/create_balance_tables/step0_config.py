@@ -27,30 +27,17 @@ abort_for_mass_cons_error = True
 #all_time_together = False
 
 # name of server and runid
-#server = 'chicago'
-#runid = 'FR13_028'
-#server = 'boise'
-#runid = 'FR14_001'
-#server = 'boise'
-#runid = 'FR15_001'
-#server = 'boise'
-#runid = 'FR16_001'
-#server = 'chicago'
-#runid = 'FR17_021'
 server = 'fortcollins'
-#runid = 'G141_22_135'
-#runid = 'G141_22_137'
-#runid = 'G141_22_138'
-#runid = 'G141_22_139'
-runid = 'G141_22_141'
+runid = 'FR22_037'
+#FR22_046 FR22_033 FR22_034 FR22_035 FR22_036 FR22_037
 
-model_run_base_dir = '/%svol2/hpcshared' % server
+model_run_base_dir = '/%svol1/hpcshared' % server
 
 # if the user sets the following variables to None, they are calculated automatically, by making some assumptions about
 # how our computers are organized (see below). if your run doesn't fit the usual mold, you can override the automatic stuff
 # by setting some or all of these variables directly
-poly_path = None#'/richmondvol1/hpcshared/inputs/shapefiles/Agg_mod_contiguous_plus_Dumbarton.shp'
-tran_path = None#'/richmondvol1/hpcshared/inputs/shapefiles/Agg_exchange_lines_plus_Dumbarton.shp'
+poly_path = '/richmondvol1/hpcshared/inputs/shapefiles/Agg_mod_contiguous_plus_Dumbarton.shp'
+tran_path = '/richmondvol1/hpcshared/inputs/shapefiles/Agg_exchange_lines_plus_Dumbarton.shp'
 group_def_path = None          
 group_con_path = None
 run_dir = None  #run_dir = '/chicagovol1/hpcshared/open_bay/bgc/full_res/WY2022_bloom/%s' % runid 

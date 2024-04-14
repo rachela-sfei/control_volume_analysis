@@ -54,8 +54,8 @@ fudge_oons = True
 autoscale_x = False
 
 # override min/max time
-tmin_override = None#np.datetime64('2021-08-01')
-tmax_override = np.datetime64('2022-09-15')
+tmin_override = np.datetime64('2022-07-01')
+tmax_override = np.datetime64('2022-08-01')
 
 # list of runs to plot, water year to pick out of corresponding run (each is a column in the plot), 
 # and a list of servers where each run is located (use 'WY13to18' to plot all years of a 6-year agg grid run, 
@@ -63,16 +63,16 @@ tmax_override = np.datetime64('2022-09-15')
 #runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
 #wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
 #server_list = ['chicago','boise','boise','boise','chicago','chicago']
-runid_list = ['FR22_012', 'G141_22_130', 'FR22_013', 'G141_22_078']
-wystr_list = ['WY2022','WY2022','WY2022','WY2022']
-server_list = ['fortcollins','fortcollins','fortcollins','fortcollins']
+runid_list = ['FR22_046', 'FR22_033','FR22_034','FR22_035','FR22_036','FR22_037']
+wystr_list = ['WY2022','WY2022','WY2022','WY2022','WY2022','WY2022']
+server_list = ['fortcollins','fortcollins','fortcollins','fortcollins','fortcollins','fortcollins']
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['DIN', 'TN_plus_DetNS12', 'TN', 'DetNS12', 'OONS12','OXY']
+param_list = ['DIN']#, 'TN_plus_DetNS12', 'TN', 'DetNS12', 'OONS12','OXY']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
-tavg_list = ['Daily','Filtered','Cumulative']
+tavg_list = ['Daily']#,'Filtered','Cumulative']
 
 # base directory for the and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
