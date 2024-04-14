@@ -635,6 +635,12 @@ def get_shapefile_paths(model_input_dir, runid, is_delta):
 	    tran_path =  os.path.join(model_input_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Transects_Dave_Plus_WB_v4.shp') 
 	    poly_path = os.path.join(model_input_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Polygons_Dave_Plus_WB_v4.shp')
 
+    elif 'G673' in runid:
+
+        # path to shapefiles used in aggregated grid runs
+        tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_673.shp')
+        poly_path =  os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_673.shp')
+
 	elif 'G141' in runid:
 
 		# path to shapefiles used in aggregated grid runs
@@ -663,6 +669,8 @@ def get_group_def_path(runid):
 	# filenames
 	if 'FR' in runid:
 		res = 'FR'
+    elif 'G673' in runid:
+        res = '673'
 	elif 'G141' in runid:
 	    res = '141'
 	else:
@@ -687,6 +695,16 @@ def get_water_year(runid):
 	    yr = int(runid.split('_')[0][2:])
 	    # turn into water year string
 	    water_year = 'WY%d' % (2000 + yr)
+    elif 'G673' in runid:
+        # there are two formats for agg runs, G673_13_003 is water year 2013, G673_13to18_207 is water years 2013-2018
+        # get the string that represents the water year
+        yr = runid.split('_')[1]
+        # if it spans mutlple water years (such as '13to18'), keep the string, just add 'WY' in front of it
+        if 'to' in yr:
+            water_year = 'WY' + yr
+        # otherwise extract the integer and add it to 2000
+        else:
+            water_year = 'WY%d' % (2000 + int(yr))
 	elif 'G141' in runid:
 	    # there are two formats for agg runs, G141_13_003 is water year 2013, G141_13to18_207 is water years 2013-2018
 	    # get the string that represents the water year
@@ -718,6 +736,9 @@ def get_run_dir(model_run_base_dir, runid, is_delta):
         elif 'FR' in runid:
             water_year = get_water_year(runid)
             run_dir = os.path.join(model_run_base_dir,'Full_res',water_year,runid)
+        elif 'G673' in runid:
+            water_year = get_water_year(runid)
+            run_dir = os.path.join(model_run_base_dir,'Grid673',water_year,runid)
         elif 'G141' in runid:
             water_year = get_water_year(runid)
             run_dir = os.path.join(model_run_base_dir,'Grid141',water_year,runid)
@@ -729,6 +750,9 @@ def get_run_dir(model_run_base_dir, runid, is_delta):
         elif 'FR' in runid:
             water_year = get_water_year(runid)
             run_dir = os.path.join(model_run_base_dir,'open_bay','bgc','full_res',water_year,runid)
+        elif 'G673' in runid:
+            water_year = get_water_year(runid)
+            run_dir = os.path.join(model_run_base_dir,'open_bay','bgc','agg673',water_year,runid)
         elif 'G141' in runid:
             water_year = get_water_year(runid)
             run_dir = os.path.join(model_run_base_dir,'open_bay','bgc','agg',water_year,runid)
@@ -750,6 +774,8 @@ def get_lsp_path(run_dir, is_delta):
 		lsp_path = os.path.join(run_dir,'%s.lsp' % water_year.lower()) 
 	elif 'FR' in runid:
 	    lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
+    elif 'G673' in runid:
+        lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
 	elif 'G141' in runid:
 	    lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
 	else:
