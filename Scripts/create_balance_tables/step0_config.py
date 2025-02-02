@@ -31,8 +31,8 @@ is_v24 = True
 # name of server and runid
 server = 'chicago'
 vol = 'vol2'
-#runid = 'G141_13to22_016'
-runid = 'FR21_002'
+runid = 'G141_13to22_016'
+#runid = 'FR21_002'
 #FR22_046 FR22_033 FR22_034 FR22_035 FR22_036 FR22_037
 
 model_run_base_dir = '/%s%s/hpcshared' % (server,vol)
