@@ -50,52 +50,19 @@ reload(CVPL)
 # note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
 autoscale_x = False
 
-# list of runs to plot, water year to pick out of corresponding run (each is a column in the plot), 
-# and a list of servers where each run is located (use 'WY13to18' to plot all years of a 6-year agg grid run, 
-# otherwise format should be 'WY2013', 'WY2018', etc.)
+# list of runid, water year, servers, and vol1/vol2
+#runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+#wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
+#server_list = ['chicago','boise','boise','boise','chicago','chicago']
+#vol_list = ['vol1','vol1','vol1','vol1','vol1','vol1']
+runid_list = ['G141_13to22_016']
+wystr_list = ['WY13to22']
+server_list = ['chicago']
+vol_list = ['vol2']
 
-#runid_list = ['G141_13to18_246', 'G141_13to18_255', 'G141_13to18_254']
-#wystr_list = ['WY13to18','WY13to18','WY13to18']
-#server_list = ['richmond','fortcollins','fortcollins']
-
-#runid_list = ['G141_13to18_246','G141_13to18_257','G141_13to18_256']
-#wystr_list = ['WY13to18','WY13to18','WY13to18']
-#server_list = ['richmond','fortcollins','fortcollins']
-
-#runid_list = ['G141_13to18_246','G141_13to18_259','G141_13to18_258']
-#wystr_list = ['WY13to18','WY13to18','WY13to18']
-#server_list = ['richmond','fortcollins','fortcollins']
-
-#runid_list = ['G141_13to18_246','G141_13to18_261','G141_13to18_260']
-#wystr_list = ['WY13to18','WY13to18','WY13to18']
-#server_list = ['richmond','boise','boise']
-
-#runid_list = ['G141_13to18_246','G141_13to18_262']
-#wystr_list = ['WY13to18','WY13to18']
-#server_list = ['richmond','boise']
-
-#runid_list = ['G141_13to18_246','G141_13to18_264','G141_13to18_263']
-#wystr_list = ['WY13to18','WY13to18','WY13to18']
-#server_list = ['richmond','boise','boise']
-
-#runid_list = ['G141_13to18_246','G141_13to18_266','G141_13to18_265']
-#wystr_list = ['WY13to18','WY13to18','WY13to18']
-#server_list = ['richmond','boise','boise']
-
-#runid_list = ['G141_13to18_246','G141_13to18_268','G141_13to18_267']
-#wystr_list = ['WY13to18','WY13to18','WY13to18']
-#server_list = ['richmond','boise','boise']
-
-#runid_list = ['G141_13to18_246','G141_13to18_270']
-#wystr_list = ['WY13to18','WY13to18']
-#server_list = ['richmond','richmond']
-
-runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
-wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
-server_list = ['chicago','boise','boise','boise','chicago','chicago']
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['DetNS12', 'OONS12', 'DIN', 'TN', 'TN_include_sediment']
+param_list = ['DetNS12', 'OONS12', 'DIN', 'TN', 'TN_plus_DetNS12']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
@@ -109,12 +76,15 @@ nruns = len(runid_list)
 assert nruns==len(wystr_list)
 
 # figure size for (2-4 rows depending) x (nruns columns) mass budget plot 
-if 'WY13to18' in wystr_list: 
-    figure_width = 7.5*(nruns+0.75)
-elif nruns<=4:
-    figure_width = 4*(nruns+0.75)
+if len(runid_list)==1:
+    figure_width = 8.5
 else:
-    figure_width = 2.5*(nruns+0.75)
+    if 'WY13to' in wystr_list: 
+        figure_width = 7.5*(nruns+0.75)
+    elif nruns<=4:
+        figure_width = 4*(nruns+0.75)
+    else:
+        figure_width = 2.5*(nruns+0.75)
 row_height = 3
 
 # start with the default color cycle and add even more colors because the number of reactions is OUT OF CONTROL!
@@ -246,7 +216,7 @@ for param in param_list:
             runid = runid_list[irun]
     
             # get path to the balance table folder in the run folder
-            run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+            run_base_dir = '/%s%s/hpcshared' % (server_list[irun],vol_list[irun])
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             
@@ -313,7 +283,7 @@ for param in param_list:
             runid = runid_list[irun]
     
             # get path to the balance table folder in the run folder
-            run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+            run_base_dir = '/%s%s/hpcshared' % (server_list[irun],vol_list[irun])
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             

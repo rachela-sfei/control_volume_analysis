@@ -20,6 +20,8 @@ alpha = 0.12
 # leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
 abort_for_mass_cons_error = True
 
+# flag to indicate runs based on new hydro with straightened grid and calibrated temperature model
+is_v24 = True
 
 #runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
 #wy_list = [2013,2014,2015,2016,2017,2018]
@@ -27,20 +29,22 @@ abort_for_mass_cons_error = True
 #all_time_together = False
 
 # name of server and runid
-server = 'fortcollins'
-runid = 'FR22_037'
+server = 'chicago'
+vol = 'vol2'
+#runid = 'G141_13to22_016'
+runid = 'FR21_002'
 #FR22_046 FR22_033 FR22_034 FR22_035 FR22_036 FR22_037
 
-model_run_base_dir = '/%svol1/hpcshared' % server
+model_run_base_dir = '/%s%s/hpcshared' % (server,vol)
 
 # if the user sets the following variables to None, they are calculated automatically, by making some assumptions about
 # how our computers are organized (see below). if your run doesn't fit the usual mold, you can override the automatic stuff
 # by setting some or all of these variables directly
-poly_path = '/richmondvol1/hpcshared/inputs/shapefiles/Agg_mod_contiguous_plus_Dumbarton.shp'
-tran_path = '/richmondvol1/hpcshared/inputs/shapefiles/Agg_exchange_lines_plus_Dumbarton.shp'
+poly_path = None
+tran_path = None
 group_def_path = None          
 group_con_path = None
-run_dir = None  #run_dir = '/chicagovol1/hpcshared/open_bay/bgc/full_res/WY2022_bloom/%s' % runid 
+run_dir = None
 lsp_path = None
 balance_table_dir = None       # will be placed inside run_dir unless otherwise specified
 
@@ -621,19 +625,19 @@ import socket
 
 def get_shapefile_paths(model_input_dir, runid, is_delta):
 
-	'''
-	poly_path, tran_path = get_shapefile_paths(model_input_dir, runid, is_delta)
+    '''
+    poly_path, tran_path = get_shapefile_paths(model_input_dir, runid, is_delta)
 
-	given the path to the base directory for all our model input, the runid, and boolean saying whether or not this is a delta run,
-	automatically find the path to the shapefiles used to set up the run (note we are using an earlier version of the open bay FR shapefiles, 
-	which match the later version except that the later verison has some more polygons that we aren't analyzing, so saves space to leave them out
-	'''
+    given the path to the base directory for all our model input, the runid, and boolean saying whether or not this is a delta run,
+    automatically find the path to the shapefiles used to set up the run (note we are using an earlier version of the open bay FR shapefiles, 
+    which match the later version except that the later verison has some more polygons that we aren't analyzing, so saves space to leave them out
+    '''
 
-	if is_delta:
+    if is_delta:
 
-		# path to shapefiles used in final delta runs
-	    tran_path =  os.path.join(model_input_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Transects_Dave_Plus_WB_v4.shp') 
-	    poly_path = os.path.join(model_input_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Polygons_Dave_Plus_WB_v4.shp')
+        # path to shapefiles used in final delta runs
+        tran_path =  os.path.join(model_input_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Transects_Dave_Plus_WB_v4.shp')
+        poly_path = os.path.join(model_input_dir,'Delta','inputs','shapefiles','control_volumes','Delta_Fullres_Polygons_Dave_Plus_WB_v4.shp')
 
     elif 'G673' in runid:
 
@@ -641,61 +645,90 @@ def get_shapefile_paths(model_input_dir, runid, is_delta):
         tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_673.shp')
         poly_path =  os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_673.shp')
 
-	elif 'G141' in runid:
+    elif 'G141' in runid: # path to shapefiles used in aggregated grid runs
 
-		# path to shapefiles used in aggregated grid runs
-		tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_141.shp')
-		poly_path =  os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_141.shp')
-	
-	elif 'FR' in runid:
-		tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_plus_subembayments_shoal_channel.shp')
-		poly_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
+        if is_v24:        
+            tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_v24-agg141.shp')
+            poly_path =  os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_v24-agg141.shp')
+        else:       
+            tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_141.shp')
+            poly_path =  os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_141.shp')
 
-	return poly_path, tran_path
+
+    elif 'FR' in runid:
+
+        if is_v24:
+            tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_v24.shp')
+            poly_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_v24.shp')
+        else:
+            tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_plus_subembayments_shoal_channel.shp')
+            poly_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
+
+    return poly_path, tran_path
 
 def get_group_def_path(runid):
 
-	''' 
-	group_def_path, group_con_path = get_group_def_path(runid)
-	
-	get the filenames for the group definition file and the group connectivity file, assuming they are in 
-	the same repository as this script... later we will make a copy of these files into the run folder for record
-	keeping purposes
-	'''
+    '''
+    group_def_path, group_con_path = get_group_def_path(runid)
 
-	# directory where the aggregated groups are defined (this is an input directory, probably don't want to change it)
-	group_def_dir = os.path.join('..','..','Definitions','group_definitions')
+    get the filenames for the group definition file and the group connectivity file, assuming they are in 
+    the same repository as this script... later we will make a copy of these files into the run folder for record
+    keeping purposes
+    '''
 
-	# filenames
-	if 'FR' in runid:
-		res = 'FR'
+    # directory where the aggregated groups are defined (this is an input directory, probably don't want to change it)
+    group_def_dir = os.path.join('..','..','Definitions','group_definitions')
+
+    # filenames
+    if 'FR' in runid:
+        res = 'FR'
     elif 'G673' in runid:
         res = '673'
-	elif 'G141' in runid:
-	    res = '141'
-	else:
-		raise Exception('runid %s does not fit expected pattern' % runid)
+    elif 'G141' in runid:
+        res = '141'
+    else:
+        raise Exception('runid %s does not fit expected pattern' % runid)
 
-	group_def_path = os.path.abspath(os.path.join(group_def_dir,'control_volume_definitions_%s.txt' % res))
-	group_con_path = os.path.abspath(os.path.join(group_def_dir,'connectivity_definitions_%s.txt' % res))
+    # version
+    if is_v24:
+        ver = '_v24'
+    else:
+        ver = ''
 
-	return group_def_path, group_con_path
+    group_def_path = os.path.abspath(os.path.join(group_def_dir,'control_volume_definitions%s_%s.txt' % (ver,res)))
+    group_con_path = os.path.abspath(os.path.join(group_def_dir,'connectivity_definitions%s_%s.txt' % (ver,res)))
 
+    return group_def_path, group_con_path
+
+def get_sed_conc_mult_path(runid):
+
+    # filenames
+    if 'FR' in runid:
+        sed_conc_mult_path = os.path.join('..','..','Definitions','sed_conc_multipliers','Multiply_Polygon_Sediment_Conc_By_FR.csv')
+    elif 'G141' in runid:
+        sed_conc_mult_path = os.path.join('..','..','Definitions','sed_conc_multipliers','Multiply_Polygon_Sediment_Conc_By_Agg.csv')
+    else:
+        sed_conc_mult_path = None
+
+    return sed_conc_mult_path
+    
 
 def get_water_year(runid):
 
-	'''
-	water_year = get_water_year(runid)
+    '''
+    water_year = get_water_year(runid)
 
-	given the runid, get the string for the water year folder the run is stored in
-	'''
+    given the runid, get the string for the water year folder the run is stored in
+    '''
 
-	if 'FR' in runid:
-	    # this extracts the 2 digit water year, assuming format of runid is like FR13_003 for WY2013 run 003
-	    yr = int(runid.split('_')[0][2:])
-	    # turn into water year string
-	    water_year = 'WY%d' % (2000 + yr)
+    if 'FR' in runid:
+        # this extracts the 2 digit water year, assuming format of runid is like FR13_003 for WY2013 run 003
+        yr = int(runid.split('_')[0][2:])
+        # turn into water year string
+        water_year = 'WY%d' % (2000 + yr)
+
     elif 'G673' in runid:
+
         # there are two formats for agg runs, G673_13_003 is water year 2013, G673_13to18_207 is water years 2013-2018
         # get the string that represents the water year
         yr = runid.split('_')[1]
@@ -705,20 +738,22 @@ def get_water_year(runid):
         # otherwise extract the integer and add it to 2000
         else:
             water_year = 'WY%d' % (2000 + int(yr))
-	elif 'G141' in runid:
-	    # there are two formats for agg runs, G141_13_003 is water year 2013, G141_13to18_207 is water years 2013-2018
-	    # get the string that represents the water year
-	    yr = runid.split('_')[1]
-	    # if it spans mutlple water years (such as '13to18'), keep the string, just add 'WY' in front of it
-	    if 'to' in yr:
-	        water_year = 'WY' + yr
-	    # otherwise extract the integer and add it to 2000
-	    else:
-	        water_year = 'WY%d' % (2000 + int(yr))
-	else:
-		raise Exception('runid %s does not fit expected pattern' % runid)
 
-	return water_year
+    elif 'G141' in runid:
+
+        # there are two formats for agg runs, G141_13_003 is water year 2013, G141_13to18_207 is water years 2013-2018
+        # get the string that represents the water year
+        yr = runid.split('_')[1]
+        # if it spans mutlple water years (such as '13to18'), keep the string, just add 'WY' in front of it
+        if 'to' in yr:
+            water_year = 'WY' + yr
+        # otherwise extract the integer and add it to 2000
+        else:
+            water_year = 'WY%d' % (2000 + int(yr))
+    else:
+        raise Exception('runid %s does not fit expected pattern' % runid)
+
+    return water_year
 
 def get_run_dir(model_run_base_dir, runid, is_delta):
 
@@ -763,25 +798,24 @@ def get_run_dir(model_run_base_dir, runid, is_delta):
 
 def get_lsp_path(run_dir, is_delta):
 
-	'''
-	lsp_path = get_lsp_path(run_dir, is_delta)
+    '''
+    lsp_path = get_lsp_path(run_dir, is_delta)
 
-	given the path to the base directory for all our model input, the runid, and boolean saying whether or not this is a delta run,
-	automatically find the path to the *.lsp file
-	'''
+    given the path to the base directory for all our model input, the runid, and boolean saying whether or not this is a delta run,
+    automatically find the path to the *.lsp file
+    '''
 
-	if is_delta:
-		lsp_path = os.path.join(run_dir,'%s.lsp' % water_year.lower()) 
-	elif 'FR' in runid:
-	    lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
+    if is_delta:
+        lsp_path = os.path.join(run_dir,'%s.lsp' % water_year.lower()) 
+    elif 'FR' in runid:
+        lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
     elif 'G673' in runid:
         lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
-	elif 'G141' in runid:
-	    lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
-	else:
-		raise Exception('runid %s does not fit expected pattern' % runid)
-
-	return lsp_path
+    elif 'G141' in runid:
+        lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
+    else:
+        raise Exception('runid %s does not fit expected pattern' % runid)
+    return lsp_path
 
 def get_balance_table_dir(run_dir, is_delta):
 
@@ -817,6 +851,9 @@ if poly_path is None or tran_path is None:
 # get the paths to the group and group connectivity definition files for the aggregated groups (used in step5_)
 if group_def_path is None or group_con_path is None:
 	group_def_path, group_con_path = get_group_def_path(runid)
+
+# get the paths to the sediment concentration multipliers
+sed_conc_mult_path = get_sed_conc_mult_path(runid)
 
 # get the run directory
 if run_dir is None:
@@ -876,6 +913,8 @@ logging.info('      step0_config.tran_path = %s' % tran_path)
 logging.info('  Using the following group and connectivity definitions for aggregating in space:')
 logging.info('      step0_config.group_def_path = %s' % group_def_path)
 logging.info('      step0_config.group_con_path = %s' % group_con_path)
+logging.info('  Using the following sediment concentration multiplier file:')
+logging.info('      step0_config.sed_conc_mult_path = %s' % sed_conc_mult_path)
 logging.info('  Using the *.lsp file here:')
 logging.info('      step0_config.lsp_path = %s' % lsp_path)
 logging.info('  Using the following precision in balance tables:')

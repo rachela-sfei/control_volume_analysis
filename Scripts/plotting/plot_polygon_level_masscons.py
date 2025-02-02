@@ -24,8 +24,11 @@ reload(CVPL)
 ## USER INPUT
 ###################
 
-runid = 'FR22_013' 
-server = 'fortcollins'
+#runid = 'G141_13to22_016' 
+runid = 'FR21_002'
+server = 'chicago'
+vol = 'vol2'
+is_v24 = True
 
 # base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
@@ -46,9 +49,15 @@ input_base_dir = '/richmondvol1/hpcshared'
 
 # path to the shapefile for full res / aggregated runs
 if 'FR' in runid:
-    shp_fn = os.path.join(input_base_dir,'inputs','shapefiles','Agg_mod_contiguous.shp')
+    if is_v24:
+        shp_fn = os.path.join(input_base_dir,'inputs','shapefiles','Agg_mod_contiguous_v24.shp')
+    else:
+        shp_fn = os.path.join(input_base_dir,'inputs','shapefiles','Agg_mod_contiguous.shp')
 else:
-    shp_fn = os.path.join(input_base_dir,'inputs','shapefiles','Agg_mod_contiguous_141.shp')
+    if is_v24:
+        shp_fn = os.path.join(input_base_dir,'inputs','shapefiles','Agg_mod_contiguous_v24-agg141.shp')
+    else:
+        shp_fn = os.path.join(input_base_dir,'inputs','shapefiles','Agg_mod_contiguous_141.shp')
 
 #####################
 # MAIN
@@ -64,7 +73,7 @@ if not os.path.exists(figure_path):
 print('\nfigures will be saved here: %s\n' % figure_path)
 
 # get balance table directory
-run_base_dir = '/%svol1/hpcshared' % server
+run_base_dir = '/%s%s/hpcshared' % (server,vol)
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
 balance_table_dir = os.path.join(run_dir,'Balance_Tables')
 

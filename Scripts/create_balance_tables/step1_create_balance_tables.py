@@ -118,9 +118,12 @@ Area = poly_df.area.values
 # load transect shapefile
 logging.info('Loading transect shapefile %s' % step0_config.tran_path)
 gdf     = gpd.read_file(step0_config.tran_path)
-left    = gdf.left
-right   = gdf.right
-p2t = Poly2Transect(left,right)   
+left    = gdf.left.astype(int)
+right   = gdf.right.astype(int)
+p2t = Poly2Transect(left,right) 
+
+# load sediment concentration multiplier 
+df_sed_conc_mult = pd.read_csv(step0_config.sed_conc_mult_path)
 
 # path to his and his bal files
 histfn      = os.path.join(step0_config.run_dir,'dwaq_hist.nc')
@@ -301,8 +304,7 @@ for varname in varnames:
     Vp_mean = Vp_mean.where(Vp_mean.time<=tmin,drop=True)
     varT = varT.where(varT.time<=tmin,drop=True)
     varP_bal = varP_bal.where(varP_bal.time<=tmin,drop=True)
-     
-    
+ 
     # get the units and determine if per area or per volume, then compute dMass/dt accordingly 
     if varname in step0_config.units_override.keys():
         units = step0_config.units_override[varname]
@@ -311,8 +313,9 @@ for varname in varnames:
         units = varP.units
     if '/m2' in units:
         logging.info('units are %s, multiplying by area to get dVar/dt and converting concentration to volumetric' % units)
-        diffVar = (varP*Area).diff(dim='time')
-        Conc = (varP*Area)/Vp
+        conc_mult = np.tile(df_sed_conc_mult['dMdt(bal)/dMdt(con)'].values,(len(varP.time),1)) # need to multiply concentration by this due to DWAQ weirdness
+        diffVar = (varP*Area*conc_mult).diff(dim='time')
+        Conc = (varP*Area*conc_mult)/Vp
     elif '/m3' in units:
         logging.info('units are %s, multiplying by volume to get dVar/dt' % units)
         diffVar = (varP*Vp).diff(dim='time') 

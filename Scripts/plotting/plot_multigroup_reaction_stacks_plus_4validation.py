@@ -34,16 +34,9 @@ reload(CVPL)
 #########################################################################################
 
 # run name and server where it is located
-#runid = 'G141_22_078'
-#server = 'fortcollins'
-#runid = 'FR22_004'
-#server='boise'
-#runid = 'FR22_005'
-#server='chicago'
-#runid = 'FR22_007'
-#server='boise'
-runid = 'FR22_008'
-server='boise'
+runid = 'G141_13to22_016'
+server = 'chicago'
+vol = 'vol2'
 
 # autoscale x axis (if you set to False, script will set min/max based on water year range)
 # note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
@@ -176,7 +169,7 @@ def is_it_benthic(param):
 #########################################################################################
             
 ## balance table folder
-run_base_dir = '/%svol1/hpcshared' % server
+run_base_dir = '/%s%s/hpcshared' % (server,vol)
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
 table_dir = os.path.join(run_dir,'Balance_Tables')
 

@@ -9,10 +9,10 @@ import numpy as np
 import geopandas as gpd
 import matplotlib.pylab as plt
 
-CV_fn = 'Agg_mod_contiguous.shp'
-EL_fn = 'Agg_exchange_lines.shp'
-CV_fig_fn = 'Agg_mod_contiguous.png'
-EL_fig_fn = 'Agg_exchange_lines.png'
+CV_fn = 'Agg_mod_contiguous_v24-agg141.shp'
+EL_fn = 'Agg_exchange_lines_v24-agg141.shp'
+CV_fig_fn = 'Agg_mod_contiguous_v24-agg141.png'
+EL_fig_fn = 'Agg_exchange_lines_v24-agg141.png'
 
 # read shapefiles  
 CV_gpd = gpd.read_file(CV_fn)

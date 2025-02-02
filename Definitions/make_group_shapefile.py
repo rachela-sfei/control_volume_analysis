@@ -15,23 +15,44 @@ groups, to check for errors
 # is full resolution?
 FR=True
 
+# is v24?
+v24 = True
+
 # for FR Runs (includes new segments defined by sienna and whole bay added by allie...)
 if FR:
-    group_definition_file   = 'group_definitions/control_volume_definitions_FR.txt'
-    group_connectivity_file = 'group_definitions/connectivity_definitions_FR.txt'
-    polygon_shape_file = 'model_input_shapefiles/Agg_mod_contiguous.shp'
-    output_plot_path = 'plots_of_groups/FR_group_%s.png'
-    output_definition_path = 'group_shapefiles/group_definition_shapefile_FR.shp'
-    output_connectivity_path = 'group_shapefiles/group_connectivity_shapefile_FR.shp'
+    if v24:
+        group_definition_file   = 'group_definitions/control_volume_definitions_v24_FR.txt'
+        group_connectivity_file = 'group_definitions/connectivity_definitions_v24_FR.txt'
+        polygon_shape_file = 'model_input_shapefiles/Agg_mod_contiguous_v24.shp'
+        output_plot_path = 'plots_of_groups/FR_v24_group_%s.png'
+        output_definition_path = 'group_shapefiles/group_definition_shapefile_v24_FR.shp'
+        output_connectivity_path = 'group_shapefiles/group_connectivity_shapefile_v24_FR.shp'
+
+    else:
+        group_definition_file   = 'group_definitions/control_volume_definitions_FR.txt'
+        group_connectivity_file = 'group_definitions/connectivity_definitions_FR.txt'
+        polygon_shape_file = 'model_input_shapefiles/Agg_mod_contiguous.shp'
+        output_plot_path = 'plots_of_groups/FR_group_%s.png'
+        output_definition_path = 'group_shapefiles/group_definition_shapefile_FR.shp'
+        output_connectivity_path = 'group_shapefiles/group_connectivity_shapefile_FR.shp'
 
 # for AGG runs (includs now whole bay group added by allie)
 else:
-    group_definition_file   = 'group_definitions/control_volume_definitions_141.txt'
-    group_connectivity_file = 'group_definitions/connectivity_definitions_141.txt'
-    polygon_shape_file = 'model_input_shapefiles/Agg_mod_contiguous_141.shp'
-    output_plot_path = 'plots_of_groups/AGG_group_%s.png'
-    output_definition_path = 'group_shapefiles/group_definition_shapefile_AGG.shp'
-    output_connectivity_path = 'group_shapefiles/group_connectivity_shapefile_AGG.shp'
+    if v24:
+        group_definition_file   = 'group_definitions/control_volume_definitions_v24_141.txt'
+        group_connectivity_file = 'group_definitions/connectivity_definitions_v24_141.txt'
+        polygon_shape_file = 'model_input_shapefiles/Agg_mod_contiguous_v24-agg141.shp'
+        output_plot_path = 'plots_of_groups/AGG_v24_group_%s.png'
+        output_definition_path = 'group_shapefiles/group_definition_shapefile_v24_AGG.shp'
+        output_connectivity_path = 'group_shapefiles/group_connectivity_shapefile_v24_AGG.shp'
+    else:
+        group_definition_file   = 'group_definitions/control_volume_definitions_141.txt'
+        group_connectivity_file = 'group_definitions/connectivity_definitions_141.txt'
+        polygon_shape_file = 'model_input_shapefiles/Agg_mod_contiguous_141.shp'
+        output_plot_path = 'plots_of_groups/AGG_group_%s.png'
+        output_definition_path = 'group_shapefiles/group_definition_shapefile_AGG.shp'
+        output_connectivity_path = 'group_shapefiles/group_connectivity_shapefile_AGG.shp'
+
 
 
 
@@ -139,7 +160,7 @@ for group in group_dict.keys():
     if group_bound.type == 'MultiLineString':
         maxlen = 0
         maxline = None
-        for line in group_bound:
+        for line in list(group_bound.geoms):
             if line.length > maxlen:
                 maxlen = line.length
                 maxline = line
@@ -185,7 +206,7 @@ for group in group_dict.keys():
                     for coord in inter.coords:
                         coord_list.append(coord)
                 elif inter.type=='MultiLineString':
-                    for line in inter:
+                    for line in list(inter.geoms):
                         for coord in line.coords:
                             coord_list.append(coord)
                 else:
@@ -272,12 +293,12 @@ for group in gdf_group.feature:
                 line1 = line
                 line2 = line
             elif line.type == 'MultiLineString':
-                line1 = line[0]
+                line1 = list(line.geoms)[0]
                 while line1.type == 'MultiLineString':
-                    line1 = line1[0]
-                line2 = line[-1]
+                    line1 = list(line1.geoms)[0]
+                line2 = list(line.geoms)[-1]
                 while line2.type == 'MultiLineString':
-                    line2 = line2[-1]
+                    line2 = list(line2.geoms)[-1]
             x1, y1 = line1.coords[0]
             x2, y2 = line2.coords[-1]
             angle = np.arctan2(x2-x1, y1-y2)*180/np.pi
@@ -293,7 +314,20 @@ for group in gdf_group.feature:
     ax.set_title('group ' + group)
     ax.axis('off')
     plt.savefig(output_plot_path % group)
-    plt.close('all')
+
+    # zoopm in and save again
+    xpoly, ypoly = gdf_group.iloc[igroup]['geometry'].exterior.xy
+    minx = np.min(xpoly)
+    maxx = np.max(xpoly)
+    dx = maxx - minx
+    miny = np.min(ypoly)
+    maxy = np.max(ypoly)
+    dy = maxy - miny
+    zoom_box = (minx - dx, maxx + dx, miny - dy, maxy + dy)
+    ax.axis(zoom_box)
+    plt.savefig(output_plot_path % ('%s_%s' % (group,'ZOOM')))
+
+
 
 # now concatenate groups and connectivities and save in a shapefile
 gdf_group.to_file(output_definition_path)
