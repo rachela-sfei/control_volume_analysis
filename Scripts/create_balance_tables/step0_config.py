@@ -31,7 +31,9 @@ is_v24 = True
 # name of server and runid
 server = 'chicago'
 vol = 'vol2'
-runid = 'G141_13to22_016'
+#runid = 'FR13_034'
+runid = 'G141_21_048'
+#runid = 'G141_13to22_016'
 #runid = 'FR21_002'
 #FR22_046 FR22_033 FR22_034 FR22_035 FR22_036 FR22_037
 
@@ -661,8 +663,12 @@ def get_shapefile_paths(model_input_dir, runid, is_delta):
             tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_v24.shp')
             poly_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_v24.shp')
         else:
-            tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_plus_subembayments_shoal_channel.shp')
-            poly_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
+            # drop the subembayments b/c haven't worked up a multiplier for sediment concentration 
+            # for these polygons -- Allie March 2025
+            #tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines_plus_subembayments_shoal_channel.shp')
+            #poly_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous_plus_subembayments_shoal_channel.shp')
+            tran_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_exchange_lines.shp')
+            poly_path = os.path.join(model_input_dir,'inputs','shapefiles','Agg_mod_contiguous.shp')
 
     return poly_path, tran_path
 

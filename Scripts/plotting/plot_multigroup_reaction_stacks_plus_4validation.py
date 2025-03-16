@@ -35,6 +35,7 @@ reload(CVPL)
 
 # run name and server where it is located
 runid = 'G141_13to22_016'
+#runid = 'FR21_002'
 server = 'chicago'
 vol = 'vol2'
 
@@ -196,10 +197,10 @@ for inorm, norm in enumerate(norm_list):
         pdffile1 = '%s_%s_Control_Volume_Reactions_Norm=%s.pdf' % (run_list_str,panel,norm)
         pdffile3 = '%s_%s_Control_Volume_Mass_Balance_Norm=%s.pdf' % (run_list_str,panel,norm)
         pdffile4 = '%s_%s_Control_Volume_Transport_Norm=%s.pdf' % (run_list_str,panel,norm)
-        if inorm==0:
+        if norm=='None':
             pdffile2 = '%s_%s_Control_Volume_Concentrations.pdf' % (run_list_str,panel)
         else:
-            pdffile2 = 'dummy.pdf'
+            pdffile = 'dummy.pdf'
 
         # open pdfs
         with PdfPages(os.path.join(figure_path,pdffile1)) as pdf1, PdfPages(os.path.join(figure_path,pdffile2)) as pdf2, PdfPages(os.path.join(figure_path,pdffile3)) as pdf3, PdfPages(os.path.join(figure_path,pdffile4)) as pdf4:
@@ -576,6 +577,6 @@ for inorm, norm in enumerate(norm_list):
                     # close
                     plt.close('all')
                         
-                        
-    
-            
+# address a silly situation here:
+if os.path.exists(os.path.join(figure_path, 'dummy.pdf')):
+    os.remove(os.path.join(figure_path, 'dummy.pdf'))

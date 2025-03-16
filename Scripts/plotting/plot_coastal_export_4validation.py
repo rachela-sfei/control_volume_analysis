@@ -37,6 +37,7 @@ if not 'DISPLAY' in os.environ:
     import matplotlib
     matplotlib.use('agg')
     plt.switch_backend('Agg')
+from matplotlib.backends.backend_pdf import PdfPages
 from importlib import reload
 import control_volume_plotting_library as CVPL # plotting library must be in same folder as this script
 reload(CVPL)
@@ -51,41 +52,19 @@ reload(CVPL)
 autoscale_x = False
 
 # list of runid, water year, servers, and vol1/vol2
-#runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
-#wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
-#server_list = ['chicago','boise','boise','boise','chicago','chicago']
-#vol_list = ['vol1','vol1','vol1','vol1','vol1','vol1']
-runid_list = ['G141_13to22_016']
-wystr_list = ['WY13to22']
-server_list = ['chicago']
-vol_list = ['vol2']
-
+runid = 'G141_13to22_016'
+wystr = 'WY13to22'
+#runid = 'FR21_002'
+#wystr = 'WY2021'
+server = 'chicago'
+vol = 'vol2'
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['DetNS12', 'OONS12', 'DIN', 'TN', 'TN_plus_DetNS12']
+param_list = ['Algae', 'DIN', 'TN', 'TN_plus_DetNS12']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
 tavg_list = ['Cumulative','Filtered']
-
-# base directory for the and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
-figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
-
-# number of runs (corresponds to number of columns)
-nruns = len(runid_list)
-assert nruns==len(wystr_list)
-
-# figure size for (2-4 rows depending) x (nruns columns) mass budget plot 
-if len(runid_list)==1:
-    figure_width = 8.5
-else:
-    if 'WY13to' in wystr_list: 
-        figure_width = 7.5*(nruns+0.75)
-    elif nruns<=4:
-        figure_width = 4*(nruns+0.75)
-    else:
-        figure_width = 2.5*(nruns+0.75)
-row_height = 3
 
 # start with the default color cycle and add even more colors because the number of reactions is OUT OF CONTROL!
 colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
@@ -97,6 +76,10 @@ include_subembayment_assim = True
 subembayment_list = ['LSB', 'SB_RMP', 'Central_Bay_RMP', 'San_Pablo_Bay', 'Suisun_Bay'] 
 subembayment_nice = ['Lower South Bay', 'South Bay (RMP)','Central Bay (RMP)', 'San Pablo Bay', 'Suisun Bay']
 
+#########################################################################################
+## functions
+#########################################################################################
+
 # finction to list of components OF THE COASTAL EXPORT (need not include benthic components, 
 # because they can't flow out of the bay as they are stuck to the bed) given the parameter
 def return_components_list(param):
@@ -106,6 +89,8 @@ def return_components_list(param):
     elif param == 'TN':
         components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae'] 
     elif param == 'TN_include_sediment':
+        components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae'] 
+    elif param == 'TN_plus_DetNS12':
         components_list = ['NH4','NO3','PON1','PON2','DON','N-Zoopl','N-Algae'] 
     else:
         components_list = [param]
@@ -124,10 +109,6 @@ def is_it_benthic(param):
         is_benthic = False
 
     return is_benthic
-
-#########################################################################################
-## functions
-#########################################################################################
 
 def pos_neg(array):
 
@@ -150,147 +131,120 @@ def pos_neg(array):
 ## main
 #########################################################################################
 
-# get string with concise list of runs 
-run_list_str = CVPL.make_concise_runid_list_string(runid_list)
+## balance table folder
+run_base_dir = '/%s%s/hpcshared' % (server,vol)
+run_dir = CVPL.get_run_dir(run_base_dir, runid)
+balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+
+# get strings with concise lists of runs and water years
+run_list_str = CVPL.make_concise_runid_list_string([runid])
+
+# base directory for the output figures 
+figure_path = run_dir
+print('\nfigures will be saved here: %s\n' % figure_path)
 
 # from the list of water year strings, get a list of integer water years, then convert back
 # to a concise list of water year strings for naming the figure
-wy_list = CVPL.list_of_wy_str_2_list_of_int_wys(wystr_list)   # note this variable gets overridden later
+wy_list = CVPL.list_of_wy_str_2_list_of_int_wys([wystr])   # note this variable gets overridden later
 wy_list_str = CVPL.make_concise_water_year_list_string(wy_list)
 
-# path to figures, create if it does not exist
-figure_path = os.path.join(figure_base_dir, run_list_str, 'coastal_export')
-if not os.path.exists(figure_path):
-    os.makedirs(figure_path)
-print('\nfigures will be saved here: %s\n' % figure_path)
+# loop through different time averages: daily, spring-neap filter, cumulative
+for tavg in tavg_list:
 
-# loop through parameters
-for param in param_list:
+    # filename
+    pdffile = '%s_%s_Coastal_Export_%s.pdf' % (run_list_str, wy_list_str, tavg)
 
-    # get list of components for this parameter
-    components_list, ncom = return_components_list(param)
+    # for figure labeling
+    if tavg=='Filtered':
+        tavg_str = 'Spring-Neap Filtered'
+    else:
+        tavg_str = tavg
 
-    # compute the number of rows in the plots, depends on whether parameter is benthic and whether
-    # breakdown of net reaction by subembayment is included
-    nrows = 2
-    if not is_it_benthic(param):
-        nrows += 1
-    if include_subembayment_assim:
-        nrows += 1
-    
-    # loop through different time averages: daily, spring-neap filter, cumulative
-    for tavg in tavg_list:
-    
-        # initialize 3 panel figure with complete mass balance, reactions, and export composition
-        fig, ax = plt.subplots(nrows,nruns,figsize=(figure_width, row_height*nrows + 0.5))
-    
-        # for figure labeling
-        if tavg=='Filtered':
-            tavg_str = 'Spring-Neap Filtered'
-        else:
-            tavg_str = tavg
+    # for loading balance tables
+    if tavg=='Daily':
+        tavg_BT_str = ''
+    else:
+        tavg_BT_str = '_' + tavg
 
-        # for loading balance tables
-        if tavg=='Daily':
-            tavg_BT_str = ''
-        else:
-            tavg_BT_str = '_' + tavg
+    # units
+    if tavg=='Cumulative':
+        units = 'Mg'
+        units_plot = 'Gg'
+        divide_by = 1000 # convert Mg to Gg in plots
+    else:
+        units = 'Mg/d'
+        units_plot = 'Mg/d'
+        divide_by = 1 # leave as Mg/d in plots
 
-        # units
-        if tavg=='Cumulative':
-            units = 'Mg'
-            units_plot = 'Gg'
-            divide_by = 1000 # convert Mg to Gg in plots
-        else:
-            units = 'Mg/d'
-            units_plot = 'Mg/d'
-            divide_by = 1 # leave as Mg/d in plots
-    
-        # before we plot the different runs, take a sneak peek to find a list of all the reactions
-        master_source_list = []
-        master_sink_list = []
-        master_reaction_list = []
-        for irun in range(nruns):
+    with PdfPages(os.path.join(figure_path, pdffile)) as pdf:
 
-            # get the run id
-            runid = runid_list[irun]
-    
-            # get path to the balance table folder in the run folder
-            run_base_dir = '/%s%s/hpcshared' % (server_list[irun],vol_list[irun])
-            run_dir = CVPL.get_run_dir(run_base_dir, runid)
-            balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+        # loop through parameters
+        for param in param_list:
+
+            # get list of components for this parameter
+            components_list, ncom = return_components_list(param)
+
+            # compute the number of rows in the plots, depends on whether parameter is benthic and whether
+            # breakdown of net reaction by subembayment is included
+            nrows = 2
+            if not is_it_benthic(param):
+                nrows += 1
+            if include_subembayment_assim:
+                nrows += 1
             
+            # initialize 3 panel figure with complete mass balance, reactions, and export composition
+            fig, ax = plt.subplots(nrows,1,figsize=(8.5,11))
+        
+            # before we plot the different runs, take a sneak peek to find a list of all the reactions
+            master_source_list = []
+            master_sink_list = []
+                
             # load up the balance table data for the parameter of interest
             input_fn = os.path.join(balance_table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_BT_str))
             data = pd.read_csv(input_fn)
 
             # get the reaction lists
-            source_list = []
-            sink_list = []
+            master_source_list = []
+            master_sink_list = []
             for col in data.columns:
                 if not 'ZERO' in col:
                     if not ',dMass/' in col:
                         if ',d' in col:
                             if data[col].mean()>0:
-                                source_list.append(col)
+                                master_source_list.append(col)
                             elif data[col].mean()<0:
-                                sink_list.append(col)
+                                master_sink_list.append(col)
 
-            # add to master list
-            for rx in source_list:
-                if not rx in master_source_list:
-                    master_source_list.append(rx)
-            for rx in sink_list:
-                if not rx in master_sink_list:
-                    master_sink_list.append(rx)
+            # sometimes a term may be a source or a sink, such as oxygen reaeration...
+            # in this case our algorithim might have flagged it as a source in one run and 
+            # a sink in the other (depending if the average was positive or negative) ... go through
+            # the source terms and make sure none of them appear as sinks as well
+            # search for any such terms and delete them from the sink list
+            for source in master_source_list:
+                if source in master_sink_list:
+                    master_sink_list.remove(source)
+        
+            # combine master sources and sinks to get reactions
+            master_reaction_list = []
+            for rx in master_sink_list:
+                master_reaction_list.append(rx)
+            for rx in master_source_list:
+                master_reaction_list.append(rx)
 
-        # sometimes a term may be a source or a sink, such as oxygen reaeration...
-        # in this case our algorithim might have flagged it as a source in one run and 
-        # a sink in the other (depending if the average was positive or negative) ... go through
-        # the source terms and make sure none of them appear as sinks as well
-        # search for any such terms and delete them from the sink list
-        for source in master_source_list:
-            if source in master_sink_list:
-                master_sink_list.remove(source)
-    
-        # combine master sources and sinks to get reactions
-        master_reaction_list = []
-        for rx in master_sink_list:
-            master_reaction_list.append(rx)
-        for rx in master_source_list:
-            master_reaction_list.append(rx)
+            # trim the units for concise legend
+            master_reaction_list_trimmed = []
+            for rx in master_reaction_list:
+                master_reaction_list_trimmed.append(rx.replace(' (%s)' % units,''))
 
-        # trim the units for concise legend
-        master_reaction_list_trimmed = []
-        for rx in master_reaction_list:
-            master_reaction_list_trimmed.append(rx.replace(' (%s)' % units,''))
-
-        # track the min and max reaction by subembayment to see if it is always above or below zero
-        if include_subembayment_assim:
-            max_rx_by_sub = 0
-            min_rx_by_sub = 0
-
-        # loop through the runs, each one is a column in the figure
-        for irun in range(nruns):
-    
-            # get the figure axis for this run
-            if nruns>1:
-                ax_run = ax[:,irun]
-            else:
-                ax_run = ax
-
-            # get the run id
-            runid = runid_list[irun]
-    
-            # get path to the balance table folder in the run folder
-            run_base_dir = '/%s%s/hpcshared' % (server_list[irun],vol_list[irun])
-            run_dir = CVPL.get_run_dir(run_base_dir, runid)
-            balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+            # track the min and max reaction by subembayment to see if it is always above or below zero
+            if include_subembayment_assim:
+                max_rx_by_sub = 0
+                min_rx_by_sub = 0
             
             # load up the balance table data for the parameter of interest
             input_fn = os.path.join(balance_table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_BT_str))
             data = pd.read_csv(input_fn)
-    
+
             # also load up balance tables for the component parameters 
             data_components = []
             for ic in range(ncom):
@@ -309,14 +263,14 @@ for param in param_list:
                 for sub in subembayment_list:
                     ind = data['group'] == sub
                     data_subs.append(data.loc[ind].copy())
-    
+
             # select 'Whole_Bay' group
             ind = data['group'] == 'Whole_Bay'
             data = data.loc[ind]
             for ic in range(ncom):
                 if not data_components[ic] is None:
                     data_components[ic] = data_components[ic].loc[ind]
-    
+
             # convert times from string to datetime64
             data['time'] = pd.to_datetime(data['time'])
             for ic in range(ncom):
@@ -328,12 +282,11 @@ for param in param_list:
         
             # compute time step in days
             deltat = (data['time'].iloc[1] - data['time'].iloc[0])/np.timedelta64(1,'h')/24
-    
+
             # generate a list of water years to plot from this run, based on the water year string
             # (this is confusing because for each item in the wystr_list we are generating another list
-            wystr = wystr_list[irun]
             wy_list = CVPL.list_of_wy_str_2_list_of_int_wys([wystr]) 
-    
+
             # get first and last date for time axis
             wymin = np.array(wy_list).min()
             wymax = np.array(wy_list).max()
@@ -346,7 +299,7 @@ for param in param_list:
                 
                 # get water year
                 wy = wy_list[iwy]
-    
+
                 ## pick the time window based on water year
                 t_window = np.array(['%d-10-01' % (wy-1),'%d-10-01' % wy]).astype('datetime64')
         
@@ -371,11 +324,11 @@ for param in param_list:
                 # get time
                 time = np.unique(dataf['time'].values)
                 ntime = len(time)
-    
+
                 ########################################
                 # plot the mass budget for the whole bay
                 ########################################
-    
+
                 # first row of plot
                 irow = 0
 
@@ -387,14 +340,14 @@ for param in param_list:
                 Net_Rx = dataf['%s,Net Reaction (%s)' % (param,units)].values
                 Net_Loading = dataf['%s,Net Load (%s)' % (param,units)].values
                 Tribs_Plus_Loads = Delta_Influx + Minor_Trib_Influx + Net_Loading
-    
+
                 # golden gate outflux by components
                 GG_Outflux_Com = np.zeros((ntime, ncom))
                 for icom in range(ncom):
                     if not dataf_components[icom] is None:
                         ind = dataf_components[icom]['group'].values == 'Whole_Bay'
                         GG_Outflux_Com[:,icom] = dataf_components[icom].loc[ind]['%s,Flux In from W (%s)' % (components_list[icom],units)].values
-    
+
                 # make a dataframe to contain statistics for the whole bay
                 df = pd.DataFrame(index=time)
                 if not is_it_benthic(param):
@@ -411,21 +364,19 @@ for param in param_list:
                     color_list = colors[3:5]
                 else:
                     color_list = colors[0:6]
-    
+
                 # divide into positive and negative
                 df_pos = df.copy(deep=True)
                 df_neg = df.copy(deep=True)
                 df_pos[df<0] = 0
                 df_neg[df>0] = 0
-    
+
                 # add to figure
-                ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = color_list, labels=df.columns)
-                ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = color_list)
+                ax[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = color_list, labels=df.columns)
+                ax[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = color_list)
                 if iwy==0:
-                    if irun==0:
-                        ax_run[irow].set_ylabel('Whole Bay Mass Balance (%s)' % units_plot)
-                    if irun==(nruns-1):
-                        ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+                    ax[irow].set_ylabel('Whole Bay Mass Balance (%s)' % units_plot)
+                    ax[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
                 # next row of plot
                 irow += 1                
@@ -449,19 +400,17 @@ for param in param_list:
                 df_neg = df.copy(deep=True)
                 df_pos[df<0] = 0
                 df_neg[df>0] = 0
-    
+
                 # add to figure 1
-                ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
-                ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
-                ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Net Reaction')
-                #ax_run[irow].plot(time, Net_Rx_Check_Sum/divide_by, 'm--', label='Net Reaction, Check Sum')
+                ax[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
+                ax[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
+                ax[irow].plot(time, Net_Rx/divide_by, 'k', label='Net Reaction')
+                #ax[irow].plot(time, Net_Rx_Check_Sum/divide_by, 'm--', label='Net Reaction, Check Sum')
                 if not is_it_benthic(param):
-                    ax_run[irow].plot(time, (Net_Rx + Storage)/divide_by, 'b', label='-1 x Assimilation:\ndM/dt - Net Rx.')
+                    ax[irow].plot(time, (Net_Rx + Storage)/divide_by, 'b', label='-1 x Assimilation:\ndM/dt - Net Rx.')
                 if iwy==0:
-                    if irun==0:
-                        ax_run[irow].set_ylabel('Whole Bay Reactions (%s)' % units_plot)
-                    if irun==(nruns-1):
-                        ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+                    ax[irow].set_ylabel('Whole Bay Reactions (%s)' % units_plot)
+                    ax[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
                 # next row of plot
                 if include_subembayment_assim:
@@ -488,21 +437,19 @@ for param in param_list:
                     df_neg[df>0] = 0
 
                     # add to figure 
-                    ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
-                    ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
-                    #ax_run[irow].plot(time, Net_Rx/divide_by, 'k', label='Whole Bay: Net Rx.')
+                    ax[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
+                    ax[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
+                    #ax[irow].plot(time, Net_Rx/divide_by, 'k', label='Whole Bay: Net Rx.')
                     if is_it_benthic(param):
-                        ax_run[irow].plot(time, -(Storage)/divide_by, 'b', label='Whole Bay Storage')
+                        ax[irow].plot(time, -(Storage)/divide_by, 'b', label='Whole Bay Storage')
                     else:
-                        ax_run[irow].plot(time, -(Net_Rx + Storage)/divide_by, 'b', label='Whole Bay Assimilation')
+                        ax[irow].plot(time, -(Net_Rx + Storage)/divide_by, 'b', label='Whole Bay Assimilation')
                     if iwy==0:
-                        if irun==0:
-                            if is_it_benthic(param):
-                                ax_run[irow].set_ylabel('Storage: dM/dt\nby Subembayment (%s)' % units_plot)
-                            else:
-                                ax_run[irow].set_ylabel('Assimilation: dM/dt - Net Rx.\nby Subembayment (%s)' % units_plot)
-                        if irun==(nruns-1):
-                            ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+                        if is_it_benthic(param):
+                            ax[irow].set_ylabel('Storage: dM/dt\nby Subembayment (%s)' % units_plot)
+                        else:
+                            ax[irow].set_ylabel('Assimilation: dM/dt - Net Rx.\nby Subembayment (%s)' % units_plot)
+                        ax[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
                     # track the max and min
                     max_rx_by_sub = np.max([max_rx_by_sub, df_pos.sum(axis=1).max()])
@@ -525,90 +472,68 @@ for param in param_list:
                     df_neg[df>0] = 0
         
                     # add to figure 3
-                    ax_run[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
-                    ax_run[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
-                    ax_run[irow].plot(time,Tribs_Plus_Loads/divide_by, 'k--', label='%s Loading\nfrom Tribs and Point Sources' % param)
-                    ax_run[irow].plot(time, -GG_Outflux/divide_by, 'k', label='%s Outflux\nThrough GG' % param)
+                    ax[irow].stackplot(time, df_pos.values.transpose()/divide_by, colors = colors[0:len(df.columns)], labels=df.columns)
+                    ax[irow].stackplot(time, df_neg.values.transpose()/divide_by, colors = colors[0:len(df.columns)])
+                    ax[irow].plot(time,Tribs_Plus_Loads/divide_by, 'k--', label='%s Loading\nfrom Tribs and Point Sources' % param)
+                    ax[irow].plot(time, -GG_Outflux/divide_by, 'k', label='%s Outflux\nThrough GG' % param)
                     if iwy==0:
-                        if irun==0:
-                            ax_run[irow].set_ylabel('Whole Bay Influx vs. Outflux (%s)' % units_plot)
-                        if irun==(nruns-1):
-                            ax_run[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
+                        ax[irow].set_ylabel('Whole Bay Influx vs. Outflux (%s)' % units_plot)
+                        ax[irow].legend(loc='center left',bbox_to_anchor=(1, 0.5))
 
             # add label for run
-            ax_run[0].set_title('Run %s' % runid)
+            ax[0].set_title('Run %s' % runid)
 
             # format time axis for all rows
             if autoscale_x:
-                for ax1 in ax_run:
+                for ax1 in ax:
                     ax1.autoscale(enable=True, axis='x', tight=True)
                     ax1.grid(visible=True,which='both')
                 fig.autofmt_xdate()
             else:
-                for ax1 in ax_run:
+                for ax1 in ax:
                     ax1.set_xlim((tmin,tmax))
                     ax1.xaxis.set_major_locator(mdates.YearLocator())
                     ax1.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=(1,4,7,10)))
                     ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
                     ax1.grid(visible=True,which='both')
 
-        # set y axis limits the same across runs
-        # ... for first and 2nd rows, make y axis symmetric around zero
-        for irow in [0,1]:
-            if nruns==1:
+            # set y axis limits the same across runs
+            # ... for first and 2nd rows, make y axis symmetric around zero
+            for irow in [0,1]:
                 ymax = np.abs(ax[irow].get_ylim()).max()
                 ax[irow].set_ylim((-ymax,ymax))
-            else:
-                ymax = 0
-                for irun in range(nruns):
-                    ymax1 = np.abs(ax[irow,irun].get_ylim()).max()
-                    ymax = np.max([ymax,ymax1])
-                for irun in range(nruns):
-                    ax[irow,irun].set_ylim((-ymax,ymax))
-        # ... for outflux row set min at zero
-        if not is_it_benthic(param):
-            for irow in [irow_out]:
-                if nruns==1:
+            # ... for outflux row set min at zero
+            if not is_it_benthic(param):
+                for irow in [irow_out]:
                     ymax = np.abs(ax[irow].get_ylim()).max()
                     ax[irow].set_ylim((0,ymax))
-                else:
-                    ymax = 0
-                    for irun in range(nruns):
-                        ymax1 = np.abs(ax[irow,irun].get_ylim()).max()
-                        ymax = np.max([ymax,ymax1])
-                    for irun in range(nruns):
-                        ax[irow,irun].set_ylim((0,ymax))
-        # ... for reaction by subembayment check if one or the other of max or min is zero
-        # ... (don't do this anymore, to accomodate line for input minus output on TN_include_sediment plot)
-        if include_subembayment_assim:
+        
+            # ... for reaction by subembayment check if one or the other of max or min is zero
+            # ... (don't do this anymore, to accomodate line for input minus output on TN_include_sediment plot)
+            if include_subembayment_assim:
 
 
-            #if np.abs(max_rx_by_sub) < 1e-2:
-            #    ymax = 0
-            #    ymin = min_rx_by_sub*1.05
-            #elif np.abs(min_rx_by_sub) < 1e-2:
-            #    ymin = 0
-            #    ymax = max_rx_by_sub*1.05
-            #else:
-            #    max_rx_by_sub = np.max([np.abs(min_rx_by_sub),np.abs(max_rx_by_sub)])
-            #    ymin = -max_rx_by_sub*1.05
-            #    ymax = max_rx_by_sub*1.05
-            max_rx_by_sub = np.max([np.abs(min_rx_by_sub),np.abs(max_rx_by_sub)])
-            ymin = -max_rx_by_sub*1.05
-            ymax = max_rx_by_sub*1.05
-            for irow in [irow_sub]:
-                for irun in range(nruns):
-                    if nruns>1:
-                        ax_run = ax[:,irun]
-                    else:
-                        ax_run = ax
-                    ax_run[irow].set_ylim((ymin/divide_by,ymax/divide_by))
+                #if np.abs(max_rx_by_sub) < 1e-2:
+                #    ymax = 0
+                #    ymin = min_rx_by_sub*1.05
+                #elif np.abs(min_rx_by_sub) < 1e-2:
+                #    ymin = 0
+                #    ymax = max_rx_by_sub*1.05
+                #else:
+                #    max_rx_by_sub = np.max([np.abs(min_rx_by_sub),np.abs(max_rx_by_sub)])
+                #    ymin = -max_rx_by_sub*1.05
+                #    ymax = max_rx_by_sub*1.05
+                max_rx_by_sub = np.max([np.abs(min_rx_by_sub),np.abs(max_rx_by_sub)])
+                ymin = -max_rx_by_sub*1.05
+                ymax = max_rx_by_sub*1.05
+                for irow in [irow_sub]:
+                    ax[irow].set_ylim((ymin/divide_by,ymax/divide_by))
 
-        # add title and save the figure
-        fig.suptitle('Whole Bay %s %s Budget' % (tavg_str, param))
-        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-        fig.savefig(os.path.join(figure_path, '%s_%s_Coastal_Export_Stack_%s_%s.png' % (run_list_str, wy_list_str, tavg, param)),dpi=300)
-    
-        # close figures
-        plt.close('all')
-    
+            # add title and save the figure
+            fig.suptitle('Whole Bay %s %s Budget' % (tavg_str, param))
+            fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+            pdf.savefig(fig)
+
+            # close figures
+            plt.close('all')
+        

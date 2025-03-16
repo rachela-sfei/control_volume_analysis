@@ -226,11 +226,17 @@ for varname in varnames:
     
     ##%% Get all the data
     TransectBL = ['transect' in name for name in hdata.location_names.values[0]]
-    indT = np.where(TransectBL)[0]
+    indT = np.where(TransectBL)[0][0:len(gdf)] # crop off the extra transects alliek march 2025
+    if len(indT)==0:
+        raise Exception('Error: No transects found in dwaq_hist.nc, check run launcher')
     PolygonBL = ['polygon' in name for name in hdata.location_names.values[0]]
-    indP = np.where(PolygonBL)[0]
+    indP = np.where(PolygonBL)[0][0:len(poly_df)] # crop off the extra polygons alliek march 2025
+    if len(indP)==0:
+        raise Exception('Error: No polygons found in dwaq_hist.nc, check run launcher')
     PolygonBL_bal = ['polygon' in name for name in hbdata.region.values]
-    indP_bal = np.where(PolygonBL_bal)[0]
+    indP_bal = np.where(PolygonBL_bal)[0][0:len(poly_df)] # crop off the extra polygons alliek march 2025
+    if len(indP_bal)==0:
+        raise Exception('Error: No polygons found in dwaq_hist_bal.nc, check run launcher')
     varT = hdata.isel(nSegment=indT)[varname]
     varP = hdata.isel(nSegment=indP)[varname]
     fieldBL = [varname.lower()+',' in name.lower() for name in hbdata.field.values]
@@ -326,7 +332,7 @@ for varname in varnames:
     df_output = pd.DataFrame()  
     if varname=='continuity':
         df_HF = pd.DataFrame()
-    for i,p in enumerate(varP_bal.region.values):
+    for i,p in enumerate(varP_bal.region.values[0:len(poly_df)]):
 
         pi_df = varP_bal.bal.sel(region=p).to_pandas() 
         pi_df['dVar/dt'] = np.append(diffVar[0,i],diffVar[:,i])
