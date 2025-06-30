@@ -158,14 +158,6 @@ for ip in range(Nparams):
         logging.info('error reading %s, skipping this one ...' % balance_table_fn)
         continue
 
-    # do something special if continuity is include, to help calculate residence time
-    if param_list[ip]=='continuity':
-        try:
-            df_HF = pd.read_csv(os.path.join(step0_config.balance_table_dir,'flow_m3s_Table.csv'))
-        except:
-            logging.info('error reading flow_m3s_Table.csv, skipping this one ...' % balance_table_fn)
-            continue
-
     # need to find the appropriate capitalization of the lowercase parameter name, use the "PARAM,Loads in"
     # column and take everything before the comma
     for col in df.columns:
@@ -188,13 +180,6 @@ for ip in range(Nparams):
     dates = np.sort(np.unique(df['time'].values))
     Nt = len(dates)
     datestrings = [dt.datetime.strftime(date,'%Y-%m-%d') for date in dates]
-
-    # time handling for high frequency flow data
-    if param_list[ip]=='continuity':
-        df_HF['time'] = df_HF['time'].astype('datetime64[ns]')
-        times_HF = np.unique(df_HF['time'].values)
-        Nt_HF = len(times_HF)
-        timestrings_HF = list(pd.DatetimeIndex(times_HF).astype(str))
 
     ##########################################################################################
     # Intialize a master data frame to store all of the data by group (A, B, C, ...)
@@ -242,35 +227,6 @@ for ip in range(Nparams):
     # group and time stamp, as arrays of zeros of type float
     for col in df_master.columns[2:]:
         df_master[col] = 0.0
-
-    ##### if parameter is continuity, work on the high frequency flow rate groupings 
-    ##### to use to compute residence time later
-    if param_list[ip]=='continuity':
-
-        # keep contributions to each side separate, resulting in a ridiculous number of flux columns    
-        column_names_HF = ['group','time','Volume (m^3)']
-        for direction in direction_list:
-            for ipairs in range(maxpairs):
-                column_names_HF.append(param_name + ',' + 'Flux In from %s%02d (Mg/d)' % (direction,ipairs+1))
-
-        # now that we have all the column names compiled, initialize the master data frame
-        df_master_HF = pd.DataFrame(columns=column_names_HF)
-        
-        # fill in the groups and timestamps in the master data frame such that the order
-        # of the groups are A, A, A, ...., B, B, B, ...., C, C, C, ...., etc. with the number 
-        # of repeats of each gropup letter equal to the number of time stamps
-        group_list_HF = []
-        timestrings_list_HF = []
-        for group in group_dict.keys():
-            group_list_HF += [group] * Nt_HF            
-            timestrings_list_HF += timestrings_HF.copy() 
-        df_master_HF['group'] = group_list_HF.copy()
-        df_master_HF['time'] = timestrings_list_HF.copy()
-        
-        # initalize all of the other columns in the data frame, i.e., everything besides
-        # group and time stamp, as arrays of zeros of type float
-        for col in df_master_HF.columns[2:]:
-            df_master_HF[col] = 0.0
        
     ########################################################################################
     # for each group/face pair, i.e., A2N, A2S, ... , L2E, L2W, add up all of the
@@ -329,44 +285,6 @@ for ip in range(Nparams):
             # add the flux for this control volume pair flux to the total flux for the group/side pair
             flux_param += rows_from_param["Flux%d" % polynum_param].values.copy()
 
-            # if we are on the continuity parameter, populate the table for high frequency flow rate through the 
-            # sides ... in this case, we are NOT adding up the fluxes across the different sides, instead we 
-            # are keeping the sides separate
-            if param_list[ip]=='continuity':
-
-                # using logical indexing, extract the rows of the balance table data frames corresponding to 
-                # the "from" polygon in this particular flux pair for each parameter, storing the values in a list
-                rows_from_param_HF = df_HF.loc[df_HF['Control Volume'] == ('polygon%d' % from_poly)]
-                
-                # only need one row to identify which control volume is the "to" polygon, so pick out the first row
-                row_to_param_HF = rows_from_param_HF.iloc[0]
-                    
-                # count the number of fields labeled "To_polyN" where N is an integer
-                n2poly = 0
-                for key in row_to_param.keys():
-                    if 'To_poly' in key:
-                        n2poly = n2poly + 1
-                
-                # note that the way Zhenlin handled the "to" control volumes is by creating eight fields called 
-                # "To_polyX" where X = 0, 1, ..., 7, that map to the numbers of all the "to" control volumes for each
-                # "from" polygon. using our one example row, find the number X of the "to" polygon in the corresponding 
-                # to the "to" control volume in our flux pair -- should be the same for all substances but doing them 
-                # separately to narrow down origin of any potential errors
-                polynum_param = None
-                for p in range(0,n2poly):
-                    if row_to_param['To_poly%d' % p] == to_poly:
-                        polynum_param = p
-                
-                # if we can't find the "to" polygon, polynum will remain None, and the 
-                # following will throw an assertion error. if you get this error, it means
-                # there is either an error in the definition of the flux dictionary or an error
-                # in Zhenlin's data tables, probably the dictionary
-                assert(polynum_param+1)
-                
-                # add the flux for this control volume pair flux to the total flux for the group/side pair
-                ind_m = df_master_HF['group'] == group
-                df_master_HF.loc[ind_m,param_name + ',Flux In from %s%02d (Mg/d)' % (NSEW,ipair+1)] = rows_from_param_HF["Flux%d" % polynum_param].values
-
         # add the total flux for this group/side pair to the master data frame in the appropriate place
         # switching direction because while Zhenlin's "To_poly" implies these fluxes are out, they are
         # actually in. divide by 1e6 to converg g/d to Mg/d
@@ -399,10 +317,6 @@ for ip in range(Nparams):
         reaction_term_values = []
         for ir in range(Nr):    
             reaction_term_values.append(np.zeros(Nt, dtype=float))
-
-        # for the high frequency flow rate dataframe, we only need to aggregate volume
-        if param_list[ip]=='continuity':
-            Volume_HF = np.zeros(Nt_HF, dtype=float)
         
         # loop through all the control volumes that comprise this group, and add 
         # up the reaction terms, masses, volumes, loads, etc.
@@ -429,11 +343,6 @@ for ip in range(Nparams):
             # include the units so need to trim the reaction name string
             for ir in range(Nr):
                 reaction_term_values[ir] += df.loc[ind_s,reaction_name_list[ir][0:-7]].values.copy()
-
-            # for the high frequency flow rate dataframe, we only need to aggregate volume
-            if param_list[ip]=='continuity':
-                ind_s = df_HF['Control Volume'] == 'polygon%d' % cvnum
-                Volume_HF    += df_HF.loc[ind_s,'Volume'].values.copy()
             
         # assign totals to appropriate group in master data frame
         ind_m = df_master['group'] == group
@@ -453,11 +362,6 @@ for ip in range(Nparams):
         # set reaction terms, dividing by 1.0e6 to convert g to Mg and g/d to Mg/d
         for ir in range(Nr):
             df_master.loc[ind_m,reaction_name_list[ir]] = reaction_term_values[ir].copy()/1.0e6
-
-        # for the high frequency flow rate dataframe, we only need to aggregate volume
-        if param_list[ip]=='continuity':
-            ind_m = df_master_HF['group'] == group
-            df_master_HF.loc[ind_m,'Volume (m^3)']  = Volume_HF.copy()
 
     ########################################################################################
     # Add up the fluxes and reactions for this parameter to get the net and add to dataframe
@@ -492,11 +396,6 @@ for ip in range(Nparams):
     ########################################################################################
     
     df_master.to_csv(os.path.join(step0_config.balance_table_dir,'%s_Table_By_Group.csv' % param_name.lower()),index=False, float_format=step0_config.float_format)
-    
-    # if this is the continuity parameter, additionally output table for high frequency flow rates
-    if param_list[ip]=='continuity':
-        df_master_HF.to_csv(os.path.join(step0_config.balance_table_dir,'flow_m3s_Table_By_Group.csv'),index=False, float_format=step0_config.float_format)
-    
 
 
 # clean up logging

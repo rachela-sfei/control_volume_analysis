@@ -10,32 +10,28 @@ alliek august 2022
 # user input
 ##############################
 
-# the "mixing efficiency" for estimating horizontal dispersion. this is what rusty used in the aggregated model
-# assuming the dispersive exchange in m3/s is equal to alpha x <(Q - <Q>)^2>^0.5 where <> is a semidurnal tidal filter
-alpha = 0.12 
-
 # abort if error tolerance is exceeded? set to False for troubleshooting only. (this is used in step4_check_mass_conservation.py)
 # NOTE THAT FOR FR13_003 AND FR13_007 RUNS, THERE IS A MASS CONSERVATION ERROR BUT IT IS NOT A DEAL BREAKER, SO WE SET THIS TO FALSE
 # WHEN GENERATING BALANCE TABLES FOR THOSE RUNS (the error is that algae that settles to the bed does not go into detritus, it just 
 # leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
-abort_for_mass_cons_error = True
+abort_for_mass_cons_error = False
 
 # flag to indicate runs based on new hydro with straightened grid and calibrated temperature model
 is_v24 = True
-
-#runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
-#wy_list = [2013,2014,2015,2016,2017,2018]
-#server_list = ['chicago','boise','boise','boise','chicago','chicago']
-#all_time_together = False
 
 # name of server and runid
 server = 'chicago'
 vol = 'vol2'
 #runid = 'FR13_034'
-runid = 'G141_21_048'
-#runid = 'G141_13to22_016'
-#runid = 'FR21_002'
-#FR22_046 FR22_033 FR22_034 FR22_035 FR22_036 FR22_037
+runid = 'G141_21_147'
+
+#runid='FR13_042'
+#runid='FR13_043'
+#runid='FR13_044' 
+#runid='FR13_045' 
+#runid='FR13_046'
+#runid='FR13_047' 
+
 
 model_run_base_dir = '/%s%s/hpcshared' % (server,vol)
 

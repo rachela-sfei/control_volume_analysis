@@ -221,8 +221,6 @@ for varname in varnames:
     
     # create name for balance table output file
     outfile = os.path.join(step0_config.balance_table_dir,varname +'_Table.csv')
-    if varname=='continuity':
-        outfile_HF = os.path.join(step0_config.balance_table_dir,'flow_m3s_Table.csv')
     
     ##%% Get all the data
     TransectBL = ['transect' in name for name in hdata.location_names.values[0]]
@@ -243,22 +241,6 @@ for varname in varnames:
     indF = np.where(fieldBL)[0]
     varP_bal = hbdata.isel(region=indP_bal).isel(field=indF)
     Vp = hdata.isel(nSegment=indP)['volume']  
-
-    # if the variable is continuity, do something special that will help us estimate residence times later....
-    # preserve the hourly data (or whatever frequency we have)
-    if varname == 'continuity':
-
-        # copy the transect variable to preserve it at high frequency
-        time_HF = varT.time.values
-        varT_HF = varT.values
-        Vp_HF = Vp.values
-
-        # varT_HF gives the number of m3 crossing the transect during the previous time step
-        # convert the units to m3/s and shift the time axis so it represents the flow rate 
-        # during the following time step instead
-        deltat_HF = time_HF[1] - time_HF[0]
-        varT_HF = varT_HF * np.timedelta64(1,'s')/deltat_HF # convert the flow rate to m3/s
-        time_HF = time_HF - deltat_HF # shift time so flow rate represents flow in the coming time step
 
     # check the frequency of the data, and if frequency is higher than daily, resample onto a daily axis
     deltat_P = (varP.time[1]-varP.time[0]).values
@@ -330,8 +312,6 @@ for varname in varnames:
     #%% Outputting variables for each polygon.  
     varTv = varT.values                         
     df_output = pd.DataFrame()  
-    if varname=='continuity':
-        df_HF = pd.DataFrame()
     for i,p in enumerate(varP_bal.region.values[0:len(poly_df)]):
 
         pi_df = varP_bal.bal.sel(region=p).to_pandas() 
@@ -340,8 +320,6 @@ for varname in varnames:
         if i==0:
             column_list = ['Control Volume','Concentration (mg/l)','Volume','Volume (Mean)',
                            'Area'] + list(pi_df.columns)   
-            if varname=='continuity':
-                column_list_HF = ['Control Volume', 'Volume']  
 
         p2t_i = p2t[i]
         Fluxes = varTv[:,p2t_i['transect']]*p2t_i['sign']
@@ -354,67 +332,31 @@ for varname in varnames:
             if cname not in column_list:
                 column_list += [cname,fname]
 
-        if varname=='continuity':
-            pi_df_HF = pd.DataFrame(index=time_HF)
-            Fluxes_HF = varT_HF[:,p2t_i['transect']]*p2t_i['sign']
-            Fluxes_HF[np.isnan(Fluxes_HF)] = 0                     # replace nan values with zero (assume this means the transect is dry)
-            for t in np.arange(np.shape(Fluxes_HF)[1]):
-                cname = 'To_poly'+str(t)
-                fname = 'Flux'+str(t)
-                pi_df_HF[cname] = p2t_i['adjacent'][t]
-                pi_df_HF[fname] = Fluxes_HF[:,t]
-                if cname not in column_list_HF:
-                    column_list_HF += [cname,fname]
-
         To_transect = np.nonzero(['To_poly' in name for name in pi_df.columns])[0]
         Others = np.nonzero(['To_poly' not in name for name in pi_df.columns])[0]
         pi_df_sum = pi_df.iloc[:,Others]
         pi_df_daily = pi_df.iloc[:,To_transect]
         pi_df_comb = pd.concat([pi_df_sum,pi_df_daily],axis=1)
-        if varname=='continuity':
-            To_transect_HF = np.nonzero(['To_poly' in name for name in pi_df_HF.columns])[0]
-            Others_HF = np.nonzero(['To_poly' not in name for name in pi_df_HF.columns])[0]
-            pi_df_sum_HF = pi_df_HF.iloc[:,Others_HF]
-            pi_df_daily_HF = pi_df_HF.iloc[:,To_transect_HF]
-            pi_df_comb_HF = pd.concat([pi_df_sum_HF,pi_df_daily_HF],axis=1)
-        
         pi_df_comb['Concentration (mg/l)'] = Conc.isel(nSegment=i).values
         pi_df_comb['Control Volume'] = p
         pi_df_comb['Volume'] = Vp.values[:,i]
         pi_df_comb['Volume (Mean)'] = Vp_mean.values[:,i] 
         pi_df_comb['Area'] = Area[i]    
-        if varname=='continuity':
-            pi_df_comb_HF['Control Volume'] = p
-            pi_df_comb_HF['Volume'] = Vp_HF[:,i]
 
 
         # remove the first time step because it is garbage
         pi_df_comb = pi_df_comb.iloc[1:]
-        if varname=='continuity':
-            pi_df_comb_HF = pi_df_comb_HF.iloc[1:]
-
         df_output = pd.concat([df_output,pi_df_comb])
-        if varname=='continuity':
-            df_HF = pd.concat([df_HF, pi_df_comb_HF])
 
     df_output = df_output[column_list]    
-    if varname=='continuity':
-        df_HF = df_HF[column_list_HF]
     
     # adjust for offset time
     time = pd.to_datetime(df_output.index + offset_time)
     df_output.set_index(time, inplace=True)
-    if varname=='continuity':
-        time = pd.to_datetime(df_HF.index + offset_time)
-        df_HF.set_index(time, inplace=True)
-        df_HF.index.name = 'time'
 
     # save
     df_output.to_csv(outfile,columns=column_list,float_format=step0_config.float_format)   
     logging.info('Saved %s' % outfile)
-    if varname=='continuity':
-        df_HF.to_csv(outfile_HF,columns=column_list_HF,float_format=step0_config.float_format)   
-        logging.info('Saved %s' % outfile_HF)
 
 # clean up logging
 logger_cleanup()
