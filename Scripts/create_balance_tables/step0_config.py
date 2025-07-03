@@ -14,7 +14,7 @@ alliek august 2022
 # NOTE THAT FOR FR13_003 AND FR13_007 RUNS, THERE IS A MASS CONSERVATION ERROR BUT IT IS NOT A DEAL BREAKER, SO WE SET THIS TO FALSE
 # WHEN GENERATING BALANCE TABLES FOR THOSE RUNS (the error is that algae that settles to the bed does not go into detritus, it just 
 # leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
-abort_for_mass_cons_error = False
+abort_for_mass_cons_error = True
 
 # flag to indicate runs based on new hydro with straightened grid and calibrated temperature model
 is_v24 = True
@@ -23,7 +23,7 @@ is_v24 = True
 server = 'chicago'
 vol = 'vol2'
 #runid = 'FR13_034'
-runid = 'G141_21_147'
+runid = 'G141_21_098'
 
 #runid='FR13_042'
 #runid='FR13_043'
@@ -257,8 +257,9 @@ composite_reaction_dict = {
                                         'Green,dMrtGreen',
                                         'PON1,dMortDetN',
                                         'NH4,dNH4Aut'], 
-             'SUMS TO ZERO: NH4,dZ_NRes + PON1,dZ_NDef + PON1,dZ_NSpDet + Diat,dZ_Diat + Green,dZ_Grn + Zoopl_V,dZ_Vgr + Zoopl_R,dZ_SpwDet + Zoopl_R,dZ_Rgr + Zoopl_E,dZ_Ea + Zoopl_E,dZ_Ec' : [
+             'SUMS TO ZERO: NH4,dZ_NRes + PON1,dZ_PON1 + PON1,dZ_NDef + PON1,dZ_NSpDet + Diat,dZ_Diat + Green,dZ_Grn + Zoopl_V,dZ_Vgr + Zoopl_R,dZ_SpwDet + Zoopl_R,dZ_Rgr + Zoopl_E,dZ_Ea + Zoopl_E,dZ_Ec' : [
                                          'NH4,dZ_NRes',
+                                         'PON1,dZ_PON1',
                                          'PON1,dZ_NDef',
                                          'PON1,dZ_NSpDet',
                                          'Diat,dZ_Diat',
@@ -269,16 +270,7 @@ composite_reaction_dict = {
                                          'Zoopl_E,dZ_Ea',
                                          'Zoopl_E,dZ_Ec'
                                          ],
-             'SUMS TO ZERO: PON1,dCnvPPON1 + PON2,dCnvPPON1' : ['PON1,dCnvPPON1','PON2,dCnvPPON1'],   #### NEW #### these are currently nonzero but sum to zero
-             'SUMS TO ZERO: NH4,dMinPON2 + PON2,dMinPON2' : ['NH4,dMinPON2','PON2,dMinPON2'],   #### NEW #### these are currently nonzero but sum to zero
-             'SUMS TO ZERO: PON2,dCnvPPON2 + DON,dCnvDPON2' : ['PON2,dCnvPPON2','DON,dCnvDPON2'], #### NEW #### each is zero for now (and I suspect they sum to zero anyway)
-             'EACH IS ZERO: PON1,dResS1DetN + PON1,dResS2DetN + PON1,dResS1DiDN + PON1,dResS2DiDN' : [ 
-                                          'PON1,dResS1DetN', 
-                                          'PON1,dResS2DetN', 
-                                          'PON1,dResS1DiDN', 
-                                          'PON1,dResS2DiDN'],   
-             'EACH IS ZERO: PON1,dZ_PON1 + PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet + Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [
-                                          'PON1,dZ_PON1',
+             'SUMS TO ZERO: PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet + Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [
                                           'PON1,dZ_NMrt',      
                                           'PON1,dM_NMrt',
                                           'PON1,dG4_NMrt',
@@ -286,7 +278,15 @@ composite_reaction_dict = {
                                           'PON1,dG4_NSpDet',
                                           'Zoopl_V,dZ_Vmor',  
                                           'Zoopl_R,dZ_Rmor',  
-                                          'Zoopl_E,dZ_Emor'],    
+                                          'Zoopl_E,dZ_Emor'],
+             'SUMS TO ZERO: PON1,dCnvPPON1 + PON2,dCnvPPON1' : ['PON1,dCnvPPON1','PON2,dCnvPPON1'],   #### NEW #### these are currently nonzero but sum to zero
+             'SUMS TO ZERO: NH4,dMinPON2 + PON2,dMinPON2' : ['NH4,dMinPON2','PON2,dMinPON2'],   #### NEW #### these are currently nonzero but sum to zero
+             'SUMS TO ZERO: PON2,dCnvPPON2 + DON,dCnvDPON2' : ['PON2,dCnvPPON2','DON,dCnvDPON2'], #### NEW #### each is zero for now (and I suspect they sum to zero anyway)
+             'EACH IS ZERO: PON1,dResS1DetN + PON1,dResS2DetN + PON1,dResS1DiDN + PON1,dResS2DiDN' : [ 
+                                          'PON1,dResS1DetN', 
+                                          'PON1,dResS2DetN', 
+                                          'PON1,dResS1DiDN', 
+                                          'PON1,dResS2DiDN'],       
              'EACH IS ZERO: DiatS1,dResS1Diat + DiatS1,dSWBuS1Dia + DiatS1,dDigS1Diat' : ['DiatS1,dResS1Diat',      # new benthic algae terms, each one is zero, for now
                                                                                       'DiatS1,dSWBuS1Dia', 
                                                                                       'DiatS1,dDigS1Diat'], 
@@ -314,15 +314,17 @@ composite_reaction_dict = {
              'SUMS TO ZERO: DON,dCnvDPON1 + PON1,dCnvDPON1' : ['DON,dCnvDPON1','PON1,dCnvDPON1'], # these two sum to zero
              'SUMS TO ZERO: NH4,dMinPON1 + PON1,dMinPON1' : ['NH4,dMinPON1','PON1,dMinPON1'],   # these two sum to zero
              'SUMS TO ZERO: NH4,dMinDON + DON,dMinDON' : ['NH4,dMinDON','DON,dMinDON'],       # these two sum to zero
-             'SUMS TO ZERO: DiatS1,dMrtDiatS1 + DetNS1,dMrtDetNS1 + NH4,dNH4AUTS1' : ['DiatS1,dMrtDiatS1', # when benthic algae die, some goes into detritus, some goes to water column via autolysis 
-                                                                              'DetNS1,dMrtDetNS1', 
+             'SUMS TO ZERO: DiatS1,dMrtDiatS1 + DetNS1,dMrtDetNS1 + OONS1,dMrtOONS1 + NH4,dNH4AUTS1' : ['DiatS1,dMrtDiatS1', # when benthic algae die, some goes into detritus, some goes to water column via autolysis 
+                                                                              'DetNS1,dMrtDetNS1',
+                                                                              'OONS1,dMrtOONS1', 
                                                                               'NH4,dNH4AUTS1'],
              'SUMS TO ZERO: Diat,dMrtDiat + Green,dMrtGreen + PON1,dMortDetN + NH4,dNH4Aut' :  ['Diat,dMrtDiat', # dead water column algae become PON and NH4 
                                                                                         'Green,dMrtGreen',
                                                                                         'PON1,dMortDetN',
                                                                                         'NH4,dNH4Aut'], 
-             'SUMS TO ZERO: NH4,dZ_NRes + PON1,dZ_NDef + PON1,dZ_NSpDet + Diat,dZ_Diat + Green,dZ_Grn + Zoopl_V,dZ_Vgr + Zoopl_R,dZ_SpwDet + Zoopl_R,dZ_Rgr + Zoopl_E,dZ_Ea + Zoopl_E,dZ_Ec' : [
+             'SUMS TO ZERO: NH4,dZ_NRes + PON1,dZ_PON1 + PON1,dZ_NDef + PON1,dZ_NSpDet + Diat,dZ_Diat + Green,dZ_Grn + Zoopl_V,dZ_Vgr + Zoopl_R,dZ_SpwDet + Zoopl_R,dZ_Rgr + Zoopl_E,dZ_Ea + Zoopl_E,dZ_Ec' : [
                                  'NH4,dZ_NRes',
+                                 'PON1,dZ_PON1',
                                  'PON1,dZ_NDef',
                                  'PON1,dZ_NSpDet',
                                  'Diat,dZ_Diat',
@@ -362,6 +364,15 @@ composite_reaction_dict = {
                          'Grazer4_E,dG4_Ea',
                          'Grazer4_E,dG4_Ec',
                          'Grazer4_R,dG4_Rgr'],
+             'SUMS TO ZERO: PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet + Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [
+                                          'PON1,dZ_NMrt',      
+                                          'PON1,dM_NMrt',
+                                          'PON1,dG4_NMrt',
+                                          'PON1,dM_NSpDet',
+                                          'PON1,dG4_NSpDet',
+                                          'Zoopl_V,dZ_Vmor',  
+                                          'Zoopl_R,dZ_Rmor',  
+                                          'Zoopl_E,dZ_Emor'],   
              'SUMS TO ZERO: DetNS1,dBurS1DetN + DetNS2,dBurS1DetN' : ['DetNS1,dBurS1DetN', 'DetNS2,dBurS1DetN'],  # these still sum to zero with benthic algae
              'SUMS TO ZERO: Diat,dSedDiat + Green,dSedGreen + DetNS1,dSedAlgN' :  ['Diat,dSedDiat','Green,dSedGreen','DetNS1,dSedAlgN'], # these still sum to zero with benthic algae
              'SUMS TO ZERO: PON1,dCnvPPON1 + PON2,dCnvPPON1' : ['PON1,dCnvPPON1','PON2,dCnvPPON1'],   #### NEW #### these are currently nonzero but sum to zero
@@ -371,7 +382,6 @@ composite_reaction_dict = {
              'SUMS TO ZERO: OONS1,dMinOONS1 + NH4,dMinOONS1' : ['OONS1,dMinOONS1','NH4,dMinOONS1'], #### NEW #### these are currently nonzero but sum to zero
              'SUMS TO ZERO: OONS2,dMinOONS2 + NH4,dMinOONS2' : ['OONS2,dMinOONS2','NH4,dMinOONS2'], #### NEW #### these are currently nonzero but sum to zero
              'SUMS TO ZERO: PON2,dCnvPPON2 + DON,dCnvDPON2' : ['PON2,dCnvPPON2','DON,dCnvDPON2'], #### NEW #### each is zero for now (and I suspect they sum to zero anyway)
-             'SUMS TO ZERO: PON2,dMortOON + OONS1,dMrtOONS1' : ['PON2,dMortOON','OONS1,dMrtOONS1'], #### NEW #### each is zero for now (and I'm not sure these would sum to zero if each were nonzero)
              'SUMS TO ZERO: PON2,dResS1OON + OONS1,dResS1OON' : ['PON2,dResS1OON','OONS1,dResS1OON'], #### NEW #### each is zero for now (and I suspect they sum to zero anyway)
              'SUMS TO ZERO: PON2,dResS2OON + OONS2,dResS2OON' : ['PON2,dResS2OON','OONS2,dResS2OON'], #### NEW #### each is zero for now (and I suspect they sum to zero anyway)
              'SUMS TO ZERO: OONS1,dDigS1OON + OONS2,dDigS1OON' : ['OONS1,dDigS1OON','OONS2,dDigS1OON'], #### NEW #### each is zero for now (and I suspect they sum to zero anyway)
@@ -379,17 +389,7 @@ composite_reaction_dict = {
                                           'PON1,dResS1DetN', 
                                           'PON1,dResS2DetN', 
                                           'PON1,dResS1DiDN', 
-                                          'PON1,dResS2DiDN'],   
-             'EACH IS ZERO: PON1,dZ_PON1 + PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet + Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [
-                                          'PON1,dZ_PON1',
-                                          'PON1,dZ_NMrt',      
-                                          'PON1,dM_NMrt',
-                                          'PON1,dG4_NMrt',
-                                          'PON1,dM_NSpDet',
-                                          'PON1,dG4_NSpDet',
-                                          'Zoopl_V,dZ_Vmor',  
-                                          'Zoopl_R,dZ_Rmor',  
-                                          'Zoopl_E,dZ_Emor'],    
+                                          'PON1,dResS2DiDN'],    
              'EACH IS ZERO: DetNS1,dZ_NMrtS1 + DetNS1,dZ_DNS1 + DetNS1,dM_DNS1 + DetNS1,dG4_DNS1' :   [
                          'DetNS1,dZ_NMrtS1',
                          'DetNS1,dZ_DNS1',
@@ -409,7 +409,7 @@ composite_reaction_dict = {
              'EACH IS ZERO: DiatS1,dResS1Diat + DiatS1,dSWBuS1Dia + DiatS1,dDigS1Diat' : ['DiatS1,dResS1Diat', # new benthic algae terms, each one is zero
                                                                                                   'DiatS1,dSWBuS1Dia', 
                                                                                                   'DiatS1,dDigS1Diat'],              
-             'EACH IS ZERO: PON2,dCnvDPON2' : ['PON2,dCnvDPON2'], #### NEW #### each is zero
+             'EACH IS ZERO: PON2,dCnvDPON2 + PON2,dMortOON' : ['PON2,dCnvDPON2', 'PON2,dMortOON'], #### NEW #### each is zero
              'EACH IS ZERO: OONS1,dSWMnOONS1 + OONS1,dSWBuS1OON' : ['OONS1,dSWMnOONS1','OONS1,dSWBuS1OON'], #### NEW #### each is zero, and I can't find matches for them
              'EACH IS ZERO: OONS2,dSWMnOONS2 + OONS2,dDigS2OON' : ['OONS2,dSWMnOONS2', 'OONS2,dDigS2OON'],             
     },
@@ -437,15 +437,17 @@ composite_reaction_dict = {
              'SUMS TO ZERO: DON,dCnvDPON1 + PON1,dCnvDPON1' : ['DON,dCnvDPON1','PON1,dCnvDPON1'], # these two sum to zero
              'SUMS TO ZERO: NH4,dMinPON1 + PON1,dMinPON1' : ['NH4,dMinPON1','PON1,dMinPON1'],   # these two sum to zero
              'SUMS TO ZERO: NH4,dMinDON + DON,dMinDON' : ['NH4,dMinDON','DON,dMinDON'],       # these two sum to zero
-             'SUMS TO ZERO: DiatS1,dMrtDiatS1 + DetNS1,dMrtDetNS1 + NH4,dNH4AUTS1' : ['DiatS1,dMrtDiatS1', # when benthic algae die, some goes into detritus, some goes to water column via autolysis 
+             'SUMS TO ZERO: DiatS1,dMrtDiatS1 + DetNS1,dMrtDetNS1 + OONS1,dMrtOONS1 + NH4,dNH4AUTS1' : ['DiatS1,dMrtDiatS1', # when benthic algae die, some goes into detritus, some goes to water column via autolysis 
                                                                               'DetNS1,dMrtDetNS1', 
+                                                                              'OONS1,dMrtOONS1',
                                                                               'NH4,dNH4AUTS1'],
              'SUMS TO ZERO: Diat,dMrtDiat + Green,dMrtGreen + PON1,dMortDetN + NH4,dNH4Aut' :  ['Diat,dMrtDiat', # dead water column algae become PON and NH4 
                                                                                         'Green,dMrtGreen',
                                                                                         'PON1,dMortDetN',
                                                                                         'NH4,dNH4Aut'], 
-             'SUMS TO ZERO: NH4,dZ_NRes + PON1,dZ_NDef + PON1,dZ_NSpDet + Diat,dZ_Diat + Green,dZ_Grn + Zoopl_V,dZ_Vgr + Zoopl_R,dZ_SpwDet + Zoopl_R,dZ_Rgr + Zoopl_E,dZ_Ea + Zoopl_E,dZ_Ec' : [
+             'SUMS TO ZERO: NH4,dZ_NRes + PON1,dZ_PON1 + PON1,dZ_NDef + PON1,dZ_NSpDet + Diat,dZ_Diat + Green,dZ_Grn + Zoopl_V,dZ_Vgr + Zoopl_R,dZ_SpwDet + Zoopl_R,dZ_Rgr + Zoopl_E,dZ_Ea + Zoopl_E,dZ_Ec' : [
                                  'NH4,dZ_NRes',
+                                 'PON1,dZ_PON1',
                                  'PON1,dZ_NDef',
                                  'PON1,dZ_NSpDet',
                                  'Diat,dZ_Diat',
@@ -484,7 +486,16 @@ composite_reaction_dict = {
                          'Grazer4_V,dG4_Vgr',
                          'Grazer4_E,dG4_Ea',
                          'Grazer4_E,dG4_Ec',
-                         'Grazer4_R,dG4_Rgr'],
+                         'Grazer4_R,dG4_Rgr'],   
+             'SUMS TO ZERO: PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet + Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [
+                                          'PON1,dZ_NMrt',      
+                                          'PON1,dM_NMrt',
+                                          'PON1,dG4_NMrt',
+                                          'PON1,dM_NSpDet',
+                                          'PON1,dG4_NSpDet',
+                                          'Zoopl_V,dZ_Vmor',  
+                                          'Zoopl_R,dZ_Rmor',  
+                                          'Zoopl_E,dZ_Emor'], 
              'SUMS TO ZERO: DetNS1,dBurS1DetN + DetNS2,dBurS1DetN' : ['DetNS1,dBurS1DetN', 'DetNS2,dBurS1DetN'],  # these still sum to zero with benthic algae
              'SUMS TO ZERO: Diat,dSedDiat + Green,dSedGreen + DetNS1,dSedAlgN' :  ['Diat,dSedDiat','Green,dSedGreen','DetNS1,dSedAlgN'], # these still sum to zero with benthic algae
              'SUMS TO ZERO: PON1,dCnvPPON1 + PON2,dCnvPPON1' : ['PON1,dCnvPPON1','PON2,dCnvPPON1'],   #### NEW #### these are currently nonzero but sum to zero
@@ -495,16 +506,6 @@ composite_reaction_dict = {
                                           'PON1,dResS2DetN', 
                                           'PON1,dResS1DiDN', 
                                           'PON1,dResS2DiDN'],   
-             'EACH IS ZERO: PON1,dZ_PON1 + PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet + Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [
-                                          'PON1,dZ_PON1',
-                                          'PON1,dZ_NMrt',      
-                                          'PON1,dM_NMrt',
-                                          'PON1,dG4_NMrt',
-                                          'PON1,dM_NSpDet',
-                                          'PON1,dG4_NSpDet',
-                                          'Zoopl_V,dZ_Vmor',  
-                                          'Zoopl_R,dZ_Rmor',  
-                                          'Zoopl_E,dZ_Emor'],    
              'EACH IS ZERO: DetNS1,dZ_NMrtS1 + DetNS1,dZ_DNS1 + DetNS1,dM_DNS1 + DetNS1,dG4_DNS1' :   [
                          'DetNS1,dZ_NMrtS1',
                          'DetNS1,dZ_DNS1',
@@ -536,7 +537,7 @@ composite_reaction_dict = {
                     'OONS2,dBurS2OON' : ['OONS2,dBurS2OON'], # sink
                     'SUMS TO ZERO: OONS1,dBurS1OON + OONS2,dBurS1OON' : ['OONS1,dBurS1OON', 'OONS2,dBurS1OON'],
                     'SUMS TO ZERO: OONS1,dDigS1OON + OONS2,dDigS1OON' : ['OONS1,dDigS1OON', 'OONS2,dDigS1OON'],
-                    'EACH IS ZERO: OONS1,dSWMnOONS1 + OONS1,dMrtOONS1 + OONS1,dResS1OON + OONS1,dSWBuS1OON' : ['OONS1,dSWMnOONS1','OONS1,dMrtOONS1','OONS1,dResS1OON','OONS1,dSWBuS1OON'],
+                    'EACH IS ZERO: OONS1,dSWMnOONS1 + OONS1,dResS1OON + OONS1,dSWBuS1OON' : ['OONS1,dSWMnOONS1','OONS1,dResS1OON','OONS1,dSWBuS1OON'],
                     'EACH IS ZERO: OONS2,dSWMnOONS2 + OONS2,dResS2OON + OONS2,dDigS2OON' : ['OONS2,dSWMnOONS2','OONS2,dResS2OON', 'OONS2,dDigS2OON'],},
     'DetNS12' : {   'DetNS1,dMrtDetNS1' : ['DetNS1,dMrtDetNS1'], # source
                     'DetNS1,dSedAlgN' : ['DetNS1,dSedAlgN'], # source
@@ -566,7 +567,7 @@ composite_reaction_dict = {
                     'EACH IS ZERO: DetNS1,dSWMinDNS1 + DetNS1,dZ_NMrtS1 + DetNS1,dZ_DNS1 + DetNS1,dResS1DetN + DetNS1,dSWBuS1DtN' : ['DetNS1,dSWMinDNS1',
                                                               'DetNS1,dZ_NMrtS1','DetNS1,dZ_DNS1','DetNS1,dResS1DetN','DetNS1,dSWBuS1DtN'],
                     'EACH IS ZERO: DetNS2,dSWMinDNS2 + DetNS2,dResS2DetN + DetNS2,dDigS2DetN' : ['DetNS2,dSWMinDNS2', 'DetNS2,dResS2DetN', 'DetNS2,dDigS2DetN'],
-                    'EACH IS ZERO: OONS1,dSWMnOONS1 + OONS1,dMrtOONS1 + OONS1,dResS1OON + OONS1,dSWBuS1OON' : ['OONS1,dSWMnOONS1','OONS1,dMrtOONS1','OONS1,dResS1OON','OONS1,dSWBuS1OON'],
+                    'EACH IS ZERO: OONS1,dSWMnOONS1 + OONS1,dResS1OON + OONS1,dSWBuS1OON' : ['OONS1,dSWMnOONS1','OONS1,dResS1OON','OONS1,dSWBuS1OON'],
                     'EACH IS ZERO: OONS2,dSWMnOONS2 + OONS2,dResS2OON + OONS2,dDigS2OON' : ['OONS2,dSWMnOONS2','OONS2,dResS2OON', 'OONS2,dDigS2OON'],},
     # have not gotten to these yet, leaving reactions ungrouped...
     'TP' : {},
