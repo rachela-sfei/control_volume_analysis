@@ -49,11 +49,12 @@ time_start = None
 time_end = None
 
 ## list of parameters to plot
-param_list = ['Algae','DIN','TN','DetNS12','OONS12','OXY']
+param_list = ['Algae','DIN','TN','TN_plus_DetNS12','DetNS12','OONS12','OXY']
 
 # dictionary to map parameter to element corresponding to mass
 grams_of_what = {'DIN' : 'N', 
                  'TN' : 'N', 
+                 'TN_plus_DetNS12' : 'N',
                  'TN_include_sediment' : 'N', 
                  'DetNS12' : 'N',
                  'OONS12' : 'N', 

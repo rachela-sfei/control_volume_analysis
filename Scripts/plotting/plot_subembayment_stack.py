@@ -54,7 +54,7 @@ fudge_oons = True
 autoscale_x = False
 
 # override min/max time
-tmin_override = np.datetime64('2022-07-01')
+tmin_override = np.datetime64('2020-08-01')
 tmax_override = np.datetime64('2022-08-01')
 
 # list of runs to plot, water year to pick out of corresponding run (each is a column in the plot), 
@@ -63,9 +63,9 @@ tmax_override = np.datetime64('2022-08-01')
 #runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
 #wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
 #server_list = ['chicago','boise','boise','boise','chicago','chicago']
-runid_list = ['FR22_046', 'FR22_033','FR22_034','FR22_035','FR22_036','FR22_037']
-wystr_list = ['WY2022','WY2022','WY2022','WY2022','WY2022','WY2022']
-server_list = ['fortcollins','fortcollins','fortcollins','fortcollins','fortcollins','fortcollins']
+runid_list = ['G141_21_167']
+wystr_list = ['WY2021']
+server_list = ['chicago']
 
 ## composite parameter (must match suffix of balance table)
 param_list = ['DIN']#, 'TN_plus_DetNS12', 'TN', 'DetNS12', 'OONS12','OXY']
@@ -262,7 +262,7 @@ for param in param_list:
                 runid = runid_list[irun]
         
                 # get path to the balance table folder in the run folder
-                run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+                run_base_dir = '/%svol2/hpcshared' % server_list[irun]
                 run_dir = CVPL.get_run_dir(run_base_dir, runid)
                 balance_table_dir = os.path.join(run_dir,'Balance_Tables')
 
@@ -340,7 +340,7 @@ for param in param_list:
                     ax_run = ax
         
                 # get path to the balance table folder in the run folder
-                run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+                run_base_dir = '/%svol2/hpcshared' % server_list[irun]
                 run_dir = CVPL.get_run_dir(run_base_dir, runid)
                 balance_table_dir = os.path.join(run_dir,'Balance_Tables')
                 
@@ -766,18 +766,26 @@ for param in param_list:
             if not is_it_benthic(param):
                 ymax = 0
                 ymin = 0
-                for irow in irow_inout:
-                    for irun in range(nruns):
-                        ax[irow,irun].autoscale(enable=True, axis='y', tight=True) # first make the y axes tight
-                for irow in irow_inout:
-                    for irun in range(nruns):
-                        ymax1 = np.max(ax[irow,irun].get_ylim())
-                        ymax = np.max([ymax,ymax1])
-                        ymin1 = np.min(ax[irow,irun].get_ylim())
-                        ymin = np.min([ymin,ymin1])
-                for irow in irow_inout:
-                    for irun in range(nruns):
-                        ax[irow,irun].set_ylim((ymin,ymax))
+                if nruns == 1:
+                    ax[irow].autoscale(enable=True, axis='y', tight=True)
+                    ymax1 = np.max(ax[irow].get_ylim())
+                    ymax = np.max([ymax,ymax1])
+                    ymin1 = np.min(ax[irow].get_ylim())
+                    ymin = np.min([ymin,ymin1])
+                    ax[irow].set_ylim((ymin,ymax))
+                else:
+                    for irow in irow_inout:
+                        for irun in range(nruns):
+                            ax[irow,irun].autoscale(enable=True, axis='y', tight=True) # first make the y axes tight
+                    for irow in irow_inout:
+                        for irun in range(nruns):
+                            ymax1 = np.max(ax[irow,irun].get_ylim())
+                            ymax = np.max([ymax,ymax1])
+                            ymin1 = np.min(ax[irow,irun].get_ylim())
+                            ymin = np.min([ymin,ymin1])
+                    for irow in irow_inout:
+                        for irun in range(nruns):
+                            ax[irow,irun].set_ylim((ymin,ymax))
 
             # add title and save the figure
             fig.suptitle('%s %s %s Budget' % (group_labels[igroup], tavg_str, param))

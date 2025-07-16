@@ -86,9 +86,14 @@ reload(CVPL)
 #server_list = ['chicago']
 #all_time_together = True
 
-runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
-wy_list = [2013,2014,2015,2016,2017,2018]
-server_list = ['chicago','boise','boise','boise','chicago','chicago']
+# runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+# wy_list = [2013,2014,2015,2016,2017,2018]
+# server_list = ['chicago','boise','boise','boise','chicago','chicago']
+# all_time_together = False
+
+runid_list = ['G141_21_167']
+wy_list = [2021]
+server_list = ['chicago']
 all_time_together = False
 
 #runid_list = ['G141_22_010','G141_22_011','G141_22_006','G141_22_018','G141_22_021']
@@ -809,7 +814,7 @@ for time_period in time_period_list:
                 wy = wy_list[irun]
 
                 # get path to the balance table folder in the run folder
-                run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+                run_base_dir = '/%svol2/hpcshared' % server_list[irun]
                 run_dir = CVPL.get_run_dir(run_base_dir, runid)
                 balance_table_dir = os.path.join(run_dir,'Balance_Tables')
 

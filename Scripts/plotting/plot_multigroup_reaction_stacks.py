@@ -33,8 +33,8 @@ reload(CVPL)
 #########################################################################################
 
 # run name and server where it is located
-runid = 'G141_22_078'
-server = 'fortcollins'
+runid = 'G141_21_167'
+server = 'chicago'
 #runid = 'FR13_003'
 #if 1:
 #    runid = 'FR22_HAB_058'
@@ -178,7 +178,7 @@ if not os.path.exists(figure_path):
 print('\nfigures will be saved here: %s\n' % figure_path)
             
 ## balance table folder
-run_base_dir = '/%svol1/hpcshared' % server
+run_base_dir = '/%svol2/hpcshared' % server
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
 table_dir = os.path.join(run_dir,'Balance_Tables')
 

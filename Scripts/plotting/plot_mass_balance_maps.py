@@ -22,8 +22,9 @@ reload(CVPL)
 # run name and server where it is located
 #runid = 'G141_13to18_246'
 #runid = 'FR13_003'
-runid = 'FR22_013'
-server = 'fortcollins'
+runid = 'G141_21_167'
+server = 'chicago'
+
 
 
 # list of parameters to make plots for
@@ -450,7 +451,7 @@ if not os.path.exists(figure_path):
 print('\nfigures will be saved here: %s\n' % figure_path)
 
 # get path to the balance table folder in the run folder
-run_base_dir = '/%svol1/hpcshared' % server
+run_base_dir = '/%svol2/hpcshared' % server
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
 balance_table_dir = os.path.join(run_dir,'Balance_Tables')
 
