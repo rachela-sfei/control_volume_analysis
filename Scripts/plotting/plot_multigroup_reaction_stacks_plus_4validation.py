@@ -34,8 +34,8 @@ reload(CVPL)
 #########################################################################################
 
 # run name and server where it is located
-runid = 'G141_13to22_016'
-#runid = 'FR21_002'
+#runid = 'G141_13to22_016'
+runid = 'FR21_007'
 server = 'chicago'
 vol = 'vol2'
 
@@ -49,7 +49,7 @@ time_start = None
 time_end = None
 
 ## list of parameters to plot
-param_list = ['Algae','DIN','TN','TN_plus_DetNS12','DetNS12','OONS12','OXY']
+param_list = ['Algae','DIN','TN','TN_plus_DetNS12','DetNS12','OONS12','OXY','DetCS1']
 
 # dictionary to map parameter to element corresponding to mass
 grams_of_what = {'DIN' : 'N', 
@@ -65,7 +65,8 @@ grams_of_what = {'DIN' : 'N',
                  'Algae' : 'C', 
                  'Diat' : 'C', 
                  'Green' : 'C', 
-                 'DiatS1' : 'C', 
+                 'DiatS1' : 'C',
+                 'DetCS1' : 'C', 
                  'OXY' : 'O'}
 
 # list of panels to plot (a "panel" is a bad name for a plot of a collection of groups, each group in one subplot)
@@ -75,7 +76,7 @@ panel_list = ['South_Bay_ABC','South_Bay_6Part','All_Subs_RMP']#, 'All_Subs_WB',
 norm_list = ['None','Area','Volume']
 
 # list of time integration types
-tavg_list = ['Filtered']#,'Cumulative']   # can also add 'Daily' if desired
+tavg_list = ['Filtered','Cumulative']   # can also add 'Daily' if desired
 #tavg_list = ['Daily']
 
 # this is a function, but it's really more like user input b/c this is where you specify the properties of the different plots
@@ -159,7 +160,7 @@ def is_it_benthic(param):
 
     if param in ['DetNS1','DetNS2','DetNS','OONS1','OONS2','OONS',
                  'DetNS12', 'OONS12','DiatS1','N-DiatS1',
-                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1']:
+                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1','DetCS1']:
         is_benthic = True
     else:
         is_benthic = False

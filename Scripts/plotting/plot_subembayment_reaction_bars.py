@@ -28,8 +28,12 @@ reload(CVPL)
 
 # list of run id's and corresponding water years -- these lists should be the same length
 # and each item in the list will correspond to a column in the figure
-runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
-wy_list = [2013, 2013, 2017, 2017]
+#runid_list = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
+#wy_list = [2013, 2013, 2017, 2017]
+runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+wy_list = [2013,2014,2015,2016,2017,2018]
+server_list = ['chicago','boise','boise','boise','chicago','chicago']
+vol_list = ['vol1','vol1','vol1','vol1','vol1','vol1']
 
 # list of time averaging periods (choices are 'Annual','Seasonal','Monthly')
 # each time step within a given water year will be a row in the figures
@@ -44,7 +48,7 @@ group_list = ['LSB', 'SB_RMP', 'Central_Bay_RMP', 'San_Pablo_Bay', 'Suisun_Bay',
 group_labels = ['Lower\nSouth\nBay', 'South\nBay\n(RMP)', 'Central\nBay\n(RMP)', 'San\nPablo\nBay', 'Suisun\nBay', 'Whole\nBay']
 
 # list of parameters to plot (this is for batch processing, they appear in separate figures)
-param_list = ['DIN','TN','TN_include_sediment','TotalDetNS','OXY','Algae']
+param_list = ['DIN','TN','TN_plus_DetNS12','OXY','Algae','DetNS12']
 
 # list of norms to use (this is for batch processing, they appear in separate figures)
 norm_list = ['Area','Volume','None']
@@ -99,7 +103,7 @@ for param in param_list:
             runid = runid_list[irun]
     
             # get path to the balance table folder in the run folder
-            run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+            run_base_dir = '/%s%s/hpcshared' % (server_list[irun], vol_list[irun])
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             
@@ -179,7 +183,7 @@ for param in param_list:
                 wy = wy_list[irun]
         
                 # get path to the balance table folder in the run folder
-                run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+                run_base_dir = '/%s%s/hpcshared' % (server_list[irun], vol_list[irun])
                 run_dir = CVPL.get_run_dir(run_base_dir, runid)
                 balance_table_dir = os.path.join(run_dir,'Balance_Tables')
     

@@ -39,7 +39,7 @@ reload(CVPL)
 
 # run folder and water year'
 
-isel=4
+isel=0
 if isel==0:
     runid = 'FR13_028'
     wystr = 'WY2013'

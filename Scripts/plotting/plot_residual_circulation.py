@@ -47,9 +47,9 @@ reload(CVPL)
 #water_year = 2013
 #runid = 'FR17_018'
 #water_year = 2017
-runid = 'FR22_014'
-water_year = 2022
-server = 'fortcollins'
+runid = 'FR13_028'
+water_year = 2013
+server = 'chicago'
 
 # parameter list
 param_list = ['din']

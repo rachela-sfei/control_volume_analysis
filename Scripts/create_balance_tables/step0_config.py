@@ -14,7 +14,7 @@ alliek august 2022
 # NOTE THAT FOR FR13_003 AND FR13_007 RUNS, THERE IS A MASS CONSERVATION ERROR BUT IT IS NOT A DEAL BREAKER, SO WE SET THIS TO FALSE
 # WHEN GENERATING BALANCE TABLES FOR THOSE RUNS (the error is that algae that settles to the bed does not go into detritus, it just 
 # leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
-abort_for_mass_cons_error = True
+abort_for_mass_cons_error = False
 
 # flag to indicate runs based on new hydro with straightened grid and calibrated temperature model
 is_v24 = True
@@ -22,8 +22,8 @@ is_v24 = True
 # name of server and runid
 server = 'chicago'
 vol = 'vol2'
-#runid = 'FR13_034'
-runid = 'G141_21_167'
+#runid = 'FR21_007'
+runid = 'G141_21_264'
 
 #runid='FR13_042'
 #runid='FR13_043'

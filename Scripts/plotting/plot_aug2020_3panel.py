@@ -63,55 +63,17 @@ xlim_override = None
 # list or runs to plot and water years to pick out of corresponding run (each is a column in the plot)
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
 # also list servers where runs are stored
-isel=10
-if isel==0:
-    runid_list = ['FR22_HAB_071', 'FR22_HAB_072', 'FR22_HAB_073', 'FR22_HAB_074']
-    wystr_list = ['WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom']
-    server_list = ['chicago','chicago','chicago','chicago']
-if isel==1:
-    runid_list = ['FR13_026', 'G141_13to18_246']
-    wystr_list = ['WY2013', 'WY2013']
-    server_list = ['chicago','richmond']
-if isel==2:
-    runid_list = ['FR17_003', 'FR17_019']
-    wystr_list = ['WY2017', 'WY2017']
-    server_list = ['richmond','chicago']
-if isel==3:
-    runid_list = ['FR17_019', 'G141_13to18_246']
-    wystr_list = ['WY2017', 'WY2017']
-    server_list = ['chicago','richmond']
-if isel==4:
-    runid_list = ['FR18_007', 'G141_13to18_246']
-    wystr_list = ['WY2018', 'WY2018']
-    server_list = ['chicago','richmond']
-if isel==5:    
-    runid_list = ['FR13_026', 'G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017','WY2018', 'WY2018']
-    server_list = ['chicago','richmond','chicago','richmond','chicago','richmond']
-if isel==6:    
-    runid_list = ['FR13_003', 'FR13_026', 'FR17_003','FR17_019']
-    wystr_list = ['WY2013', 'WY2013','WY2017', 'WY2017']
-    server_list = ['richmond','chicago','richmond','chicago']
-if isel==7:
-    runid_list = ['FR13_026', 'G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246']
-    wystr_list = ['WY2013','WY2013','WY2014','WY2015','WY2016','WY2017','WY2017','WY2018','WY2018']
-    server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','richmond','chicago','richmond']
-if isel==8:
-    runid_list = ['FR13_026', 'G141_13to18_246','G141_13to18_246','G141_13to18_246','G141_13to18_246','FR17_019', 'G141_13to18_246','FR18_007', 'G141_13to18_246','FR22_HAB_083']
-    wystr_list = ['WY2013','WY2013','WY2014','WY2015','WY2016','WY2017','WY2017','WY2018','WY2018','WY2022']
-    server_list = ['chicago','richmond','richmond','richmond','richmond','chicago','richmond','chicago','richmond','chicago']
-if isel==9:
-    runid_list = ['G141_13to18_246','G141_13to18_270']
-    wystr_list = ['WY13to18', 'WY13to18']
-    server_list = ['richmond','richmond']
-if isel==10:
-    runid_list = ['G141_22_078','G141_22_079','G141_22_081','G141_22_082']
-    wystr_list = ['WY2022','WY2022','WY2022','WY2022']
-    server_list = ['fortcollins','fortcollins','fortcollins','fortcollins']
+#runid_list = ['FR22_HAB_071', 'FR22_HAB_072', 'FR22_HAB_073', 'FR22_HAB_074']
+#wystr_list = ['WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom']
+#server_list = ['chicago','chicago','chicago','chicago']
+runid_list = ['FR21_007', 'FR21_009','FR21_008']
+wystr_list = ['WY2021','WY2021','WY2021']
+server_list = ['chicago','chicago','chicago']
+vol_list = ['vol2','vol2','vol2']
 
 # list of parameters to plot (must match balance table, one plot per parameter is created)
 #param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae', 'Diat', 'Green','DiatS1']
-param_list = ['DIN', 'TN_plus_DetNS12','TN_include_sediment', 'TN', 'DetNS12', 'OONS12','OXY']
+param_list = ['DIN', 'TN_plus_DetNS12', 'TN', 'DetNS12', 'OONS12','OXY','DetCS1']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily']) one plot per is created
 #tavg_list = ['Filtered','Cumulative']
@@ -160,13 +122,14 @@ element_dict['Diat'] = 'C'
 element_dict['Green'] = 'C'
 element_dict['DiatS1'] = 'C'
 element_dict['Zoopl'] = 'C'
+element_dict['DetCS1'] = 'C'
 
 # tells you if the parameter is benthic (if it's benthic, don't include the transport plot, because it
 # doesn't get transported, so everything is zero)
 def is_it_benthic(param):
 
     if param in ['DetNS1','DetNS2','DetNS','OONS1','OONS2','OONS',
-                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1']:
+                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1','DetCS1']:
         is_benthic = True
     else:
         is_benthic = False
@@ -216,7 +179,7 @@ print('\nfigures will be saved here: %s\n' % figure_path)
 # if group_list is set to 'all' or is otherwise not a list, take a sneak peek at one of the balance 
 # tables and retrieve a list of all the spatial groups (hopefully this one exists)
 if group_list == 'all':
-    run_base_dir = '/%svol1/hpcshared' % server_list[0]
+    run_base_dir = '/%s%s/hpcshared' % (server_list[0], vol_list[0])
     run_dir = CVPL.get_run_dir(run_base_dir, runid_list[0])
     balance_table_dir = os.path.join(run_dir,'Balance_Tables')
     data = pd.read_csv(os.path.join(balance_table_dir,'%s_Table_By_Group.csv' % param_list[0].lower()))
@@ -283,7 +246,7 @@ for param in param_list:
             runid = runid_list[irun]
 
             # get path to the balance table folder in the run folder
-            run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+            run_base_dir = '/%s%s/hpcshared' % (server_list[irun], vol_list[irun])
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             
@@ -367,7 +330,7 @@ for param in param_list:
                     runid = runid_list[irun]
             
                     # get path to the balance table folder in the run folder
-                    run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+                    run_base_dir = '/%s%s/hpcshared' % (server_list[irun], vol_list[irun])
                     run_dir = CVPL.get_run_dir(run_base_dir, runid)
                     balance_table_dir = os.path.join(run_dir,'Balance_Tables')
                     

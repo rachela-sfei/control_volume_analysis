@@ -52,15 +52,15 @@ reload(CVPL)
 autoscale_x = False
 
 # list of runid, water year, servers, and vol1/vol2
-runid = 'G141_13to22_016'
-wystr = 'WY13to22'
-#runid = 'FR21_002'
-#wystr = 'WY2021'
+#runid = 'G141_13to22_016'
+#wystr = 'WY13to22'
+runid = 'FR21_007'
+wystr = 'WY2021'
 server = 'chicago'
 vol = 'vol2'
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['Algae', 'DIN', 'TN', 'TN_plus_DetNS12']
+param_list = ['Algae', 'DIN', 'TN', 'TN_plus_DetNS12','DetCS1']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
@@ -103,7 +103,7 @@ def return_components_list(param):
 def is_it_benthic(param):
 
     if param in ['DetNS1','DetNS2','DetNS12','OONS1','OONS2','OONS12',
-                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1']:
+                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1','DetCS1']:
         is_benthic = True
     else:
         is_benthic = False

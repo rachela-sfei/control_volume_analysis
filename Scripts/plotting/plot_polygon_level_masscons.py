@@ -25,7 +25,7 @@ reload(CVPL)
 ###################
 
 #runid = 'G141_13to22_016' 
-runid = 'G141_21_098'
+runid = 'FR21_007'
 server = 'chicago'
 vol = 'vol2'
 is_v24 = True

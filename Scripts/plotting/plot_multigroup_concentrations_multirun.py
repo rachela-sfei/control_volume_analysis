@@ -34,13 +34,16 @@ reload(CVPL)
 #########################################################################################
 
 # run name and server where it is located
-#runid_list = ['FR22_012', 'FR22_013', 'G141_22_078', 'G141_22_130', 'G141_22_131']
-#wystr_list = ['WY2022','WY2022','WY2022','WY2022','WY2022']
-#server_list = ['fortcollins','fortcollins','fortcollins','fortcollins','fortcollins']
 
-runid_list = ['G141_13to18_284', 'G141_13to18_285', 'G141_13to18_286', 'G141_13to18_287']
-wystr_list = ['WY13to18','WY13to18','WY13to18','WY13to18']
-server_list = ['fortcollins','fortcollins','fortcollins','fortcollins']
+#runid_list = ['G141_13to18_284', 'G141_13to18_285', 'G141_13to18_286', 'G141_13to18_287']
+#wystr_list = ['WY13to18','WY13to18','WY13to18','WY13to18']
+#server_list = ['fortcollins','fortcollins','fortcollins','fortcollins']
+#vol_list = ['vol1','vol1','vol1','vol1']
+
+runid_list = ['FR21_007', 'FR21_009','FR21_008']
+wystr_list = ['WY2021','WY2021','WY2021']
+server_list = ['chicago','chicago','chicago']
+vol_list = ['vol2','vol2','vol2']
 
 
 # autoscale x axis (if you set to False, script will set min/max based on water year range)
@@ -53,12 +56,12 @@ time_start = None
 time_end = None
 
 ## list of parameters to plot
-param_list = ['Algae','DIN','TN','DetNS12','OONS12','OXY']
+param_list = ['Algae','DIN','TN','TN_plus_DetNS12','DetNS12','OONS12','OXY','DetCS1']
 
 # dictionary to map parameter to element corresponding to mass
 grams_of_what = {'DIN' : 'N', 
                  'TN' : 'N', 
-                 'TN_include_sediment' : 'N', 
+                 'TN_plus_DetNS12' : 'N', 
                  'DetNS12' : 'N',
                  'OONS12' : 'N', 
                  'N-Algae' : 'N', 
@@ -68,14 +71,15 @@ grams_of_what = {'DIN' : 'N',
                  'Algae' : 'C', 
                  'Diat' : 'C', 
                  'Green' : 'C', 
-                 'DiatS1' : 'C', 
+                 'DiatS1' : 'C',
+                 'DetCS1' : 'C', 
                  'OXY' : 'O'}
 
 # list of panels to plot (a "panel" is a bad name for a plot of a collection of groups, each group in one subplot)
 panel_list = ['South_Bay_ABC','South_Bay_6Part','All_Subs_RMP']#, 'All_Subs_WB', 'South_Bay_6Part']
 
 # list of time integration types (don't do cumulative, doesn't make sense for concentration)
-tavg_list = ['Filtered']   # can also add 'Daily' if desired
+tavg_list = ['Filtered','Cumulative']   # can also add 'Daily' if desired
 #tavg_list = ['Daily']
 
 # base directory for the and the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
@@ -150,7 +154,7 @@ def is_it_benthic(param):
 
     if param in ['DetNS1','DetNS2','DetNS','OONS1','OONS2','OONS',
                  'DetNS12', 'OONS12','DiatS1','N-DiatS1',
-                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1']:
+                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1','DetCS1']:
         is_benthic = True
     else:
         is_benthic = False
@@ -217,9 +221,10 @@ for panel in panel_list:
                     # get server and wystr
                     server = server_list[irun]
                     wystr = wystr_list[irun]
+                    vol = vol_list[irun]
 
                     ## balance table folder
-                    run_base_dir = '/%svol1/hpcshared' % server
+                    run_base_dir = '/%s%s/hpcshared' % (server,vol)
                     run_dir = CVPL.get_run_dir(run_base_dir, runid)
                     table_dir = os.path.join(run_dir,'Balance_Tables')
 

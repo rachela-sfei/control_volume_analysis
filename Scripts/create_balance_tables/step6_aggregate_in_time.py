@@ -170,7 +170,7 @@ for table in table_list:
     logging.info('   %s' % table)
 
 # loop through the tables
-for balance_table_fn in table_list:
+for balance_table_fn in ['din_Table_By_Group.csv']:#table_list:
 
     # print
     logging.info('Reading %s ...' % balance_table_fn)
@@ -226,10 +226,11 @@ for balance_table_fn in table_list:
     yr = pd.Timestamp(time.min()).year - 1
     yrmax = pd.Timestamp(time.max()).year
     wy_list = []
-    while yr<=yrmax:
-        if (np.datetime64('%d-10-01' % yr) >= time[0]) and (sum(time>=np.datetime64('%d-10-01' % yr))>0):
-            wy_list.append(yr+1)
-        yr += 1
+    wy_list = [yr+1]
+    #while yr<=yrmax:
+    #    if (np.datetime64('%d-10-01' % yr) >= time[0]) and (sum(time>=np.datetime64('%d-10-01' % yr))>0):
+    #        wy_list.append(yr+1)
+    #    yr += 1
 
     # time step in days
     deltat_days = (time[1]-time[0])/np.timedelta64(1,'D')
@@ -509,6 +510,9 @@ for balance_table_fn in table_list:
 
             # initialize dataframe
             df_tavg = pd.DataFrame()
+
+#            if tavg=='Seasonal':
+#                sys.exit()
 
             # loop through the groups
             for group in group_list:

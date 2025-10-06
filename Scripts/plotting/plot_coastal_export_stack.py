@@ -55,7 +55,7 @@ autoscale_x = False
 
 # override min/max time
 tmin_override = None #np.datetime64('2021-10-01')
-tmax_override = np.datetime64('2022-09-15')
+tmax_override = None #np.datetime64('2022-09-15')
 
 # list of runs to plot, water year to pick out of corresponding run (each is a column in the plot), 
 # and a list of servers where each run is located (use 'WY13to18' to plot all years of a 6-year agg grid run, 
@@ -65,13 +65,14 @@ tmax_override = np.datetime64('2022-09-15')
 #wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
 #server_list = ['chicago','boise','boise','boise','chicago','chicago']
 
-runid_list = ['FR22_012', 'FR22_013']
-wystr_list = ['WY2022','WY2022']
-server_list = ['fortcollins','fortcollins']
+runid_list = ['FR21_007', 'FR21_009', 'FR21_008']
+wystr_list = ['WY2021','WY2021','WY2021']
+server_list = ['chicago', 'chicago', 'chicago']
+vol_list = ['vol2','vol2','vol2']
 
 
 ## composite parameter (must match suffix of balance table)
-param_list = ['DIN', 'TN', 'TN_plus_DetNS12', 'DetNS12', 'OONS12']
+param_list = ['DIN', 'TN', 'TN_plus_DetNS12', 'DetNS12', 'OONS12', 'DetCS1']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily'])
 #tavg_list = ['Filtered','Cumulative']
@@ -124,7 +125,7 @@ def return_components_list(param):
 def is_it_benthic(param):
 
     if param in ['DetNS1','DetNS2','DetNS12','OONS1','OONS2','OONS12',
-                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1']:
+                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1','DetCS1']:
         is_benthic = True
     else:
         is_benthic = False
@@ -222,7 +223,7 @@ for param in param_list:
             runid = runid_list[irun]
     
             # get path to the balance table folder in the run folder
-            run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+            run_base_dir = '/%s%s/hpcshared' % (server_list[irun], vol_list[irun])
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             
@@ -299,7 +300,7 @@ for param in param_list:
             runid = runid_list[irun]
     
             # get path to the balance table folder in the run folder
-            run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+            run_base_dir = '/%s%s/hpcshared' % (server_list[irun], vol_list[irun])
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             

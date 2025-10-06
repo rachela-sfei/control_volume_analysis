@@ -33,8 +33,9 @@ reload(CVPL)
 #########################################################################################
 
 # run name and server where it is located
-runid = 'G141_21_167'
+runid = 'FR21_007'
 server = 'chicago'
+vol = 'vol2'
 #runid = 'FR13_003'
 #if 1:
 #    runid = 'FR22_HAB_058'
@@ -62,12 +63,12 @@ time_end = None
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 
 ## list of parameters to plot
-param_list = ['Algae','DIN','TN','TN_include_sediment','DetNS12','OONS12','OXY']
+param_list = ['Algae','DIN','TN','TN_plus_DetNS12','DetNS12','OONS12','OXY','DetCS1']
 
 # dictionary to map parameter to element corresponding to mass
 grams_of_what = {'DIN' : 'N', 
                  'TN' : 'N', 
-                 'TN_include_sediment' : 'N', 
+                 'TN_plus_DetNS12' : 'N', 
                  'DetNS12' : 'N',
                  'OONS12' : 'N', 
                  'N-Algae' : 'N', 
@@ -78,16 +79,17 @@ grams_of_what = {'DIN' : 'N',
                  'Diat' : 'C', 
                  'Green' : 'C', 
                  'DiatS1' : 'C', 
+                 'DetCS1' : 'C',
                  'OXY' : 'O'}
 
 # list of panels to plot (a "panel" is a bad name for a plot of a collection of groups, each group in one subplot)
-panel_list = ['South_Bay_ABC','All_Subs_RMP']#, 'All_Subs_WB', 'South_Bay_6Part']
+panel_list = ['South_Bay_ABC','All_Subs_RMP', 'All_Subs_WB', 'South_Bay_6Part']
 
 # list of normalizations (divide by area, volume, or nothing)
-norm_list = ['Area']#,'Volume','None']
+norm_list = ['Area','Volume','None']
 
 # list of time integration types
-tavg_list = ['Filtered']#,'Cumulative']   # can also add 'Daily' if desired
+tavg_list = ['Filtered','Cumulative']   # can also add 'Daily' if desired
 #tavg_list = ['Daily']
 
 # this is a function, but it's really more like user input b/c this is where you specify the properties of the different plots
@@ -178,7 +180,7 @@ if not os.path.exists(figure_path):
 print('\nfigures will be saved here: %s\n' % figure_path)
             
 ## balance table folder
-run_base_dir = '/%svol2/hpcshared' % server
+run_base_dir = '/%s%s/hpcshared' % (server,vol)
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
 table_dir = os.path.join(run_dir,'Balance_Tables')
 

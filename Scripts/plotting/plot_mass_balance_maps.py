@@ -22,13 +22,15 @@ reload(CVPL)
 # run name and server where it is located
 #runid = 'G141_13to18_246'
 #runid = 'FR13_003'
-runid = 'G141_21_167'
+runid = 'FR21_007'
 server = 'chicago'
+vol = 'vol2'
+is_v24 = True
 
 
 
 # list of parameters to make plots for
-param_list = ['DIN', 'TN', 'TN_include_sediment', 'TotalDetNS']#, 'Algae', 'Diat', 'Green', 'DiatS1']
+param_list = ['DIN', 'TN', 'TN_plus_DetNS12', 'DetNS12', 'DetCS12']#, 'Algae', 'Diat', 'Green', 'DiatS1']
 
 # list of "domains" which are groups of groups to plot
 domain_name_list = ['WB_South_Bay_ABC','WB_and_RMP_Subembayments','WB_and_RMP_Channel_Shoal']
@@ -91,7 +93,15 @@ def some_plotting_details(param):
         unit = 'Mg/d N'
         include_load = True
         include_param_in_rx_label = True
+    elif param=='TN_plus_DetNS12':
+        unit = 'Mg/d N'
+        include_load = True
+        include_param_in_rx_label = True
     elif param=='TotalDetNS':
+        unit = 'Mg/d N'
+        include_load = False
+        include_param_in_rx_label = True
+    elif param=='DetNS12':
         unit = 'Mg/d N'
         include_load = False
         include_param_in_rx_label = True
@@ -259,7 +269,34 @@ def get_domain_properties(domain_name):
         group_list = ['L','K','J','I','H','G','F','E','D','C','B','A','V','U1','T1','S1','U2','T2','S2','X','W','Z','Y']
         
         # dictionary of flux arrows to plot (key is the group name, value is a list of directions/faces)
-        connection_dict = {'L' : ['S','E','N'],
+        
+        if is_v24:
+            connection_dict = {'L' : ['S','E','N'],
+                           'K' : ['S','E','N'],
+                           'J' : ['E','N'],
+                           'I' : ['N'],
+                           'H' : ['E','N'],
+                           'G' : ['E','N'],
+                           'F' : ['E','N'],
+                           'E' : ['N'],
+                           'D' : ['E','N'],
+                           'C' : ['E','N'],
+                           'B' : ['E','N'],
+                           'A' : ['N'],
+                           'V' : ['E'],
+                           'U1' : ['E','N'],
+                           'T1' : ['E','N'],
+                           'S1' : ['N'],
+                           #'S2' : ['E','N'],
+                           'U2' : ['E','N'],
+                           'T2' : ['E','N'],
+                           #'S2' : ['N'],
+                           'X' : ['E','N'],
+                           'W' : ['E','N'],
+                           'Z' : ['N'], # note Z to E is defined backwards b/c multiply connected, too lazy to fix, so use Y to W instead
+                           'Y' : ['W','E','N']}
+        else:
+            connection_dict = {'L' : ['S','E','N'],
                            'K' : ['S','E','N'],
                            'J' : ['E','N'],
                            'I' : ['N'],
@@ -430,8 +467,12 @@ else:
 # script from the directory it is located in the Control_Volume_Analysis repository, need to change 
 # shapefile_path if this isn't true)
 shapefile_path = os.path.join('..','..','Definitions','group_shapefiles')
-group_con_shp_fn = os.path.join(shapefile_path,'group_connectivity_shapefile_%s.shp' % FR_or_AGG)
-group_def_shp_fn = os.path.join(shapefile_path,'group_definition_shapefile_%s.shp' % FR_or_AGG)
+if is_v24:
+    group_con_shp_fn = os.path.join(shapefile_path,'group_connectivity_shapefile_v24_%s.shp' % FR_or_AGG)
+    group_def_shp_fn = os.path.join(shapefile_path,'group_definition_shapefile_v24_%s.shp' % FR_or_AGG)
+else:
+    group_con_shp_fn = os.path.join(shapefile_path,'group_connectivity_shapefile_%s.shp' % FR_or_AGG)
+    group_def_shp_fn = os.path.join(shapefile_path,'group_definition_shapefile_%s.shp' % FR_or_AGG)
 
 # set the font so everything lines up nicely
 plt.rcParams['font.family'] = 'monospace' 
@@ -451,7 +492,7 @@ if not os.path.exists(figure_path):
 print('\nfigures will be saved here: %s\n' % figure_path)
 
 # get path to the balance table folder in the run folder
-run_base_dir = '/%svol2/hpcshared' % server
+run_base_dir = '/%s%s/hpcshared' % (server,vol)
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
 balance_table_dir = os.path.join(run_dir,'Balance_Tables')
 

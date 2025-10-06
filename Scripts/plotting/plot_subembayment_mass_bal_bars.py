@@ -29,7 +29,7 @@ separate_source_sink_flag = True
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
 
 # list of parameters to plot
-param_list = ['TotalDetNS', 'DIN','TN_include_sediment', 'TN', 'Algae']
+param_list = ['DIN', 'TN', 'Algae','TN_plus_DetNS12','DetNS12']
 
 # list of "groups" corresponding to subembayments (these are their names in the balance tables)
 group_list = ['LSB', 'SB_RMP', 'Central_Bay_RMP', 'San_Pablo_Bay', 'Suisun_Bay', 'Whole_Bay']  
@@ -45,12 +45,15 @@ group_labels = ['Lower\nSouth Bay', 'South Bay\n(RMP)', 'Central Bay\n(RMP)', 'S
 #bar_labels = ['WY2013 (FR13_025)','WY2013 (FR13_003)','WY2017 (FR17_018)','WY2017 (FR17_003)','WY2018 (FR18_006)']
 #bar_run_ID = ['FR13_025','FR13_003','FR17_018','FR17_003','FR18_006']
 #bar_wy = [2013,2013,2017,2017,2018]
-bar_labels = ['WY2013 (G141_13to18_246)','WY2013 (FR13_003)','WY2017 (G141_13to18_246)','WY2017 (FR17_003)']
-bar_run_ID = ['G141_13to18_246','FR13_003','G141_13to18_246','FR17_003']
-bar_wy = [2013,2013,2017,2017]
-#bar_labels = ['WY2013 (G141_13to18_197)','WY2014 (G141_13to18_197)','WY2015 (G141_13to18_197)','WY2016 (G141_13to18_197)','WY2017 (G141_13to18_197)','WY2018 (G141_13to18_197)']
-#bar_run_ID = ['G141_13to18_197','G141_13to18_197','G141_13to18_197','G141_13to18_197','G141_13to18_197','G141_13to18_197']
-#bar_wy = [2013,2014,2015,2016,2017,2018]
+#bar_labels = ['FR21_007','FR21_009']
+#bar_run_ID = ['FR21_007','FR21_009']
+#bar_wy = [2021,2021]
+#server_list = ['chicagovol2','chicagovol2']
+bar_labels = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+bar_run_ID = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+bar_wy = [2013,2014,2015,2016,2017,2018]
+server_list = ['chicago','boise','boise','boise','chicago','chicago']
+vol_list = ['vol1','vol1','vol1','vol1','vol1','vol1']
 
 # list of time averaging periods (choices are 'Annual','Seasonal','Monthly')
 #time_period_list = ['Annual','Seasonal','Monthly']
@@ -163,7 +166,7 @@ for param in param_list:
             runid = bar_run_ID[ibar]
     
             # get path to the balance table folder in the run folder
-            run_base_dir = '/%svol1/hpcshared' % server_list[ibar]
+            run_base_dir = '/%s%s/hpcshared' % (server_list[ibar], vol_list[ibar])
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
     

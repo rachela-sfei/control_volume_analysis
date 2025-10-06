@@ -58,15 +58,19 @@ group_list = 'all'
 autoscale_x = True
 
 # here's another option for the x axis ... again only applies to the HAB model
-#xlim_override = None
-xlim_override = ['%d-07-20', '%d-09-10']
+xlim_override = None
+#xlim_override = ['%d-07-20', '%d-09-10']
 
 # list or runs to plot and water years to pick out of corresponding run (each is a column in the plot)
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
 # also list servers where runs are stored
-runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
-wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
-server_list = ['chicago','boise','boise','boise','chicago','chicago']
+#runid_list = ['FR13_028', 'FR14_001', 'FR15_001', 'FR16_001','FR17_021','FR18_009']
+#wystr_list = ['WY2013','WY2014','WY2015','WY2016','WY2017','WY2018']
+#server_list = ['chicago','boise','boise','boise','chicago','chicago']
+runid_list = ['FR21_007', 'FR21_009','FR21_008']
+wystr_list = ['WY2021','WY2021','WY2021']
+server_list = ['chicago','chicago','chicago']
+vol_list = ['vol2','vol2','vol2']
 
 # list of groups
 panel = 'Middle_Subs_RMP_and_WB'
@@ -93,7 +97,7 @@ elif panel == 'South_Bay_6Part':
     panel_label = 'Across South Bay'
 
 # list of parameters to plot (must match balance table, one plot per parameter is created)
-param_list = ['DIN','TN']#,'TN_plus_DetNS12','OXY','DetNS12','OONS12', 'N-Algae']
+param_list = ['DIN','TN','TN_plus_DetNS12','OXY','DetNS12','OONS12', 'Algae','DetCS1']
 
 # reaction groupings (optional, if parameter is not found as a key, all 
 # reactions will be plotted)
@@ -128,7 +132,7 @@ if 1:
 tavg_list = ['Filtered','Cumulative']
 
 # list of normalizations (divide by 'None','Area','Volume')
-norm_list = ['None']#,'Area','Volume']
+norm_list = ['None','Area','Volume']
 
 # base directory for the output figures (in theory should be able to run on windows laptop with mounted drives or on server)
 figure_base_dir = '/richmondvol1/hpcshared/open_bay/bgc/figures'
@@ -144,7 +148,7 @@ assert ngroups==len(group_labels)
 if 'WY13to18' in wystr_list: 
     fig_width = 7.5*(nruns+0.75)
 else:
-    fig_width = 2*(nruns+0.75)
+    fig_width = 4*(nruns+0.75)
 row_height = 3
 fig_height = row_height*ngroups
 
@@ -176,6 +180,7 @@ element_dict['Algae'] = 'C'
 element_dict['Diat'] = 'C'
 element_dict['Green'] = 'C'
 element_dict['DiatS1'] = 'C'
+element_dict['DetCS1'] = 'C'
 element_dict['Zoopl'] = 'C'
 element_dict['OXY'] = 'O'
 
@@ -184,7 +189,7 @@ element_dict['OXY'] = 'O'
 def is_it_benthic(param):
 
     if param in ['DetNS1','DetNS2','DetNS','OONS1','OONS2','OONS','OONS12','DetNS12',
-                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1']:
+                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1','DetCS1']:
         is_benthic = True
     else:
         is_benthic = False
@@ -266,7 +271,7 @@ for param in param_list:
             runid = runid_list[irun]
 
             # get path to the balance table folder in the run folder
-            run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+            run_base_dir = '/%s%s/hpcshared' % (server_list[irun],vol_list[irun])
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
             balance_table_dir = os.path.join(run_dir,'Balance_Tables')
             
@@ -353,7 +358,7 @@ for param in param_list:
                 runid = runid_list[irun]
             
                 # get path to the balance table folder in the run folder
-                run_base_dir = '/%svol1/hpcshared' % server_list[irun]
+                run_base_dir = '/%s%s/hpcshared' % (server_list[irun],vol_list[irun])
                 run_dir = CVPL.get_run_dir(run_base_dir, runid)
                 balance_table_dir = os.path.join(run_dir,'Balance_Tables')
                 
