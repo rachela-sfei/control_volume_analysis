@@ -22,8 +22,8 @@ is_v24 = True
 # name of server and runid
 server = 'chicago'
 vol = 'vol2'
-#runid = 'FR21_007'
-runid = 'G141_21_264'
+runid = 'FR21_010'
+#runid = 'G141_21_264'
 
 #runid='FR13_042'
 #runid='FR13_043'
