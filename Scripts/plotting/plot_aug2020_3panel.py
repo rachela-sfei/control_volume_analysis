@@ -181,7 +181,7 @@ print('\nfigures will be saved here: %s\n' % figure_path)
 if group_list == 'all':
     run_base_dir = '/%s%s/hpcshared' % (server_list[0], vol_list[0])
     run_dir = CVPL.get_run_dir(run_base_dir, runid_list[0])
-    balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+    balance_table_dir = os.path.join(run_dir,'Balance_Tables_V2')
     data = pd.read_csv(os.path.join(balance_table_dir,'%s_Table_By_Group.csv' % param_list[0].lower()))
     group_list = list(np.unique(data.group))
 

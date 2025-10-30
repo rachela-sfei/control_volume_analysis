@@ -494,7 +494,7 @@ print('\nfigures will be saved here: %s\n' % figure_path)
 # get path to the balance table folder in the run folder
 run_base_dir = '/%s%s/hpcshared' % (server,vol)
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
-balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+balance_table_dir = os.path.join(run_dir,'Balance_Tables_V2')
 
 # parameter name (Algae, DIN, TN, TN_include_sediment)
 for param in param_list:

@@ -226,7 +226,7 @@ for panel in panel_list:
                     ## balance table folder
                     run_base_dir = '/%s%s/hpcshared' % (server,vol)
                     run_dir = CVPL.get_run_dir(run_base_dir, runid)
-                    table_dir = os.path.join(run_dir,'Balance_Tables')
+                    table_dir = os.path.join(run_dir,'Balance_Tables_V2')
 
                     # load up the balance table data for the parameter of interest with the time averaging type of interest
                     input_fn = os.path.join(table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_suff))

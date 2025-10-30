@@ -182,7 +182,7 @@ print('\nfigures will be saved here: %s\n' % figure_path)
 ## balance table folder
 run_base_dir = '/%s%s/hpcshared' % (server,vol)
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
-table_dir = os.path.join(run_dir,'Balance_Tables')
+table_dir = os.path.join(run_dir,'Balance_Tables_V2')
 
 # loop through parameters
 for param in param_list:

@@ -834,7 +834,7 @@ def get_balance_table_dir(run_dir, is_delta):
 	unless user says otherwise, put the balance tables in the run directory, in a subfolder called "Balance_Tables"
 	'''
 
-	balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+	balance_table_dir = os.path.join(run_dir,'Balance_Tables_V2')
 	return balance_table_dir
 
 def logger_cleanup():

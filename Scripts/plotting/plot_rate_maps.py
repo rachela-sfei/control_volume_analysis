@@ -821,7 +821,7 @@ for select_a_rate_set in [-3,-2,-1,1,2,4]:
                     # get path to the balance table folder in the run folder
                     run_base_dir = '/%svol2/hpcshared' % server_list[irun]
                     run_dir = CVPL.get_run_dir(run_base_dir, runid)
-                    balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+                    balance_table_dir = os.path.join(run_dir,'Balance_Tables_V2')
 
                     # path to the shapefile w/ the base level control volumes
                     if 'FR' in runid:

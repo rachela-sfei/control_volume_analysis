@@ -75,7 +75,7 @@ print('\nfigures will be saved here: %s\n' % figure_path)
 # get balance table directory
 run_base_dir = '/%s%s/hpcshared' % (server,vol)
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
-balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+balance_table_dir = os.path.join(run_dir,'Balance_Tables_V2')
 
 # read shapefile, add columns for error
 gdf = gpd.read_file(shp_fn)

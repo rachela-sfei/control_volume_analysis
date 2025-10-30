@@ -168,7 +168,7 @@ for param in param_list:
             # get path to the balance table folder in the run folder
             run_base_dir = '/%s%s/hpcshared' % (server_list[ibar], vol_list[ibar])
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
-            balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+            balance_table_dir = os.path.join(run_dir,'Balance_Tables_V2')
     
             # load the run for this bar, convert time to datetime64 
             if not runid in df_allruns.keys():

@@ -134,7 +134,7 @@ def pos_neg(array):
 ## balance table folder
 run_base_dir = '/%s%s/hpcshared' % (server,vol)
 run_dir = CVPL.get_run_dir(run_base_dir, runid)
-balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+balance_table_dir = os.path.join(run_dir,'Balance_Tables_V2')
 
 # get strings with concise lists of runs and water years
 run_list_str = CVPL.make_concise_runid_list_string([runid])

@@ -267,7 +267,7 @@ for param in param_list:
                 # get path to the balance table folder in the run folder
                 run_base_dir = '/%s%s/hpcshared' % (server_list[irun], vol_list[irun])
                 run_dir = CVPL.get_run_dir(run_base_dir, runid)
-                balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+                balance_table_dir = os.path.join(run_dir,'Balance_Tables_V2')
 
                 # load up the balance table data for the parameter of interest
                 input_fn = os.path.join(balance_table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_BT_str))
@@ -345,7 +345,7 @@ for param in param_list:
                 # get path to the balance table folder in the run folder
                 run_base_dir = '/%s%s/hpcshared' % (server_list[irun], vol_list[irun])
                 run_dir = CVPL.get_run_dir(run_base_dir, runid)
-                balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+                balance_table_dir = os.path.join(run_dir,'Balance_Tables_V2')
                 
                 # load up the balance table data for the parameter of interest
                 input_fn = os.path.join(balance_table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_BT_str))
