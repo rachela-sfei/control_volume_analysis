@@ -124,7 +124,7 @@ right   = gdf.right.astype(int)
 p2t = Poly2Transect(left,right) 
 
 # load sediment concentration multiplier 
-df_sed_conc_mult = pd.read_csv(step0_config.sed_conc_mult_path)
+# df_sed_conc_mult = pd.read_csv(step0_config.sed_conc_mult_path)
 
 # path to his and his bal files
 histfn      = os.path.join(step0_config.run_dir,'dwaq_hist.nc')
@@ -252,7 +252,7 @@ for i in range(len(hbdata.region.values)):
 # loop through all the parameters (nh4, no3, diat, etc.)
 varnames = [var.lower() for var in hbdata.sub.values]
 
-for varname in ['detns1']:#varnames:
+for varname in varnames:
 
     # determine if the variable is sediment or not, include comprehensive list here so you don't miss anything
     if ((varname[-2:] == 's1') or (varname[-2:] == 's2')):
@@ -389,12 +389,12 @@ for varname in ['detns1']:#varnames:
         logging.info('overriding units with %s' % units)
     else:
         units = varP.units
-    if '/m2' in units:
-        logging.info('units are %s, multiplying by area to get dVar/dt and converting concentration to volumetric' % units)
-        conc_mult = np.tile(df_sed_conc_mult['dMdt(bal)/dMdt(con)'].values,(len(varP.time),1)) # need to multiply concentration by this due to DWAQ weirdness
-        diffVar = (varP*Area*conc_mult).diff(dim='time')
-        Conc = (varP*Area*conc_mult)/Vp
-    elif '/m3' in units:
+#    if '/m2' in units:
+#        logging.info('units are %s, multiplying by area to get dVar/dt and converting concentration to volumetric' % units)
+#        conc_mult = np.tile(df_sed_conc_mult['dMdt(bal)/dMdt(con)'].values,(len(varP.time),1)) # need to multiply concentration by this due to DWAQ weirdness
+#        diffVar = (varP*Area*conc_mult).diff(dim='time')
+#        Conc = (varP*Area*conc_mult)/Vp
+    if '/m3' in units:
         logging.info('units are %s, multiplying by volume to get dVar/dt' % units)
         diffVar = (varP*Vp).diff(dim='time') 
         Conc = varP.copy(deep=True)

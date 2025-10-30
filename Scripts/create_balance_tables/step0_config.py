@@ -22,9 +22,10 @@ is_v24 = True
 # name of server and runid
 server = 'chicago'
 vol = 'vol2'
-runid = 'FR21_011_4deltares'
-#hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
-hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24-4deltares/runs/wy2021-v24-4deltares/DFM_DELWAQ_wy2021-v24-4deltares_bound_temp_salt/wy2021-v24-4deltares.hyd'
+runid = 'FR21_009_test_balance_tables'
+hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
+#runid = 'FR21_011_4deltares'
+#hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24-4deltares/runs/wy2021-v24-4deltares/DFM_DELWAQ_wy2021-v24-4deltares_bound_temp_salt/wy2021-v24-4deltares.hyd'
 
 
 #runid = 'G141_21_264'
