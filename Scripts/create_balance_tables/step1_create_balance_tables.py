@@ -17,7 +17,8 @@ import logging
 import xarray as xr
 import numpy as np
 import pandas as pd
-import datetime 
+import datetime
+from shapely.geometry import Point, Polygon 
 import socket
 hostname = socket.gethostname()
 try:
@@ -130,8 +131,7 @@ histfn      = os.path.join(step0_config.run_dir,'dwaq_hist.nc')
 histbal_fn  = os.path.join(step0_config.run_dir,'dwaq_hist_bal.nc')
 
 # log start of readin files
-logging.info('reading %s and %s' % (histfn,histbal_fn))
-
+logging.info('reading mapfile and %s and %s' % (histfn,histbal_fn))
 
 # open hist file, create it from the *.his file if needed
 try:
@@ -178,16 +178,59 @@ except:
         hbdata.to_netcdf(histbal_fn)
         hbdata = xr.open_dataset(histbal_fn)
 
-# get the start time and make sure his and his-bal start times match
+# open the map file
+hydro=step0_config.waq_scenario.HydroFiles(hyd_path=step0_config.hydro_path,enable_write_symlink=True)
+fn = None
+for fn1 in os.listdir(step0_config.run_dir):
+    if ('.map' in fn1) and (not ('res' in fn1)):
+        fn = fn1
+mdata  = step0_config.dio.read_map(os.path.join(step0_config.run_dir,fn),hydro)
+
+# do some grid geometry from the map file
+face_node = mdata.face_node.values
+mxe = mdata.node_x[mdata.face_node].values
+mye = mdata.node_y[mdata.face_node].values
+polys = []
+points = []
+for ie in range(len(mxe)):
+    igood = face_node[ie,:]>=0
+    mxe_good = mxe[ie,igood]
+    mye_good = mye[ie,igood]
+    poly = Polygon([[mxe_good[i],mye_good[i]] for i in range(len(mxe_good))])
+    polys.append(poly)
+    point = Point([poly.centroid.x, poly.centroid.y])
+    points.append(point)
+gdf_grid_points = gpd.GeoDataFrame(geometry=points)
+gdf_grid_polys = gpd.GeoDataFrame(geometry=polys)
+grid_areas = gdf_grid_polys.area.values
+
+# get the start time and make sure his and map and his-bal start times match
 start_time = pd.to_datetime(hdata.time.values[0])
 if not start_time == pd.to_datetime(hbdata.time.values[0]):
     raise Exception('start time of his-bal data doesn\'t match start time of his data')
+if not start_time == pd.to_datetime(mdata.time.values[0]):
+    raise Exception('start time of map data doesn\'t match start time of his data')
 start_date = np.datetime64('%d-%02d-%02d' % (start_time.year, start_time.month, start_time.day))
 
 # if the simulation does not start at midnight, subtract the time of day, and add it back later
 offset_time = start_time.to_datetime64() - start_date
 hdata['time'] = hdata['time'] - offset_time
 hbdata['time'] = hbdata['time'] - offset_time
+mdata['time'] = mdata['time'] - offset_time
+
+# if mapfile output is less than daily, resample onto daily axis (take instantaneous snapshots)
+deltat_M = (mdata.time[1]-mdata.time[0]).values
+if deltat_M < np.timedelta64(1,'D'):
+    print('downsampling mapfile data from %f to 1 day time step, could take awhile' % (deltat_M/np.timedelta64(1,'D')))
+    mdata = mdata.resample(time='1D').nearest()
+
+# calculate depth, area, and volume from mdata only one time, not for every substance
+# note volume is the volume of the entire water column above one grid cell at a given time
+mdata_tim = mdata.time.values
+nt = len(mdata_tim)
+mdata_depth = mdata['TotalDepth'][:,0,:].values
+mdata_area = np.tile(gdf_grid_polys.area.values,(nt,1))
+mdata_vol = mdata_depth * mdata_area
 
 # renumber the polygons and transects so they match the shape file -- 
 # newer version of stompy scrambles the numbers but does not scramble the order
@@ -208,7 +251,14 @@ for i in range(len(hbdata.region.values)):
 
 # loop through all the parameters (nh4, no3, diat, etc.)
 varnames = [var.lower() for var in hbdata.sub.values]
-for varname in varnames:
+
+for varname in ['detns1']:#varnames:
+
+    # determine if the variable is sediment or not, include comprehensive list here so you don't miss anything
+    if ((varname[-2:] == 's1') or (varname[-2:] == 's2')):
+        is_sed = True
+    else:
+        is_sed = False
 
     # if not processing all substances skip substances that aren't in the list
     if not step0_config.substance_list=='all':
@@ -241,6 +291,39 @@ for varname in varnames:
     indF = np.where(fieldBL)[0]
     varP_bal = hbdata.isel(region=indP_bal).isel(field=indF)
     Vp = hdata.isel(nSegment=indP)['volume']  
+
+    # if this is a sediment variable, load the concentrations from the mapfile as well
+    if is_sed:
+
+        # get capitalized variable name
+        for var in list(mdata.variables):
+            if var.lower()==varname:
+                varname_caps = var
+        if varname_caps is None:
+            raise Exception('cannot find %s in mapfile' % varname)
+
+        # get all the concentration data
+        mdata_var = mdata[varname_caps].values
+
+        # compute the mass above each grid cell from the mapfile data
+        mdata_mass = mdata_var[:,-1,:] * mdata_area
+    
+        # compute the mass and the volume within each polygon 
+        nt, ne = mdata_mass.shape
+        npoly = len(poly_df)
+        mdata_mass_poly = np.zeros((nt,npoly))
+        mdata_vol_poly = np.zeros((nt,npoly))
+        mdata_conc_poly = np.zeros((nt,npoly))
+        for ip in range(npoly):
+            poly = poly_df.iloc[ip]['geometry']
+            ind_poly = gdf_grid_points.within(poly).values
+            mdata_mass_poly[:,ip] = np.sum(mdata_mass[:,ind_poly], axis=1)
+            mdata_vol_poly[:,ip] = np.sum(mdata_vol[:,ind_poly], axis=1)
+
+        # compute concentration on a mass per unit volume basis, even for sediment, which makes more
+        # sense as per unit area, since the plotting scripts assume this and compute per unit area for
+        # sediment from per unit volume
+        mdata_conc_poly = mdata_mass_poly / mdata_vol_poly
 
     # check the frequency of the data, and if frequency is higher than daily, resample onto a daily axis
     deltat_P = (varP.time[1]-varP.time[0]).values
@@ -277,21 +360,28 @@ for varname in varnames:
         raise Exception('ERROR: his-bal file has time step greater than one day')
 
     # subtract one day from all output, becasue currently the values represent the backwards average 
-    # over the PREVIOUS day
+    # over the PREVIOUS day 
     varP['time'] = varP['time'] - np.timedelta64(1,'D')
     Vp['time'] = Vp['time'] - np.timedelta64(1,'D')
     Vp_mean['time'] = Vp_mean['time'] - np.timedelta64(1,'D')
     varT['time'] = varT['time'] - np.timedelta64(1,'D')
     varP_bal['time'] = varP_bal['time'] - np.timedelta64(1,'D')
+    mdata_tim_shifted = mdata_tim - np.timedelta64(1,'D')
 
     # now make sure polygon, transect, and balance data have same number of time steps (this 
     # condition may be violated in case of incomplete simulation)
-    tmin = np.min([varP.time.values[-1],varT.time.values[-1],varP_bal.time.values[-1]])
+    tmin = np.min([varP.time.values[-1],varT.time.values[-1],varP_bal.time.values[-1],mdata_tim_shifted[-1]])
     varP = varP.where(varP.time<=tmin,drop=True)
     Vp = Vp.where(Vp.time<=tmin,drop=True)
     Vp_mean = Vp_mean.where(Vp_mean.time<=tmin,drop=True)
     varT = varT.where(varT.time<=tmin,drop=True)
     varP_bal = varP_bal.where(varP_bal.time<=tmin,drop=True)
+    if is_sed:
+        ind = mdata_tim_shifted<=tmin
+        mdata_tim_shifted = mdata_tim_shifted[ind]
+        mdata_mass_poly = mdata_mass_poly[ind,:]
+        mdata_vol_poly = mdata_vol_poly[ind,:]
+        mdata_conc_poly = mdata_conc_poly[ind,:]
  
     # get the units and determine if per area or per volume, then compute dMass/dt accordingly 
     if varname in step0_config.units_override.keys():
@@ -309,13 +399,22 @@ for varname in varnames:
         diffVar = (varP*Vp).diff(dim='time') 
         Conc = varP.copy(deep=True)
 
+    # also compute dM/dt from mapfile
+    if is_sed:
+        diffVar_map = np.diff(mdata_mass_poly,axis=0) / ((mdata_tim_shifted[1] - mdata_tim_shifted[0])/np.timedelta64(1,'D'))
+
     #%% Outputting variables for each polygon.  
     varTv = varT.values                         
     df_output = pd.DataFrame()  
     for i,p in enumerate(varP_bal.region.values[0:len(poly_df)]):
 
         pi_df = varP_bal.bal.sel(region=p).to_pandas() 
-        pi_df['dVar/dt'] = np.append(diffVar[0,i],diffVar[:,i])
+        
+        # replace rate of change of mass with mapfile based estimates
+        if is_sed:
+            pi_df['dVar/dt'] = np.append(diffVar_map[0,i],diffVar_map[:,i])
+        else:
+            pi_df['dVar/dt'] = np.append(diffVar[0,i],diffVar[:,i])
         
         if i==0:
             column_list = ['Control Volume','Concentration (mg/l)','Volume','Volume (Mean)',
@@ -337,7 +436,13 @@ for varname in varnames:
         pi_df_sum = pi_df.iloc[:,Others]
         pi_df_daily = pi_df.iloc[:,To_transect]
         pi_df_comb = pd.concat([pi_df_sum,pi_df_daily],axis=1)
-        pi_df_comb['Concentration (mg/l)'] = Conc.isel(nSegment=i).values
+
+        # use mapfile based concentrations for sediment variables, trust his file for water column
+        if is_sed:
+            pi_df_comb['Concentration (mg/l)'] = mdata_conc_poly[:,i]
+        else:
+            pi_df_comb['Concentration (mg/l)'] = Conc.isel(nSegment=i).values
+        
         pi_df_comb['Control Volume'] = p
         pi_df_comb['Volume'] = Vp.values[:,i]
         pi_df_comb['Volume (Mean)'] = Vp_mean.values[:,i] 
