@@ -170,7 +170,7 @@ for table in table_list:
     logging.info('   %s' % table)
 
 # loop through the tables
-for balance_table_fn in ['din_Table_By_Group.csv']:#table_list:
+for balance_table_fn in table_list:
 
     # print
     logging.info('Reading %s ...' % balance_table_fn)

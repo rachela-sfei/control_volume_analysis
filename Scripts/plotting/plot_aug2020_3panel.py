@@ -63,17 +63,18 @@ xlim_override = None
 # list or runs to plot and water years to pick out of corresponding run (each is a column in the plot)
 # use 'WY13to18' to plot all years of a 6-year aggregated grid run, otherwise format should be 'WY2013', 'WY2018', etc.
 # also list servers where runs are stored
-#runid_list = ['FR22_HAB_071', 'FR22_HAB_072', 'FR22_HAB_073', 'FR22_HAB_074']
-#wystr_list = ['WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom', 'WY2022_bloom']
-#server_list = ['chicago','chicago','chicago','chicago']
-runid_list = ['FR21_007', 'FR21_009','FR21_008']
-wystr_list = ['WY2021','WY2021','WY2021']
-server_list = ['chicago','chicago','chicago']
-vol_list = ['vol2','vol2','vol2']
+#runid_list = ['FR21_007', 'FR21_009','FR21_008']
+#wystr_list = ['WY2021','WY2021','WY2021']
+#server_list = ['chicago','chicago','chicago']
+#vol_list = ['vol2','vol2','vol2']
+runid_list = ['G141_21_292']
+wystr_list = ['WY2021']
+server_list = ['chicago']
+vol_list = ['vol2']
 
 # list of parameters to plot (must match balance table, one plot per parameter is created)
 #param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae', 'Diat', 'Green','DiatS1']
-param_list = ['DIN', 'TN_plus_DetNS12', 'TN', 'DetNS12', 'OONS12','OXY','DetCS1']
+param_list = ['TN', 'DetNS12', 'TN_plus_DetNS12', 'OONS12','OXY','DetCS1','DIN']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily']) one plot per is created
 #tavg_list = ['Filtered','Cumulative']
@@ -111,8 +112,8 @@ colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e3
 # map variable to element (grams of what?)
 element_dict = {}
 element_dict['TN'] = 'N'
-element_dict['TN_include_sediment'] = 'N'
-element_dict['TotalDetNS'] = 'N'
+element_dict['TN_plus_DetNS12'] = 'N'
+element_dict['DetNS12'] = 'N'
 element_dict['DIN'] = 'N'
 element_dict['OXY'] = 'O'
 element_dict['NO3'] = 'N'
@@ -248,7 +249,7 @@ for param in param_list:
             # get path to the balance table folder in the run folder
             run_base_dir = '/%s%s/hpcshared' % (server_list[irun], vol_list[irun])
             run_dir = CVPL.get_run_dir(run_base_dir, runid)
-            balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+            balance_table_dir = os.path.join(run_dir,'Balance_Tables_V2')
             
             # load up the balance table data for the parameter of interest
             input_fn = os.path.join(balance_table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_BT_str))
@@ -332,7 +333,7 @@ for param in param_list:
                     # get path to the balance table folder in the run folder
                     run_base_dir = '/%s%s/hpcshared' % (server_list[irun], vol_list[irun])
                     run_dir = CVPL.get_run_dir(run_base_dir, runid)
-                    balance_table_dir = os.path.join(run_dir,'Balance_Tables')
+                    balance_table_dir = os.path.join(run_dir,'Balance_Tables_V2')
                     
                     # load up the balance table data for the parameter of interest
                     input_fn = os.path.join(balance_table_dir,'%s_Table_By_Group%s.csv' % (param.lower(), tavg_BT_str))
