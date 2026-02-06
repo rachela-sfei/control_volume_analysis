@@ -209,7 +209,10 @@ for param in step0_config.mass_cons_check_param_list:
     # take area weighted average of the normalized reactions
     total_area = np.sum(gdf.area.values)
     area = np.tile(gdf.area.values, (len(df_percent),1))
-    df_percent_avg = np.mean(df_percent * area / total_area, axis=1) 
+
+    df_percent_avg = pd.DataFrame(columns=df_percent.index)
+    for irx, rx in enumerate(df_percent.index):
+        df_percent_avg.loc[0,rx] = np.nanmean(df_percent.iloc[irx] * area[irx,:] / total_area)
     
     # now loop through the reaction terms and create a pdf that shows percent contribution of each, w.r.t. max souce/sink
     with PdfPages(rx_map_path) as pdf:
@@ -237,8 +240,8 @@ for param in step0_config.mass_cons_check_param_list:
     for rx in rx_list:
     
         if 'ZERO' in rx:
-    
-            if np.abs(df_percent_avg[rx]) > step0_config.error_tol_percent:
+
+            if np.abs(df_percent_avg[rx].values[0]) > step0_config.error_tol_percent:
 
                 logging.info('WARNING: Reaction %s is NOT zero. Averaged over whole domain and simulation period it is %f ' % (rx,df_percent_avg[rx]) + 
                               'percent of %s, which exceeds the error tolerance %f percent' % (normalize_by, step0_config.error_tol_percent))
@@ -249,7 +252,7 @@ for param in step0_config.mass_cons_check_param_list:
 
             else:
 
-                logging.info('SUCCESS: Reaction %s, averaged over whole domain and simulation period, is %f ' % (rx,df_percent_avg[rx]) +  
+                logging.info('SUCCESS: Reaction %s, averaged over whole domain and simulation period, is %f ' % (rx,df_percent_avg[rx].values[0]) +  
                              'percent of %s, which is below error tolerance %f percent' % (normalize_by, step0_config.error_tol_percent))
     
-    logger_cleanup()    
+logger_cleanup()    

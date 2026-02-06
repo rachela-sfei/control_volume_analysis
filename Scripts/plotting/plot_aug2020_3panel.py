@@ -49,8 +49,8 @@ except:
 #########################################################################################
 
 # list of the groups to plot (set to 'all' to plot all groups)
-#group_list = ['Whole_Bay','A','D']
-group_list = 'all'
+group_list = ['Whole_Bay']
+#group_list = 'all'
 
 # autoscale x axis (if you set to False, script will set min/max based on water year range)
 # note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
@@ -67,22 +67,22 @@ xlim_override = None
 #wystr_list = ['WY2021','WY2021','WY2021']
 #server_list = ['chicago','chicago','chicago']
 #vol_list = ['vol2','vol2','vol2']
-runid_list = ['G141_21_292']
+runid_list = ['G141_21_373']
 wystr_list = ['WY2021']
-server_list = ['chicago']
+server_list = ['boise']
 vol_list = ['vol2']
 
 # list of parameters to plot (must match balance table, one plot per parameter is created)
 #param_list = ['DIN','TN','TN_include_sediment','OXY','TotalDetNS', 'Algae', 'Diat', 'Green','DiatS1']
-param_list = ['TN', 'DetNS12', 'TN_plus_DetNS12', 'OONS12','OXY','DetCS1','DIN']
+param_list = ['TN_plus_DiatS1_plus_DetNS12', 'OONS12','OXY','DetCS1','PON1','PON2','Diat','Green','Algae','TN','DIN', 'DetNS12']
 
 # list of types of time aggregation (e.g. ['Filtered','Cumulative','Daily']) one plot per is created
 #tavg_list = ['Filtered','Cumulative']
 #tavg_list = ['Daily']
-tavg_list = ['Filtered','Cumulative']
+tavg_list = ['Filtered']
 
 # list of normalizations (divide by 'None','Area','Volume')
-norm_list = ['Volume','Area','None']
+norm_list = ['None']#'Volume','Area']
 
 # do you want to include mass in the figure? if so it will go in first row, but we skip this one for cumulative time aggregation
 include_mass = True
@@ -113,11 +113,15 @@ colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e3
 element_dict = {}
 element_dict['TN'] = 'N'
 element_dict['TN_plus_DetNS12'] = 'N'
+element_dict['TN_plus_DiatS1_plus_DetNS12'] = 'N'
 element_dict['DetNS12'] = 'N'
+element_dict['OONS12'] = 'N'
 element_dict['DIN'] = 'N'
 element_dict['OXY'] = 'O'
 element_dict['NO3'] = 'N'
 element_dict['NH4'] = 'N'
+element_dict['PON1'] = 'N'
+element_dict['PON2'] = 'N'
 element_dict['Algae'] = 'C'
 element_dict['Diat'] = 'C'
 element_dict['Green'] = 'C'
@@ -129,8 +133,7 @@ element_dict['DetCS1'] = 'C'
 # doesn't get transported, so everything is zero)
 def is_it_benthic(param):
 
-    if param in ['DetNS1','DetNS2','DetNS','OONS1','OONS2','OONS',
-                 'TotalDetNS1','TotalDetNS1','TotalDetNS','DiatS1','DetCS1']:
+    if param in ['DetNS1','DetNS2','OONS1','OONS2','DetNS12','OONS12','DiatS1','DetCS1']:
         is_benthic = True
     else:
         is_benthic = False
