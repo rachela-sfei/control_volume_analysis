@@ -22,7 +22,7 @@ reload(CVPL)
 # run name and server where it is located
 #runid = 'G141_13to18_246'
 #runid = 'FR13_003'
-runid = 'FR21_007'
+runid = 'FR21_009'
 server = 'chicago'
 vol = 'vol2'
 is_v24 = True

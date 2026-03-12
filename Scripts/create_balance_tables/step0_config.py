@@ -20,23 +20,14 @@ abort_for_mass_cons_error = False
 is_v24 = True
 
 # name of server and runid
-server = 'boise'
+# server = 'boise'
+# vol = 'vol2'
+# runid = 'G141_21_373'
+# hydro_path = '/chicagovol2/hpcshared/open_bay/hydro/agg/wy2013-wy2022-v24/com-wy2013-wy2022-v24_agg_lp.hyd'
+server = 'chicago'
 vol = 'vol2'
-runid = 'G141_21_373'
-hydro_path = '/chicagovol2/hpcshared/open_bay/hydro/agg/wy2013-wy2022-v24/com-wy2013-wy2022-v24_agg_lp.hyd'
-#hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
-#runid = 'FR21_011_4deltares'
-#hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24-4deltares/runs/wy2021-v24-4deltares/DFM_DELWAQ_wy2021-v24-4deltares_bound_temp_salt/wy2021-v24-4deltares.hyd'
-
-
-#runid = 'G141_21_264'
-
-#runid='FR13_042'
-#runid='FR13_043'
-#runid='FR13_044' 
-#runid='FR13_045' 
-#runid='FR13_046'
-#runid='FR13_047' 
+runid = 'FR21_008'
+hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
 
 
 model_run_base_dir = '/%s%s/hpcshared' % (server,vol)
@@ -79,7 +70,7 @@ plot_substance_list = ['continuity','tn_plus_diats1_plus_detns12','tn','din','nh
 # (this is used in step6_aggregate_in_time.py)
 # in Dec 2023 added Seasonal2 which defines 3 seasons (Oct,Nov,Dec,Jan + Feb,Mar,Apr,May + Jun,Jul,Aug,Sep)
 # in contrast to Seasonal which defines 4 seasons (Oct,Nov,Dec + Jan,Feb,Mar + Apr,May,Jun + Jul,Aug,Sep)
-tavg_list = ['Filtered']#,'Cumulative','Annual','Seasonal','Seasonal2','Seasonal3','Monthly','Weekly']
+tavg_list = ['Seasonal','Seasonal2','Seasonal3','Monthly','Weekly','Filtered','Cumulative','Annual']
 
 
 # float format for csv files

@@ -35,9 +35,10 @@ reload(CVPL)
 
 # run name and server where it is located
 #runid = 'G141_13to22_016'
-runid = 'FR21_007'
-server = 'chicago'
+server = 'boise'
 vol = 'vol2'
+runid = 'G141_21_373'
+
 
 # autoscale x axis (if you set to False, script will set min/max based on water year range)
 # note: this option was added for the 2022 HAB simulations, you probably want to set it to False for everything else
@@ -49,12 +50,12 @@ time_start = None
 time_end = None
 
 ## list of parameters to plot
-param_list = ['Algae','DIN','TN','TN_plus_DetNS12','DetNS12','OONS12','OXY','DetCS1']
+param_list = ['Algae','DIN','TN','TN_plus_DiatS1_plus_DetNS12','DetNS12','OONS12','OXY','DetCS1']
 
 # dictionary to map parameter to element corresponding to mass
 grams_of_what = {'DIN' : 'N', 
                  'TN' : 'N', 
-                 'TN_plus_DetNS12' : 'N',
+                 'TN_plus_DiatS1_plus_DetNS12' : 'N',
                  'TN_include_sediment' : 'N', 
                  'DetNS12' : 'N',
                  'OONS12' : 'N', 

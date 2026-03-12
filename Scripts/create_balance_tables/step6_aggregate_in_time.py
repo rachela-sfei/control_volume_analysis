@@ -247,98 +247,100 @@ for balance_table_fn in table_list:
         volume_col = 'Volume'
     group_list = np.unique(df[group_col])
 
-    # if we are operating on flow rates here, we need to take a moment to compute the tidally filtered mean
-    # and root mean square deviation from that mean, along each side, to get advection and dispersion
-    if is_flow:
+    # this code was meant to help estimate residence time, but it simply does not work for the lower diffusion
+    # advection schemes we have started using
+    # # if we are operating on flow rates here, we need to take a moment to compute the tidally filtered mean
+    # # and root mean square deviation from that mean, along each side, to get advection and dispersion
+    # if is_flow:
 
-        # output 
-        logging.info('    Computing semidiurnal filtered flow rate and root mean square...') 
+    #     # output 
+    #     logging.info('    Computing semidiurnal filtered flow rate and root mean square...') 
         
-        # time step in hours
-        deltat_hrs = (time[1]-time[0])/np.timedelta64(1,'h')
+    #     # time step in hours
+    #     deltat_hrs = (time[1]-time[0])/np.timedelta64(1,'h')
 
-        # start a new dataframe that will contain <Q> and 0.12 <(Q-<Q>)^2>^0.5
-        cols = []
-        for col in df.columns:
-            if not 'Flux' in col:
-                cols.append(col)
-        df_F = df[cols].copy(deep=True)
+    #     # start a new dataframe that will contain <Q> and 0.12 <(Q-<Q>)^2>^0.5
+    #     cols = []
+    #     for col in df.columns:
+    #         if not 'Flux' in col:
+    #             cols.append(col)
+    #     df_F = df[cols].copy(deep=True)
 
-        # take the tidal filter of volume
-        V = np.zeros(len(df))
-        for group in group_list:
-            ind = df[group_col].values == group
-            V[ind] = semidi_filter(df.loc[ind][volume_col].values, dt_hrs = deltat_hrs, fcut = 1/35., N = 4)
-        df_F[volume_col] = V.copy()
+    #     # take the tidal filter of volume
+    #     V = np.zeros(len(df))
+    #     for group in group_list:
+    #         ind = df[group_col].values == group
+    #         V[ind] = semidi_filter(df.loc[ind][volume_col].values, dt_hrs = deltat_hrs, fcut = 1/35., N = 4)
+    #     df_F[volume_col] = V.copy()
 
-        # if this is at the polygon level
-        if not by_group:
+    #     # if this is at the polygon level
+    #     if not by_group:
 
-            # count the number of fields labeled "To_polyN" where N is an integer
-            n2poly = 0
-            for col in df.columns:
-                if 'To_poly' in col:
-                    n2poly = n2poly + 1
+    #         # count the number of fields labeled "To_polyN" where N is an integer
+    #         n2poly = 0
+    #         for col in df.columns:
+    #             if 'To_poly' in col:
+    #                 n2poly = n2poly + 1
 
-            # loop through them
-            for ipoly in range(n2poly):
+    #         # loop through them
+    #         for ipoly in range(n2poly):
 
-                Q = np.nan * np.ones(len(df))
-                Qavg = Q.copy()
-                Qrms = Q.copy() 
-                for group in group_list:
+    #             Q = np.nan * np.ones(len(df))
+    #             Qavg = Q.copy()
+    #             Qrms = Q.copy() 
+    #             for group in group_list:
 
-                    ind = df['Control Volume'].values == group
-                    Q[ind] = df.loc[ind]['Flux%d' % ipoly].values
-                    if np.sum(np.isnan(Q[ind]))==0:
-                        Qavg[ind] = semidi_filter(Q[ind], dt_hrs = deltat_hrs, fcut = 1/35., N = 4)
-                        Qms = semidi_filter((Q[ind] - Qavg[ind])**2, dt_hrs = deltat_hrs, fcut = 1/35., N = 4)
-                        Qms[Qms<0] = 0
-                        Qrms[ind] = np.sqrt(Qms)
+    #                 ind = df['Control Volume'].values == group
+    #                 Q[ind] = df.loc[ind]['Flux%d' % ipoly].values
+    #                 if np.sum(np.isnan(Q[ind]))==0:
+    #                     Qavg[ind] = semidi_filter(Q[ind], dt_hrs = deltat_hrs, fcut = 1/35., N = 4)
+    #                     Qms = semidi_filter((Q[ind] - Qavg[ind])**2, dt_hrs = deltat_hrs, fcut = 1/35., N = 4)
+    #                     Qms[Qms<0] = 0
+    #                     Qrms[ind] = np.sqrt(Qms)
 
-                df_F['<Q>%d' % ipoly] = Qavg.copy()
-                df_F['%0.2fsqrt(<(Q-<Q>)^2>)%d' % (step0_config.alpha,ipoly)] = step0_config.alpha * Qrms.copy()
+    #             df_F['<Q>%d' % ipoly] = Qavg.copy()
+    #             df_F['%0.2fsqrt(<(Q-<Q>)^2>)%d' % (step0_config.alpha,ipoly)] = step0_config.alpha * Qrms.copy()
 
-        else:
+    #     else:
 
-            # count the number of fluxes to track in each direction (n2poly is weird notation here)
-            n2poly = 0
-            for col in df.columns:
-                if 'Flux' in col:
-                    n2poly = n2poly + 1
-            n2poly = int(n2poly/4)
+    #         # count the number of fluxes to track in each direction (n2poly is weird notation here)
+    #         n2poly = 0
+    #         for col in df.columns:
+    #             if 'Flux' in col:
+    #                 n2poly = n2poly + 1
+    #         n2poly = int(n2poly/4)
 
-            for NSEW in ['N','S','E','W']:
-                for i2poly in range(n2poly):
-                    Q = np.zeros(len(df))
-                    Qavg = Q.copy()
-                    Qrms = Q.copy() 
-                    for group in group_list:
-                        ind = df['group'].values == group
-                        Q[ind] = df.loc[ind]['Continuity,Flux In from %s%02d (Mg/d)' % (NSEW, i2poly+1)].values
-                        if np.any(np.abs(Q[ind])>0):
-                            Qavg[ind] = semidi_filter(Q[ind], dt_hrs = deltat_hrs, fcut = 1/35., N = 4)
-                            Qms = semidi_filter((Q[ind] - Qavg[ind])**2, dt_hrs = deltat_hrs, fcut = 1/35., N = 4)
-                            Qms[Qms<0] = 0
-                            Qrms[ind] = np.sqrt(Qms)
-                    df_F['<Q>%s%02d' % (NSEW,i2poly+1)] = Qavg.copy()
-                    df_F['%0.2fsqrt(<(Q-<Q>)^2>)%s%02d' % (step0_config.alpha,NSEW,i2poly+1)] = step0_config.alpha * Qrms.copy()
+    #         for NSEW in ['N','S','E','W']:
+    #             for i2poly in range(n2poly):
+    #                 Q = np.zeros(len(df))
+    #                 Qavg = Q.copy()
+    #                 Qrms = Q.copy() 
+    #                 for group in group_list:
+    #                     ind = df['group'].values == group
+    #                     Q[ind] = df.loc[ind]['Continuity,Flux In from %s%02d (Mg/d)' % (NSEW, i2poly+1)].values
+    #                     if np.any(np.abs(Q[ind])>0):
+    #                         Qavg[ind] = semidi_filter(Q[ind], dt_hrs = deltat_hrs, fcut = 1/35., N = 4)
+    #                         Qms = semidi_filter((Q[ind] - Qavg[ind])**2, dt_hrs = deltat_hrs, fcut = 1/35., N = 4)
+    #                         Qms[Qms<0] = 0
+    #                         Qrms[ind] = np.sqrt(Qms)
+    #                 df_F['<Q>%s%02d' % (NSEW,i2poly+1)] = Qavg.copy()
+    #                 df_F['%0.2fsqrt(<(Q-<Q>)^2>)%s%02d' % (step0_config.alpha,NSEW,i2poly+1)] = step0_config.alpha * Qrms.copy()
 
-        # use the filtered dataframe
-        df = df_F.copy(deep=True)
-        del df_F
+    #     # use the filtered dataframe
+    #     df = df_F.copy(deep=True)
+    #     del df_F
 
-        # take a daily average and save it 
-        logging.info('    Take the daily average and save it before moving on to other types of time aggregation') 
-        logging.info('    (Note hourly data will be used going forward, just saving daily along the way)...') 
-        df_tavg = pd.DataFrame(columns=df.columns)
-        for group in group_list:
-            df1 = df.loc[df[group_col].values==group].resample('D',on='time').mean(numeric_only=True).reset_index()
-            df1[group_col] = group
-            df_tavg = pd.concat([df_tavg,df1])
-        balance_table_fn_out = balance_table_fn.replace('flow_m3s','Qavg_Qrms') 
-        logging.info('    Saving %s' % balance_table_fn_out) 
-        df_tavg.to_csv(os.path.join(step0_config.balance_table_dir,balance_table_fn_out),index=False, float_format=step0_config.float_format) 
+    #     # take a daily average and save it 
+    #     logging.info('    Take the daily average and save it before moving on to other types of time aggregation') 
+    #     logging.info('    (Note hourly data will be used going forward, just saving daily along the way)...') 
+    #     df_tavg = pd.DataFrame(columns=df.columns)
+    #     for group in group_list:
+    #         df1 = df.loc[df[group_col].values==group].resample('D',on='time').mean(numeric_only=True).reset_index()
+    #         df1[group_col] = group
+    #         df_tavg = pd.concat([df_tavg,df1])
+    #     balance_table_fn_out = balance_table_fn.replace('flow_m3s','Qavg_Qrms') 
+    #     logging.info('    Saving %s' % balance_table_fn_out) 
+    #     df_tavg.to_csv(os.path.join(step0_config.balance_table_dir,balance_table_fn_out),index=False, float_format=step0_config.float_format) 
 
     # get a list of columns we want to aggregate in time
     column_list = list(df.columns)
@@ -511,9 +513,6 @@ for balance_table_fn in table_list:
             # initialize dataframe
             df_tavg = pd.DataFrame()
 
-#            if tavg=='Seasonal':
-#                sys.exit()
-
             # loop through the groups
             for group in group_list:
 
@@ -524,7 +523,7 @@ for balance_table_fn in table_list:
                 for time_window, time_title in zip(time_windows, time_titles):
 
                     # find indices of the data in this time window
-                    ind = np.logical_and(df1['time']>=np.datetime64(time_window[0]), df1['time']<=np.datetime64(time_window[1]))
+                    ind = np.logical_and(df1['time']>=np.datetime64(time_window[0]), df1['time']<np.datetime64(time_window[1]))
                     df2 = df1.loc[ind].copy(deep=True)
 
                     # to get the initial time and the polygon right, take the first entry of the data
