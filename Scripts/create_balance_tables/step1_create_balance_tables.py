@@ -251,6 +251,7 @@ for i in range(len(hbdata.region.values)):
 
 # loop through all the parameters (nh4, no3, diat, etc.)
 varnames = [var.lower() for var in hbdata.sub.values]
+print(varnames)
 
 for varname in varnames:
 

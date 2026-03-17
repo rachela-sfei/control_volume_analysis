@@ -76,9 +76,10 @@ conda_env=os.environ['CONDA_DEFAULT_ENV']
 today= datetime.datetime.now().strftime('%b %d, %Y')
 logging.info('Composite balance tables with "Ungrouped Rx" were produced on %s by %s on %s in %s using %s' % (today, user, hostname, conda_env, scriptname))
 
-# scan the lsp file for mentions of N:C ratios and P:C ratios
+# scan the lsp file for mentions of N:C ratios P:C ratios
 NC_ratios = {}
 PC_ratios = {}
+SC_ratios = {}
 with open(step0_config.lsp_path,'r') as f:
     lines = f.readlines()
     for i in range(len(lines)-1):
@@ -120,6 +121,24 @@ with open(step0_config.lsp_path,'r') as f:
             PC_ratios['Mussel_V'] = float(line2.split(':')[1])
             PC_ratios['Mussel_E'] = float(line2.split(':')[1])
             PC_ratios['Mussel_R'] = float(line2.split(':')[1])
+        if 'SCRatDiat ' in line1:
+            SC_ratios['Diat'] = float(line2.split(':')[1])
+        elif 'Si:C ratio Greens' in line1:
+            SC_ratios['Green'] = float(line2.split(':')[1])
+        elif 'PCRatDiatS ' in line1:
+            SC_ratios['DiatS1'] = float(line2.split(':')[1])
+        elif 'Si:C ratio of DEB Zooplankton' in line1:
+            SC_ratios['Zoopl_V'] = float(line2.split(':')[1])
+            SC_ratios['Zoopl_E'] = float(line2.split(':')[1])
+            SC_ratios['Zoopl_R'] = float(line2.split(':')[1])
+        elif 'Si:C ratio of DEB Grazer4' in line1:
+            SC_ratios['Grazer4_V'] = float(line2.split(':')[1])
+            SC_ratios['Grazer4_E'] = float(line2.split(':')[1])
+            SC_ratios['Grazer4_R'] = float(line2.split(':')[1])
+        elif 'Si:C ratio of DEB Mussel' in line1:
+            SC_ratios['Mussel_V'] = float(line2.split(':')[1])
+            SC_ratios['Mussel_E'] = float(line2.split(':')[1])
+            SC_ratios['Mussel_R'] = float(line2.split(':')[1])
 logging.info('The following N:C ratios were found in %s:' % step0_config.lsp_path)
 keys = list(NC_ratios.keys())
 keys.sort()
@@ -130,6 +149,11 @@ keys = list(PC_ratios.keys())
 keys.sort()
 for key in keys:
     logging.info('    %s : %f' % (key, PC_ratios[key]))
+logging.info('The following Si:C ratios were found in %s:' % step0_config.lsp_path)
+keys = list(SC_ratios.keys())
+keys.sort()
+for key in keys:
+    logging.info('    %s : %f' % (key, SC_ratios[key]))
 
 # read the lsp file and return a list of the substances
 substances = []
@@ -231,6 +255,9 @@ for composite_param in step0_config.composite_parameters.keys():
         elif composite_base == 'P':
             if component_param in PC_ratios.keys():
                 multiplier = PC_ratios[component_param]
+        elif composite_base == 'Si':
+            if component_param in SC_ratios.keys():
+                multiplier = SC_ratios[component_param]
         logging.info('        Using the following stoichiometric multiplier for %s: %f' % (component_param, multiplier))
 
         # add up the concentrations, the change in mass, and the fluxes

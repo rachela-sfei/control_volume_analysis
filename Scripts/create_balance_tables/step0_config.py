@@ -18,16 +18,31 @@ abort_for_mass_cons_error = False
 
 # flag to indicate runs based on new hydro with straightened grid and calibrated temperature model
 is_v24 = True
+sedmod = True # the output from our sedmod is different than what is going on (for DIN and quadratic mortality), need to turn this on if that's the case
 
 # name of server and runid
-# server = 'boise'
-# vol = 'vol2'
-# runid = 'G141_21_373'
-# hydro_path = '/chicagovol2/hpcshared/open_bay/hydro/agg/wy2013-wy2022-v24/com-wy2013-wy2022-v24_agg_lp.hyd'
-server = 'chicago'
 vol = 'vol2'
-runid = 'FR21_008'
-hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
+
+#server = 'chicago'
+#runid = 'FR21_017'
+#hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
+
+server = 'boise'
+runid = 'G141_21_381'
+hydro_path = '/chicagovol2/hpcshared/open_bay/hydro/agg/wy2013-wy2022-v24/com-wy2013-wy2022-v24_agg_lp.hyd'
+
+#runid = 'FR21_011_4deltares'
+#hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24-4deltares/runs/wy2021-v24-4deltares/DFM_DELWAQ_wy2021-v24-4deltares_bound_temp_salt/wy2021-v24-4deltares.hyd'
+
+
+#runid = 'G141_21_264'
+
+#runid='FR13_042'
+#runid='FR13_043'
+#runid='FR13_044' 
+#runid='FR13_045' 
+#runid='FR13_046'
+#runid='FR13_047' 
 
 
 model_run_base_dir = '/%s%s/hpcshared' % (server,vol)
@@ -48,29 +63,43 @@ balance_table_dir = None       # will be placed inside run_dir unless otherwise 
 model_input_dir = '/richmondvol1/hpcshared'
 
 # stompy directory (stompy is called in step0_create_balance_tables.py to create dwaq_hist_bal.nc from the *-his.bal file if needed)
-stompy_dir = '/opt/software/rusty/stompy/newest_commit/stompy'
+stompy_dir = '/richmondvol1/jem/stompy'
 
 # base level substances to process. set to string 'all' or a list of substance strings -- warning, processing 
-# all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py)
-substance_list = ['continuity', 'nh4', 'no3', 'pon1', 'pon2', 'don', 'diat', 'diats1', 'green', 'oxy', 
-                  'zoopl_e', 'zoopl_r', 'zoopl_v', 
-                  'mussel_v','mussel_e','mussel_r','grazer4_v','grazer4_e','grazer4_r',
-                  'detns1', 'detns2', 'oons1', 'oons2',
-                  'poc1', 'poc2','detcs1', 'detcs2', 'oocs1', 'oocs2']
+# all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py),
+# substance_list = ['continuity', 'nh4', 'no3', 'pon1', 'pon2','pop1', 'pop2', 'don', 'dop', 'oxy', 'si', 'opal', 'po4',
+#                  'diat', 'green', 'diats1',
+#                  'zoopl_e', 'zoopl_r', 'zoopl_v', 
+#                  'mussel_v','mussel_e','mussel_r','grazer4_v','grazer4_e','grazer4_r',
+#                  'detns1', 'detns2', 'oons1', 'oons2',
+#                  'poc1', 'poc2','detcs1', 'detcs2', 'oocs1', 'oocs2']
+substance_list = ['continuity', 'doc', 'don', 'dop', 
+                  'detcs1', 'detcs2', 'detns1', 'detns2', 'detps1', 'detps2', 'detsis1', 'detsis2', 
+                  'diat', 'diats1', 'green', 
+                  'nh4', 'no3', 'oxy', 'opal', 'po4', 'si',
+                  'oocs1', 'oocs2', 'oons1', 'oons2', 'oops1', 'oops2', 'oosis1', 'oosis2', 
+                  'poc1', 'poc2', 'pon1', 'pon2', 'pop1', 'pop2', 
+                  'zoopl_e', 'zoopl_n', 'zoopl_r', 'zoopl_v']# turning all of these on for now because it seems like we need them for the composite parameters
 
 # list of substances we think we are actually going to want to plot -- to save space, the 
 # step5_compile_balance_tables_into_groups.py and step6_aggregate_in_time.py scripts will only process these substances
-plot_substance_list = ['continuity','tn_plus_diats1_plus_detns12','tn','din','nh4','no3','don',
-                        'pon1','pon2','n-algae','n-zoopl','detns12','oons12','detns1','detns2','oons1','oons2',
-                        'oxy','algae','diat','green','diats1','zoopl','mussel','grazer4','clams',
-                        'poc1', 'poc2','detcs1', 'detcs2', 'oocs1', 'oocs2']
+plot_substance_list = ['continuity',
+                       'nh4','no3','pon1','pon2','detns1','detns2','detns12','din','tn',#'tn_plus_diats1_plus_detns12' # nitrogen plus composite parameters
+                       'po4','pop1','pop2','detps1','detps2','tp',                                                    # phosphorus plus composite parameters
+                       'si', 'opal', 'tsi',                                                                           # si plus composite parameters
+                       'diat','green','algae',#'n-algae',                                                              # algae
+                    #    'zoopl','mussel','grazer4','clams','n-zoopl',                                                  # grazers
+                    #    'oons1','oons2','oons12','oops1','oops2', 'oocs1','oocs2',                                     # refractory 
+                       'oxy',                                                                                         # oxygen
+                    #    'diats1',                                                                                      # microphytobenthos
+                       'poc1', 'poc2','detcs1', 'detcs2',]                                                            # carbon 
 
 
 # list of time averaging schemes to apply (saves space to skip some if we don't need them) 
 # (this is used in step6_aggregate_in_time.py)
 # in Dec 2023 added Seasonal2 which defines 3 seasons (Oct,Nov,Dec,Jan + Feb,Mar,Apr,May + Jun,Jul,Aug,Sep)
 # in contrast to Seasonal which defines 4 seasons (Oct,Nov,Dec + Jan,Feb,Mar + Apr,May,Jun + Jul,Aug,Sep)
-tavg_list = ['Seasonal','Seasonal2','Seasonal3','Monthly','Weekly','Filtered','Cumulative','Annual']
+tavg_list = ['Filtered','Cumulative','Annual','Seasonal']#,'Seasonal2','Seasonal3','Monthly','Weekly']
 
 
 # float format for csv files
@@ -125,18 +154,20 @@ composite_parameters = {
 #                             'Mussel_V','Mussel_E','Mussel_R','Grazer4_V','Grazer4_E','Grazer4_R'], 
 #    'TN_plus_DetNS12' : 
 # since DiatS1 is no longer part of TN, rename TN_plus_DetNS12 but the components remain the same
-    'TN_plus_DiatS1_plus_DetNS12' : ['NH4', 'NO3', 'PON1', 'PON2', 'DON', 'DetNS1', 'DetNS2', 
-                             'Diat', 'Green', 'DiatS1', 'Zoopl_V', 'Zoopl_E', 'Zoopl_R',
-                             'Mussel_V','Mussel_E','Mussel_R','Grazer4_V','Grazer4_E','Grazer4_R'], 
+    # 'TN_plus_DiatS1_plus_DetNS12' : ['NH4', 'NO3', 'PON1', 'PON2', 'DON', 'DetNS1', 'DetNS2', 
+    #                          'Diat', 'Green', 'DiatS1', 'Zoopl_V', 'Zoopl_E', 'Zoopl_R',
+    #                          'Mussel_V','Mussel_E','Mussel_R','Grazer4_V','Grazer4_E','Grazer4_R'], 
 #    'TotalDetNS' : ['DetNS1','DetNS2','OONS1','OONS2'],   
     'DetNS12' : ['DetNS1','DetNS2'],
-    'OONS12' : ['OONS1','OONS2'],                  
-#    'TP'  : ['PO4', 'POP1', 'DOP', 'Diat', 'Green', 'DiatS1', 'Zoopl_V', 'Zoopl_E', 'Zoopl_R'],
+    'OONS12' : ['OONS1','OONS2'],               
+# pradeep seuggested take DiatS1 out of TP Feb 2026   
+    'TP'  : ['PO4', 'POP1', 'POP2', 'DOP', 'Diat', 'Green', 'Zoopl_V', 'Zoopl_E', 'Zoopl_R'],
 #    'TP_include_sediment' : ['PO4', 'POP1', 'DOP', 'DetPS1', 'DetPS2', 
 #                             'Diat', 'Green', 'DiatS1', 'Zoopl_V', 'Zoopl_E', 'Zoopl_R',
 #                             'Mussel_V','Mussel_E','Mussel_R','Grazer4_V','Grazer4_E','Grazer4_R'],
 #    'TotalDetPS' : ['DetPS1', 'DetPS2','OOPS1', 'OOPS2'],
 #    'TotalDetSi' : ['DetSiS1', 'DetSiS2','OOSiS1', 'OOSiS2'],
+    'TSi' : ['Si','Opal', 'Diat', 'Green'], # zooplankton do not contribute to Si budget (only N and P)
     'Grazer4' : ['Grazer4_V', 'Grazer4_E', 'Grazer4_R'],
     'Mussel' : ['Mussel_V', 'Mussel_E', 'Mussel_R'], 
     'Clams' : ['Grazer4_V', 'Grazer4_E', 'Grazer4_R', 'Mussel_V', 'Mussel_E', 'Mussel_R']
@@ -161,6 +192,7 @@ composite_bases = {
     'TP_include_sediment'  : 'P', 
     'TotalDetPS' : 'P',
     'TotalDetSi' : 'Si',
+    'TSi' : 'Si',
     'Grazer4' : 'C',
     'Mussel' : 'C',
     'Clams' : 'C'
@@ -173,8 +205,10 @@ composite_reaction_dict = {
      'N-Algae' : {'Diat,dPPDiat' : ['Diat,dPPDiat', 'Diat,dcPPDiat'],
                   'Green,dPPGreen' : ['Green,dPPGreen', 'Green,dcPPGreen'], 
                   ###'DiatS1,dPPDiatS1' : ['DiatS1,dPPDiatS1'], 
-                  'Diat,dMrtDiat' : ['Diat,dMrtDiat','Diat,dqmtdiat'],
-                  'Green,dMrtGreen' : ['Green,dMrtGreen','Green,dqmtgrn'],
+                  'Diat,dMrtDiat' : ['Diat,dMrtDiat'],
+                  'Green,dMrtGreen' : ['Green,dMrtGreen'],
+                  'Diat,dDiatQMrt' : ['Diat,dqmtdiat'],
+                  'Diat,dDiatQMrt' : ['Green,dqmtgree'],
                   ###'DiatS1,dMrtDiatS1' : ['DiatS1,dMrtDiatS1'],
                   ###'Diat,dZ_Diat' : ['Diat,dZ_Diat'],
                   ###'Green,dZ_Grn' : ['Green,dZ_Grn'],
@@ -190,8 +224,10 @@ composite_reaction_dict = {
      'Algae' : {'Diat,dPPDiat' : ['Diat,dPPDiat', 'Diat,dcPPDiat'],
                   'Green,dPPGreen' : ['Green,dPPGreen', 'Green,dcPPGreen'], 
                   ###'DiatS1,dPPDiatS1' : ['DiatS1,dPPDiatS1'], 
-                  'Diat,dMrtDiat' : ['Diat,dMrtDiat','Diat,dqmtdiat'],
-                  'Green,dMrtGreen' : ['Green,dMrtGreen','Green,dqmtgrn'],
+                  'Diat,dMrtDiat' : ['Diat,dMrtDiat'],
+                  'Green,dMrtGreen' : ['Green,dMrtGreen'],
+                  'Diat,dDiatQMrt' : ['Diat,dqmtdiat'],
+                  'Diat,dDiatQMrt' : ['Green,dqmtgree'],
                   ###'DiatS1,dMrtDiatS1' : ['DiatS1,dMrtDiatS1'],
                   ###'Diat,dZ_Diat' : ['Diat,dZ_Diat'],
                   ###'Green,dZ_Grn' : ['Green,dZ_Grn'],
@@ -206,36 +242,35 @@ composite_reaction_dict = {
                   'Zoopl,dZ_mor' : ['Zoopl_V,dZ_Vmor','Zoopl_E,dZ_Emor','Zoopl_R,dZ_Rmor']},
     # note the all lower case reactions are for the new denitrificaiton model
      'DIN' : {
-             'NH4,dMinDetNS12' : ['NH4,dMinDetNS1', 'NH4,dMinDetNS2','NH4,ddetns1min','NH4,ddetns2min'],# this is a source
-             'NH4,dMinOONS12' :  ['NH4,dMinOONS1', 'NH4,dMinOONS2','NH4,doons1min','NH4,doons2min'], # this is a source
              'DIN,dDINUpt'  : ['NO3,dNO3Upt', 'NH4,dNH4Upt'], # uptake is a sink, uptake for diatoms and greens is lumped together
              'DIN,dDINUptS1' : ['NH4,dNH4UptS1', 'NH4,dNH4US1D', 'NO3,dNO3UptS1'], # there are three additional uptake terms for benthic algae       
-             'NO3,dDenit'   : ['NO3,dDenitWat', 'NO3,dDenitSed','NO3,dNiDen'],    # this is a sink
+             'NH4,dMinDetNS12': ['NH4,dMinDetNS1', 'NH4,dMinDetNS2','NH4,ddetns1min', 'NH4,ddetns2min'],
+             'NH4,dMinOONS12': ['NH4,dMinOONS1', 'NH4,dMinOONS2','NH4,doons1min', 'NH4,doons2min'],
+             'NO3,dDenit'   : ['NO3,dDenitWat', 'NO3,dDenitSed','NO3,dNiDen'],
+             'NO3,dDetDenit' : ['NO3,ddetcs1nit','NO3,ddetcs2nit'],
+             'NO3,dOODenit' : ['NO3,doocs1nit','NO3,doocs2nit'],
+             'NH4,dAlgQMrt' : ['NH4,dqmtdNH4','NH4,dqmtgNH4'],
              #'NH4,dMinPON1' : ['NH4,dMinPON1'], # this is a source
              #'NH4,dMinPON2' : ['NH4,dMinPON2'], # this is a source
              'NH4,dMinPON' : ['NH4,dMinPON1','NH4,dMinPON2'],
              ###'NH4,dMinDON' : ['NH4,dMinDON'], # this is a source
-             ###'NH4,dZ_NRes' : ['NH4,dZ_NRes'], # this is a source
-             ###'NH4,dNH4Aut'  : ['NH4,dNH4Aut'], # this is a source 
+             'NH4,dZ_NRes' : ['NH4,dZ_NRes'], # this is a source
+             'NH4,dNH4Aut'  : ['NH4,dNH4Aut'], # this is a source 
              ###'NH4,dNH4AUTS1' : ['NH4,dNH4AUTS1'], # this is a source
-             'NH4,dAlgQMrt' : ['NH4,dqmtdNH4','NH4,dqmtgNH4'],
-             'NO3,dDetDenit' : ['NO3,ddetcs1nit','NO3,ddetcs2nit'],
-             'NO3,dOODenit' : ['NO3,doocs1nit','NO3,doocs2nit'],
              'SUMS TO ZERO: NH4,dNitrif + NO3,dNitrif'  : ['NO3,dNitrif', 'NH4,dNitrif'],     # these should cancel out    
              },
-    'TN' : { 'NO3,dDenit' : ['NO3,dDenitWat', 'NO3,dDenitSed','NO3,dNiDen'], # this should be a SINK for TN
-             'NO3,dDetDenit' : ['NO3,ddetcs1nit','NO3,ddetcs2nit'],
-             'NO3,dOODenit' : ['NO3,doocs1nit','NO3,doocs2nit'],
+    'TN' : { 
              'Algae,dSedAlgae' : ['Diat,dSedDiat', 'Green,dSedGreen'],  # this should be a SINK for TN
-             ###'PON1,dSedPON1' : ['PON1,dSedPON1'], # this should be a SINK for TN
-             ###'PON2,dSedPON2' : ['PON2,dSedPON2'], # this should be a SINK for TN 
-             #'DiatS1,dMrtDiatS1' : ['DiatS1,dMrtDiatS1'], # dead benthic algae turn into detritus through the 'DetNS1,dMrtDetNS1' term, so this is a water column sink
-             #'DiatS1,dBurS1Diat' : ['DiatS1,dBurS1Diat'], # burial of benthic algae appears to be a true sink -- it leaves the model completely!
-             'NH4,dMinDetNS12' : ['NH4,dMinDetNS1', 'NH4,dMinDetNS2','NH4,ddetns1min','NH4,ddetns2min'],# this is a source
-             'NH4,dMinOONS12' :  ['NH4,dMinOONS1', 'NH4,dMinOONS2','NH4,doons1min','NH4,doons2min'], # this is a source
+             'PON1,dSedPON1' : ['PON1,dSedPON1'], # this should be a SINK for TN
+             'PON2,dSedPON2' : ['PON2,dSedPON2'], # this should be a SINK for TN 
+            #  'DiatS1,dMrtDiatS1' : ['DiatS1,dMrtDiatS1'], # dead benthic algae turn into detritus through the 'DetNS1,dMrtDetNS1' term, so this is a water column sink
+            #  'DiatS1,dBurS1Diat' : ['DiatS1,dBurS1Diat'], # burial of benthic algae appears to be a true sink -- it leaves the model completely!
+             'NH4,dMinDetNS12': ['NH4,dMinDetNS1', 'NH4,dMinDetNS2','NH4,ddetns1min', 'NH4,ddetns2min'],
+             'NH4,dMinOONS12': ['NH4,dMinOONS1', 'NH4,dMinOONS2','NH4,doons1min', 'NH4,doons2min'],
              'NO3,dDetDenit' : ['NO3,ddetcs1nit','NO3,ddetcs2nit'],
              'NO3,dOODenit' : ['NO3,doocs1nit','NO3,doocs2nit'],
-             ###'NH4,dNH4AUTS1' : ['NH4,dNH4AUTS1'], # part of the dead algae from DiatS1,dMrtDiatS1 get returned to the water column via autolysis, so this is a water column source
+             'NO3,dDenit' : ['NO3,dDenitWat', 'NO3,dDenitSed','NO3,dNiDen'], # this should be a SINK for TN
+             'NH4,dNH4AUTS1' : ['NH4,dNH4AUTS1'], # part of the dead algae from DiatS1,dMrtDiatS1 get returned to the water column via autolysis, so this is a water column source
              'NH4,dClam_NRes' : ['NH4,dM_NRes','NH4,dG4_NRes'], # this is a SOURCE for TN (clam pee)
              'PON1,dClam_NDef' : ['PON1,dM_NDef','PON1,dG4_NDef'], # this is a SOURCE for TN (clam poo)
              'Algae,dClam_Algae' : ['Diat,dM_Diat','Diat,dG4_Diat','Green,dM_Green','Green,dG4_Green'], # this is a SINK for TN (clams eat algae)
@@ -300,7 +335,126 @@ composite_reaction_dict = {
                                                                                       'DiatS1,dDigS1Diat'], 
              'EACH IS ZERO: PON2,dCnvDPON2 + PON2,dMortOON + PON2,dResS1OON + PON2,dResS2OON' : ['PON2,dCnvDPON2','PON2,dMortOON','PON2,dResS1OON','PON2,dResS2OON'] #### NEW #### each is zero for now 
             },
-  #  'TN_include_sediment' : {
+    'OONS12' : {    ###'OONS1,dSedPON2' : ['OONS1,dSedPON2'],  # source
+                    'OONS12,dMinOONS12' :  ['OONS1,dMinOONS1', 'OONS2,dMinOONS2','OONS1,doons1min','OONS2,doons2min'], # this is a source
+                    #'OONS1,dMinOONS1' : ['OONS1,dMinOONS1'], # sink
+                    #'OONS2,dMinOONS2' : ['OONS2,dMinOONS2'], # sink
+                    ###'OONS2,dBurS2OON' : ['OONS2,dBurS2OON'], # sink
+                    'SUMS TO ZERO: OONS1,dBurS1OON + OONS2,dBurS1OON' : ['OONS1,dBurS1OON', 'OONS2,dBurS1OON'],
+                    'SUMS TO ZERO: OONS1,dDigS1OON + OONS2,dDigS1OON' : ['OONS1,dDigS1OON', 'OONS2,dDigS1OON'],
+                    'EACH IS ZERO: OONS1,dSWMnOONS1 + OONS1,dResS1OON + OONS1,dSWBuS1OON' : ['OONS1,dSWMnOONS1','OONS1,dResS1OON','OONS1,dSWBuS1OON'],
+                    'EACH IS ZERO: OONS2,dSWMnOONS2 + OONS2,dResS2OON + OONS2,dDigS2OON' : ['OONS2,dSWMnOONS2','OONS2,dResS2OON', 'OONS2,dDigS2OON']},
+    'DetNS12' : {   ###'DetNS1,dMrtDetNS1' : ['DetNS1,dMrtDetNS1'], # source
+                    ###'DetNS1,dSedAlgN' : ['DetNS1,dSedAlgN'], # source
+                    ###'DetNS1,dSedPON1' : ['DetNS1,dSedPON1'], # source
+                    'DetNS12,dMinDetNS12' : ['DetNS1,dMinDetNS1', 'DetNS2,dMinDetNS2','DetNS1,ddetns1min','DetNS2,ddetns2min'],# this is a source
+                    ###'DetNS2,dBurS2DetN' : ['DetNS2,dBurS2DetN'], # sink
+                    'SUMS TO ZERO: DetNS1,dBurS1DetN + DetNS2,dBurS1DetN' : ['DetNS1,dBurS1DetN', 'DetNS2,dBurS1DetN'],
+                    'SUMS TO ZERO: DetNS2,dDigS1DetN + DetNS1,dDigS1DetN' : ['DetNS2,dDigS1DetN', 'DetNS1,dDigS1DetN'],
+                    'EACH IS ZERO: DetNS1,dSWMinDNS1 + DetNS1,dZ_NMrtS1 + DetNS1,dZ_DNS1 + DetNS1,dResS1DetN + DetNS1,dSWBuS1DtN' : ['DetNS1,dSWMinDNS1',
+                                                              'DetNS1,dZ_NMrtS1','DetNS1,dZ_DNS1','DetNS1,dResS1DetN','DetNS1,dSWBuS1DtN'],
+                    'EACH IS ZERO: DetNS2,dSWMinDNS2 + DetNS2,dResS2DetN + DetNS2,dDigS2DetN' : ['DetNS2,dSWMinDNS2', 'DetNS2,dResS2DetN', 'DetNS2,dDigS2DetN'],},
+    'TP' : {
+        #  'PO4,dMinPOP12':['PO4,dMinPOP1','PO4,dMinPOP2'], # this may not be a source since it goes to PO4, right?
+         'PO4,dMinDetPS12':['PO4,dMinDetPS1','PO4,dMinDetPS2','PO4,ddetps1min','PO4,ddetps2min'], # this is a source in sed NOTE: THIS WAS CREATED WITH SEDMOD ON IF SEDMOD TURNS OFF IT NO LONGER WORKS
+         'PO4,dMinOOPS12':['PO4,dMinOOPS1','PO4,dMinOOPS2','PO4,doops1min','PO4,doops2min'], # this is a source in sed
+         'Algae,dSedAlgae' : ['Diat,dSedDiat', 'Green,dSedGreen'],  # this should be a SINK for TP
+         'PO4,dPO4UptS1' : ['PO4,dPO4UptS1','PO4,dPO4US1D'], # remove from MPB
+         'POP1,dSedPOP1' : ['POP1,dSedPOP1'], # sink
+         'POP2,dSedPOP2' : ['POP2,dSedPOP2'], # sink
+         'PO4,dPO4AutS1' : ['PO4,dPO4AUTS1'], # this is a water column source if MPB is on
+         # this is all I can find for now
+         'SUMS TO ZERO: Diat,dqmtdiat + PO4,dqmtdPO4 + POP1,dqmtdLP + POP2,dqmtdRP' : ['Diat,dqmtdiat','PO4,dqmtdPO4','POP1,dqmtdLP','POP2,dqmtdRP'], # there is probably some multiplier here too?
+         'SUMS TO ZERO: Green,dqmtgree + PO4,dqmtgPO4 + POP1,dqmtgLP + POP2,dqmtgRP' : ['Green,dqmtgree','PO4,dqmtgPO4','POP1,dqmtgLP','POP2,dqmtgRP'],
+         'SUMS TO ZERO: Diat,dPPDiat + Diat,dcPPDiat + Green,dPPGreen + Green,dcPPGreen + PO4,dPO4Upt': 
+                                                                                     ['Diat,dPPDiat',
+                                                                                      'Diat,dcPPDiat',
+                                                                                      'Green,dPPGreen',
+                                                                                      'Green,dcPPGreen',
+                                                                                      'PO4,dPO4Upt',], 
+         'SUMS TO ZERO: Diat,dMrtDiat + Green,dMrtGreen + POP1,dMortDetP + PO4,dPO4Aut' :  ['Diat,dMrtDiat', # dead water column algae become PON and NH4 
+                                                                                        'Green,dMrtGreen',
+                                                                                        'POP1,dMortDetP', 
+                                                                                        'PO4,dPO4Aut'], 
+         'SUMS TO ZERO: PO4,dMinPOP1 + POP1,dMinPOP1' : ['PO4,dMinPOP1','POP1,dMinPOP1'],   # these two sum to zero
+         'SUMS TO ZERO: PO4,dMinPOP2 + POP2,dMinPOP2' : ['PO4,dMinPOP2','POP2,dMinPOP2'],   # these two sum to zero
+         'SUMS TO ZERO: PO4,dMinDOP + DOP,dMinDOP' : ['PO4,dMinDOP','DOP,dMinDOP'],       # these two sum to zero    
+         'SUMS TO ZERO: PO4,dZ_PRes + POP1,dZ_POP + POP1,dZ_PDef + POP1,dZ_PSpDet + Diat,dZ_Diat + Green,dZ_Grn + Zoopl_V,dZ_Vgr + Zoopl_R,dZ_SpwDet + Zoopl_R,dZ_Rgr + Zoopl_E,dZ_Ea + Zoopl_E,dZ_Ec' : [
+                                 'PO4,dZ_PRes',
+                                 'POP1,dZ_POP',
+                                 'POP1,dZ_PDef',
+                                 'POP1,dZ_PSpDet',
+                                 'Diat,dZ_Diat',
+                                 'Green,dZ_Grn',
+                                 'Zoopl_V,dZ_Vgr',
+                                 'Zoopl_R,dZ_SpwDet',
+                                 'Zoopl_R,dZ_Rgr',
+                                 'Zoopl_E,dZ_Ea',
+                                 'Zoopl_E,dZ_Ec'],
+         'SUMS TO ZERO: POP1,dZ_PMrt + POP1,dM_PMrt + POP1,dG4_PMrt + POP1,dM_PSpDet + POP1,dG4_PSpDet + Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [
+                                          'POP1,dZ_PMrt',      
+                                          'POP1,dM_PMrt',
+                                          'POP1,dG4_PMrt',
+                                          'POP1,dM_PSpDet',
+                                          'POP1,dG4_PSpDet',
+                                          'Zoopl_V,dZ_Vmor',  
+                                          'Zoopl_R,dZ_Rmor',  
+                                          'Zoopl_E,dZ_Emor'],
+         'SUMS TO ZERO: POP1,dCnvPPOP1 + POP2,dCnvPPOP1' : ['POP1,dCnvPPOP1','POP2,dCnvPPOP1'],
+         'EACH IS ZERO: POP1,dResS1DetP + POP1,dResS2DetP + POP1,dResS1DiDP + POP1,dResS2DiDP' : [ 
+                                          'POP1,dResS1DetP', 
+                                          'POP1,dResS2DetP', 
+                                          'POP1,dResS1DiDP', 
+                                          'POP1,dResS2DiDP'],
+         'EACH IS ZERO: POP2,dCnvPPOP2 + POP2,dMortOOP + POP2,dResS1OOP + PON2,POP2,dResS2OOP' : ['POP2,dCnvPPOP2','POP2,dMortOOP','POP2,dResS1OOP','POP2,dResS2OOP'],
+         'SUMS TO ZERO: POP1,dCnvDPOP1 + DOP,dCnvDPOP1' : ['POP1,dCnvDPOP1','DOP,dCnvDPOP1'],
+         'SUMS TO ZERO: POP2,dCnvDPOP2 + DOP,dCnvDPOP2' : ['POP2,dCnvDPOP2','DOP,dCnvDPOP2'],
+    },
+    'TSi' : {
+         'Opal,dSedOpal' : ['Opal,dSedOpal'], # flux to sediment sink
+         'Opal,dResS12DetS' : ['Opal,dResS1DetS','Opal,dResS2DetS'], # source resuspension of det si from S12
+         'Opal,dResS12OOSi' : ['Opal,dResS1OOSi','Opal,dResS2OOSi'], # source resuspension flux of OOSi from S12
+         'Opal,dResS12DiDS' : ['Opal,dResS1DiDS','Opal,dResS2DiDS'], # resuspension flux of opal from S12
+         'Si,dSiAutS1' : ['Si,dSiAUTS1'], # source of Si from MPB
+         'Si,dMinDetSiS12':['Si,dMinDetSiS','Si,dMinDetSS2'],  # sink to the sediments
+         'Si,dMinOOSiS12':['Si,dMinOOSiS1','Si,dMinOOSiS2'],  # sink to the sediments
+         'Si,dSiUptS1' : ['Si,dSiUptS1','Si,dSiUS1D'], # uptake by MPB to sediments
+         'Algae,dSedAlgae' : ['Diat,dSedDiat', 'Green,dSedGreen'],  # this should be a SINK for TSi
+        # should sum to zero
+         'SUMS TO ZERO: Si,dDissolSi + Opal,dDissolSi' : ['Si,dDissolSi', 'Opal,dDissolSi'],
+         'SUMS TO ZERO: Diat,dqmtdiat + Si,dqmtdSi + Opal,dqmtdLSi + Opal,dqmtdRSi' : ['Diat,dqmtdiat','Si,dqmtdSi','Opal,dqmtdLSi','Opal,dqmtdRSi'], # there is probably some multiplier here too?
+         'SUMS TO ZERO: Green,dqmtgree + Si,dqmtgSi + Opal,dqmtgLSi + Opal,dqmtgRSi' : ['Green,dqmtgree','Si,dqmtgSi','Opal,dqmtgLSi','Opal,dqmtgRSi'],
+         'SUMS TO ZERO: Diat,dMrtDiat + Green,dMrtGreen + Opal,dMortDetSi + Si,dSIaut + Opal,dMortOOSi' :  ['Diat,dMrtDiat','Green,dMrtGreen','Opal,dMortDetSi','Si,dSIaut','Opal,dMortOOSi'], 
+         'SUMS TO ZERO: Diat,dPPDiat + Diat,dcPPDiat + Green,dPPGreen + Green,dcPPGreen + Si,dSIUpt': 
+                                                                                     ['Diat,dPPDiat',
+                                                                                      'Diat,dcPPDiat',
+                                                                                      'Green,dPPGreen',
+                                                                                      'Green,dcPPGreen',
+                                                                                      'Si,dSIUpt',],
+         'SUMS TO ZERO: Opal,dZ_SiDef + Opal,dZ_POSi + Diat,dZ_Diat + Green,dZ_Grn' : 
+                                                                                    ['Opal,dZ_SiDef','Opal,dZ_POSi',
+                                                                                     'Diat,dZ_Diat','Green,dZ_Grn']
+    },
+        #'TotalDetNS' : {'DetNS1,dMrtDetNS1' : ['DetNS1,dMrtDetNS1'], # source
+    #                'DetNS1,dSedAlgN' : ['DetNS1,dSedAlgN'], # source
+    #                'DetNS1,dSedPON1' : ['DetNS1,dSedPON1'], # source
+    #                'OONS1,dSedPON2' : ['OONS1,dSedPON2'],  # source 
+    #                'DetNS1,dMinDetNS1' : ['DetNS1,dMinDetNS1'], # sink 
+    #                'DetNS2,dMinDetNS2' : ['DetNS2,dMinDetNS2'], # sink
+    #                'OONS1,dMinOONS1' : ['OONS1,dMinOONS1'], # sink
+    #                'OONS2,dMinOONS2' : ['OONS2,dMinOONS2'], # sink
+    #                'DetNS2,dBurS2DetN' : ['DetNS2,dBurS2DetN'], # sink
+    #                'OONS2,dBurS2OON' : ['OONS2,dBurS2OON'], # sink
+    #                'SUMS TO ZERO: DetNS1,dBurS1DetN + DetNS2,dBurS1DetN' : ['DetNS1,dBurS1DetN', 'DetNS2,dBurS1DetN'],
+    #                'SUMS TO ZERO: DetNS2,dDigS1DetN + DetNS1,dDigS1DetN' : ['DetNS2,dDigS1DetN', 'DetNS1,dDigS1DetN'],
+    #                'SUMS TO ZERO: OONS1,dBurS1OON + OONS2,dBurS1OON' : ['OONS1,dBurS1OON', 'OONS2,dBurS1OON'],
+    #                'SUMS TO ZERO: OONS1,dDigS1OON + OONS2,dDigS1OON' : ['OONS1,dDigS1OON', 'OONS2,dDigS1OON'],
+    #                'EACH IS ZERO: DetNS1,dSWMinDNS1 + DetNS1,dZ_NMrtS1 + DetNS1,dZ_DNS1 + DetNS1,dResS1DetN + DetNS1,dSWBuS1DtN' : ['DetNS1,dSWMinDNS1',
+    #                                                          'DetNS1,dZ_NMrtS1','DetNS1,dZ_DNS1','DetNS1,dResS1DetN','DetNS1,dSWBuS1DtN'],
+    #                'EACH IS ZERO: DetNS2,dSWMinDNS2 + DetNS2,dResS2DetN + DetNS2,dDigS2DetN' : ['DetNS2,dSWMinDNS2', 'DetNS2,dResS2DetN', 'DetNS2,dDigS2DetN'],
+    #                'EACH IS ZERO: OONS1,dSWMnOONS1 + OONS1,dResS1OON + OONS1,dSWBuS1OON' : ['OONS1,dSWMnOONS1','OONS1,dResS1OON','OONS1,dSWBuS1OON'],
+    #                'EACH IS ZERO: OONS2,dSWMnOONS2 + OONS2,dResS2OON + OONS2,dDigS2OON' : ['OONS2,dSWMnOONS2','OONS2,dResS2OON', 'OONS2,dDigS2OON'],},
+      #  'TN_include_sediment' : {
   #           'NO3,dDenit' : ['NO3,dDenitWat','NO3,dDenitSed','NO3,dNiDen'], # this should be a SINK for TN
   #           'DetNS2,dBurS2DetN' : ['DetNS2,dBurS2DetN'], # this appears to act as a true SINK for TN as well
   #           'OONS2,dBurS2OON' : ['OONS2,dBurS2OON'], # true sink
@@ -421,170 +575,132 @@ composite_reaction_dict = {
   #           'EACH IS ZERO: OONS1,dSWMnOONS1 + OONS1,dSWBuS1OON' : ['OONS1,dSWMnOONS1','OONS1,dSWBuS1OON'], #### NEW #### each is zero, and I can't find matches for them
   #           'EACH IS ZERO: OONS2,dSWMnOONS2 + OONS2,dDigS2OON' : ['OONS2,dSWMnOONS2', 'OONS2,dDigS2OON'],             
   #  },
-
-    'TN_plus_DiatS1_plus_DetNS12' : {
-             'NO3,dDenit' : ['NO3,dDenitWat','NO3,dDenitSed','NO3,dNiDen'], # this should be a SINK for TN
-             'NO3,dDetDenit' : ['NO3,ddetcs1nit','NO3,ddetcs2nit'],
-             'NO3,dOODenit' : ['NO3,doocs1nit','NO3,doocs2nit'],
-             ###'DetNS2,dBurS2DetN' : ['DetNS2,dBurS2DetN'], # this appears to act as a true SINK for TN as well
-             ###'DiatS1,dBurS1Diat' : ['DiatS1,dBurS1Diat'], # burial of benthic algae also seems to be a true sink
-             ###'PON2,dSedPON2' : ['PON2,dSedPON2'], # sink to OONS2
-             'NH4,dMinOONS12' :  ['NH4,dMinOONS1', 'NH4,dMinOONS2','NH4,doons1min','NH4,doons2min'], # this is a source
-             'SUMS TO ZERO: Diat,dqmtdiat + NH4,dqmtdNH4 + PON1,dqmtdLN + PON2,dqmtdRN' : ['Diat,dqmtdiat','NH4,dqmtdNH4','PON1,dqmtdLN','PON2,dqmtdRN'],
-             'SUMS TO ZERO: Green,dqmtgree + NH4,dqmtgNH4 + PON1,dqmtgLN + PON2,dqmtgRN' : ['Green,dqmtgree','NH4,dqmtgNH4','PON1,dqmtgLN','PON2,dqmtgRN'],
-             'SUMS TO ZERO: Diat,dPPDiat + Diat,dcPPDiat + Green,dPPGreen + Green,dcPPGreen + NH4,dNH4Upt + NO3,dNO3Upt' : 
-                                                                                     ['Diat,dPPDiat',
-                                                                                      'Diat,dcPPDiat',
-                                                                                      'Green,dPPGreen',
-                                                                                      'Green,dcPPGreen',
-                                                                                      'NH4,dNH4Upt',
-                                                                                      'NO3,dNO3Upt'],
-             # identify groups of terms that sum to zero
-             'SUMS TO ZERO: NH4,dNH4UptS1 + NH4,dNH4US1D + NO3,dNO3UptS1 + DiatS1,dPPDiatS1' : ['NH4,dNH4UptS1', # these terms sum to zero, benthic algae productivity
-                                                                                        'NH4,dNH4US1D', 
-                                                                                        'NO3,dNO3UptS1', 
-                                                                                        'DiatS1,dPPDiatS1'], 
-             'SUMS TO ZERO: NO3,dNitrif + NH4,dNitrif' : ['NO3,dNitrif','NH4,dNitrif'],      # these two sum to zero
-             'SUMS TO ZERO: DON,dCnvDPON1 + PON1,dCnvDPON1' : ['DON,dCnvDPON1','PON1,dCnvDPON1'], # these two sum to zero
-             'SUMS TO ZERO: NH4,dMinPON1 + PON1,dMinPON1' : ['NH4,dMinPON1','PON1,dMinPON1'],   # these two sum to zero
-             'SUMS TO ZERO: NH4,dMinDON + DON,dMinDON' : ['NH4,dMinDON','DON,dMinDON'],       # these two sum to zero
-             'SUMS TO ZERO: DiatS1,dMrtDiatS1 + DetNS1,dMrtDetNS1 + OONS1,dMrtOONS1 + NH4,dNH4AUTS1' : ['DiatS1,dMrtDiatS1', # when benthic algae die, some goes into detritus, some goes to water column via autolysis 
-                                                                              'DetNS1,dMrtDetNS1', 
-                                                                              'OONS1,dMrtOONS1',
-                                                                              'NH4,dNH4AUTS1'],
-             'SUMS TO ZERO: Diat,dMrtDiat + Green,dMrtGreen + PON1,dMortDetN + NH4,dNH4Aut' :  ['Diat,dMrtDiat', # dead water column algae become PON and NH4 
-                                                                                        'Green,dMrtGreen',
-                                                                                        'PON1,dMortDetN',
-                                                                                        'NH4,dNH4Aut'], 
-             'SUMS TO ZERO: NH4,dZ_NRes + PON1,dZ_PON1 + PON1,dZ_NDef + PON1,dZ_NSpDet + Diat,dZ_Diat + Green,dZ_Grn + Zoopl_V,dZ_Vgr + Zoopl_R,dZ_SpwDet + Zoopl_R,dZ_Rgr + Zoopl_E,dZ_Ea + Zoopl_E,dZ_Ec' : [
-                                 'NH4,dZ_NRes',
-                                 'PON1,dZ_PON1',
-                                 'PON1,dZ_NDef',
-                                 'PON1,dZ_NSpDet',
-                                 'Diat,dZ_Diat',
-                                 'Green,dZ_Grn',
-                                 'Zoopl_V,dZ_Vgr',
-                                 'Zoopl_R,dZ_SpwDet',
-                                 'Zoopl_R,dZ_Rgr',
-                                 'Zoopl_E,dZ_Ea',
-                                 'Zoopl_E,dZ_Ec'],
-             'SUMS TO ZERO: PON1,dSedPON1 + DetNS1,dSedPON1' : ['PON1,dSedPON1', # these still sum to zero with benthic algae
-                                                        'DetNS1,dSedPON1'],
-             'SUMS TO ZERO: NH4,dMinDetNS1 + NH4,dMinDetNS2 + NH4,ddetns1min + NH4,ddetns2min + DetNS1,dMinDetNS1 + DetNS2,dMinDetNS2 + DetNS1,ddetns1min + DetNS2,ddetns2min' : ['NH4,dMinDetNS1', 'NH4,dMinDetNS2','NH4,ddetns1min','NH4,ddetns2min','DetNS1,dMinDetNS1','DetNS2,dMinDetNS2','DetNS1,ddetns1min','DetNS2,ddetns2min'],
-             'SUMS TO ZERO: Mussel_V,dM_Vmor + Mussel_E,dM_Emor + Mussel_R,dM_Rmor + DetNS1,dM_NMrtS1' : ['Mussel_V,dM_Vmor',
-                                                                                                     'Mussel_E,dM_Emor',
-                                                                                                     'Mussel_R,dM_Rmor', 
-                                                                                                     'DetNS1,dM_NMrtS1'],
-             'SUMS TO ZERO: Grazer4_V,dG4_Vmor + Grazer4_E,dG4_Emor + Grazer4_R,dG4_Rmor + DetNS1,dG4_NMrtS1' : ['Grazer4_V,dG4_Vmor',
-                                                                                                            'Grazer4_E,dG4_Emor',
-                                                                                                            'Grazer4_R,dG4_Rmor',
-                                                                                                            'DetNS1,dG4_NMrtS1'],
-             'SUMS TO ZERO: NH4,dM_NRes + PON1,dM_NDef + PON1,dM_PON1 + Diat,dM_Diat + Mussel_V,dM_Vgr + Mussel_E,dM_Ea + Mussel_E,dM_Ec + Mussel_R,dM_Rgr' : ['NH4,dM_NRes',
-                       'PON1,dM_NDef',
-                       'PON1,dM_PON1',
-                       'Diat,dM_Diat',
-                       'Mussel_V,dM_Vgr',
-                       'Mussel_E,dM_Ea',
-                       'Mussel_E,dM_Ec',
-                       'Mussel_R,dM_Rgr'],
-             'SUMS TO ZERO: NH4,dG4_NRes + PON1,dG4_NDef + PON1,dG4_PON1 + Diat,dG4_Diat + Grazer4_V,dG4_Vgr + Grazer4_E,dG4_Ea + Grazer4_E,dG4_Ec + Grazer4_R,dG4_Rgr' : ['NH4,dG4_NRes',
-                         'PON1,dG4_NDef',
-                         'PON1,dG4_PON1',
-                         'Diat,dG4_Diat',
-                         'Grazer4_V,dG4_Vgr',
-                         'Grazer4_E,dG4_Ea',
-                         'Grazer4_E,dG4_Ec',
-                         'Grazer4_R,dG4_Rgr'],   
-             'SUMS TO ZERO: PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet + Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [
-                                          'PON1,dZ_NMrt',      
-                                          'PON1,dM_NMrt',
-                                          'PON1,dG4_NMrt',
-                                          'PON1,dM_NSpDet',
-                                          'PON1,dG4_NSpDet',
-                                          'Zoopl_V,dZ_Vmor',  
-                                          'Zoopl_R,dZ_Rmor',  
-                                          'Zoopl_E,dZ_Emor'], 
-             'SUMS TO ZERO: DetNS1,dBurS1DetN + DetNS2,dBurS1DetN' : ['DetNS1,dBurS1DetN', 'DetNS2,dBurS1DetN'],  # these still sum to zero with benthic algae
-             'SUMS TO ZERO: Diat,dSedDiat + Green,dSedGreen + DetNS1,dSedAlgN' :  ['Diat,dSedDiat','Green,dSedGreen','DetNS1,dSedAlgN'], # these still sum to zero with benthic algae
-             'SUMS TO ZERO: PON1,dCnvPPON1 + PON2,dCnvPPON1' : ['PON1,dCnvPPON1','PON2,dCnvPPON1'],   #### NEW #### these are currently nonzero but sum to zero
-             'SUMS TO ZERO: NH4,dMinPON2 + PON2,dMinPON2' : ['NH4,dMinPON2','PON2,dMinPON2'],   #### NEW #### these are currently nonzero but sum to zero
-             'SUMS TO ZERO: PON2,dCnvPPON2 + DON,dCnvDPON2' : ['PON2,dCnvPPON2','DON,dCnvDPON2'], #### NEW #### each is zero for now (and I suspect they sum to zero anyway)
-             'EACH IS ZERO: PON1,dResS1DetN + PON1,dResS2DetN + PON1,dResS1DiDN + PON1,dResS2DiDN' : [ # each of these is zero
-                                          'PON1,dResS1DetN', 
-                                          'PON1,dResS2DetN', 
-                                          'PON1,dResS1DiDN', 
-                                          'PON1,dResS2DiDN'],   
-             'EACH IS ZERO: DetNS1,dZ_NMrtS1 + DetNS1,dZ_DNS1 + DetNS1,dM_DNS1 + DetNS1,dG4_DNS1' :   [
-                         'DetNS1,dZ_NMrtS1',
-                         'DetNS1,dZ_DNS1',
-                         'DetNS1,dM_DNS1',
-                         'DetNS1,dG4_DNS1'],
-             'EACH IS ZERO: DetNS1,dSWMinDNS1 + DetNS1,dResS1DetN + DetNS1,dSWBuS1DtN + DetNS1,dDigS1DetN' : [
-                         'DetNS1,dSWMinDNS1',
-                         'DetNS1,dResS1DetN',
-                         'DetNS1,dSWBuS1DtN',
-                         'DetNS1,dDigS1DetN'],
-             'EACH IS ZERO: DetNS2,dSWMinDNS2 + DetNS2,dResS2DetN + DetNS2,dDigS1DetN + DetNS2,dDigS2DetN' : [
-                         'DetNS2,dSWMinDNS2',
-                         'DetNS2,dResS2DetN',
-                         'DetNS2,dDigS1DetN',
-                         'DetNS2,dDigS2DetN'],
-             'EACH IS ZERO: Mussel_R,dM_SpwDet + Grazer4_R,dG4_SpwDet' : ['Mussel_R,dM_SpwDet','Grazer4_R,dG4_SpwDet'],
-             'EACH IS ZERO: DiatS1,dResS1Diat + DiatS1,dSWBuS1Dia + DiatS1,dDigS1Diat' : ['DiatS1,dResS1Diat', # new benthic algae terms, each one is zero
-                                                                                                  'DiatS1,dSWBuS1Dia', 
-                                                                                                  'DiatS1,dDigS1Diat'],              
-             'EACH IS ZERO: PON2,dCnvDPON2' : ['PON2,dCnvDPON2'], #### NEW #### each is zero 
-             'EACH IS ZERO: PON2,dMortOON' : ['PON2,dMortOON'], #### NEW #### each is zero for now 
-             'EACH IS ZERO: PON2,dResS1OON' : ['PON2,dResS1OON'], #### NEW #### each is zero for now 
-             'EACH IS ZERO: PON2,dResS2OON' : ['PON2,dResS2OON'] #### NEW #### each is zero for now 
+######## NOTE THIS NEEDS TO BE UPDATED SO THAT THE SEDMOD VALUES WORK OUT
+    # 'TN_plus_DiatS1_plus_DetNS12' : {
+    #          'NO3,dDenit' : ['NO3,dDenitWat','NO3,dDenitSed','NO3,dNiDen'], # this should be a SINK for TN
+    #          'NO3,dDetDenit' : ['NO3,ddetcs1nit','NO3,ddetcs2nit'],
+    #          'NO3,dOODenit' : ['NO3,doocs1nit','NO3,doocs2nit'],
+    #          ###'DetNS2,dBurS2DetN' : ['DetNS2,dBurS2DetN'], # this appears to act as a true SINK for TN as well
+    #          ###'DiatS1,dBurS1Diat' : ['DiatS1,dBurS1Diat'], # burial of benthic algae also seems to be a true sink
+    #          ###'PON2,dSedPON2' : ['PON2,dSedPON2'], # sink to OONS2
+    #          'NH4,dMinOONS12' :  ['NH4,dMinOONS1', 'NH4,dMinOONS2','NH4,doons1min','NH4,doons2min'], # this is a source
+    #          'SUMS TO ZERO: Diat,dqmtdiat + NH4,dqmtdNH4 + PON1,dqmtdLN + PON2,dqmtdRN' : ['Diat,dqmtdiat','NH4,dqmtdNH4','PON1,dqmtdLN','PON2,dqmtdRN'],
+    #          'SUMS TO ZERO: Green,dqmtgree + NH4,dqmtgNH4 + PON1,dqmtgLN + PON2,dqmtgRN' : ['Green,dqmtgree','NH4,dqmtgNH4','PON1,dqmtgLN','PON2,dqmtgRN'],
+    #          'SUMS TO ZERO: Diat,dPPDiat + Diat,dcPPDiat + Green,dPPGreen + Green,dcPPGreen + NH4,dNH4Upt + NO3,dNO3Upt' : 
+    #                                                                                  ['Diat,dPPDiat',
+    #                                                                                   'Diat,dcPPDiat',
+    #                                                                                   'Green,dPPGreen',
+    #                                                                                   'Green,dcPPGreen',
+    #                                                                                   'NH4,dNH4Upt',
+    #                                                                                   'NO3,dNO3Upt'],
+    #          # identify groups of terms that sum to zero
+    #          'SUMS TO ZERO: NH4,dNH4UptS1 + NH4,dNH4US1D + NO3,dNO3UptS1 + DiatS1,dPPDiatS1' : ['NH4,dNH4UptS1', # these terms sum to zero, benthic algae productivity
+    #                                                                                     'NH4,dNH4US1D', 
+    #                                                                                     'NO3,dNO3UptS1', 
+    #                                                                                     'DiatS1,dPPDiatS1'], 
+    #          'SUMS TO ZERO: NO3,dNitrif + NH4,dNitrif' : ['NO3,dNitrif','NH4,dNitrif'],      # these two sum to zero
+    #          'SUMS TO ZERO: DON,dCnvDPON1 + PON1,dCnvDPON1' : ['DON,dCnvDPON1','PON1,dCnvDPON1'], # these two sum to zero
+    #          'SUMS TO ZERO: NH4,dMinPON1 + PON1,dMinPON1' : ['NH4,dMinPON1','PON1,dMinPON1'],   # these two sum to zero
+    #          'SUMS TO ZERO: NH4,dMinDON + DON,dMinDON' : ['NH4,dMinDON','DON,dMinDON'],       # these two sum to zero
+    #          'SUMS TO ZERO: DiatS1,dMrtDiatS1 + DetNS1,dMrtDetNS1 + OONS1,dMrtOONS1 + NH4,dNH4AUTS1' : ['DiatS1,dMrtDiatS1', # when benthic algae die, some goes into detritus, some goes to water column via autolysis 
+    #                                                                           'DetNS1,dMrtDetNS1', 
+    #                                                                           'OONS1,dMrtOONS1',
+    #                                                                           'NH4,dNH4AUTS1'],
+    #          'SUMS TO ZERO: Diat,dMrtDiat + Green,dMrtGreen + PON1,dMortDetN + NH4,dNH4Aut' :  ['Diat,dMrtDiat', # dead water column algae become PON and NH4 
+    #                                                                                     'Green,dMrtGreen',
+    #                                                                                     'PON1,dMortDetN',
+    #                                                                                     'NH4,dNH4Aut'], 
+    #          'SUMS TO ZERO: NH4,dZ_NRes + PON1,dZ_PON1 + PON1,dZ_NDef + PON1,dZ_NSpDet + Diat,dZ_Diat + Green,dZ_Grn + Zoopl_V,dZ_Vgr + Zoopl_R,dZ_SpwDet + Zoopl_R,dZ_Rgr + Zoopl_E,dZ_Ea + Zoopl_E,dZ_Ec' : [
+    #                              'NH4,dZ_NRes',
+    #                              'PON1,dZ_PON1',
+    #                              'PON1,dZ_NDef',
+    #                              'PON1,dZ_NSpDet',
+    #                              'Diat,dZ_Diat',
+    #                              'Green,dZ_Grn',
+    #                              'Zoopl_V,dZ_Vgr',
+    #                              'Zoopl_R,dZ_SpwDet',
+    #                              'Zoopl_R,dZ_Rgr',
+    #                              'Zoopl_E,dZ_Ea',
+    #                              'Zoopl_E,dZ_Ec'],
+    #          'SUMS TO ZERO: PON1,dSedPON1 + DetNS1,dSedPON1' : ['PON1,dSedPON1', # these still sum to zero with benthic algae
+    #                                                     'DetNS1,dSedPON1'],
+    #          'SUMS TO ZERO: NH4,dMinDetNS1 + NH4,dMinDetNS2 + NH4,ddetns1min + NH4,ddetns2min + DetNS1,dMinDetNS1 + DetNS2,dMinDetNS2 + DetNS1,ddetns1min + DetNS2,ddetns2min' : ['NH4,dMinDetNS1', 'NH4,dMinDetNS2','NH4,ddetns1min','NH4,ddetns2min','DetNS1,dMinDetNS1','DetNS2,dMinDetNS2','DetNS1,ddetns1min','DetNS2,ddetns2min'],
+    #          'SUMS TO ZERO: Mussel_V,dM_Vmor + Mussel_E,dM_Emor + Mussel_R,dM_Rmor + DetNS1,dM_NMrtS1' : ['Mussel_V,dM_Vmor',
+    #                                                                                                  'Mussel_E,dM_Emor',
+    #                                                                                                  'Mussel_R,dM_Rmor', 
+    #                                                                                                  'DetNS1,dM_NMrtS1'],
+    #          'SUMS TO ZERO: Grazer4_V,dG4_Vmor + Grazer4_E,dG4_Emor + Grazer4_R,dG4_Rmor + DetNS1,dG4_NMrtS1' : ['Grazer4_V,dG4_Vmor',
+    #                                                                                                         'Grazer4_E,dG4_Emor',
+    #                                                                                                         'Grazer4_R,dG4_Rmor',
+    #                                                                                                         'DetNS1,dG4_NMrtS1'],
+    #          'SUMS TO ZERO: NH4,dM_NRes + PON1,dM_NDef + PON1,dM_PON1 + Diat,dM_Diat + Mussel_V,dM_Vgr + Mussel_E,dM_Ea + Mussel_E,dM_Ec + Mussel_R,dM_Rgr' : ['NH4,dM_NRes',
+    #                    'PON1,dM_NDef',
+    #                    'PON1,dM_PON1',
+    #                    'Diat,dM_Diat',
+    #                    'Mussel_V,dM_Vgr',
+    #                    'Mussel_E,dM_Ea',
+    #                    'Mussel_E,dM_Ec',
+    #                    'Mussel_R,dM_Rgr'],
+    #          'SUMS TO ZERO: NH4,dG4_NRes + PON1,dG4_NDef + PON1,dG4_PON1 + Diat,dG4_Diat + Grazer4_V,dG4_Vgr + Grazer4_E,dG4_Ea + Grazer4_E,dG4_Ec + Grazer4_R,dG4_Rgr' : ['NH4,dG4_NRes',
+    #                      'PON1,dG4_NDef',
+    #                      'PON1,dG4_PON1',
+    #                      'Diat,dG4_Diat',
+    #                      'Grazer4_V,dG4_Vgr',
+    #                      'Grazer4_E,dG4_Ea',
+    #                      'Grazer4_E,dG4_Ec',
+    #                      'Grazer4_R,dG4_Rgr'],   
+    #          'SUMS TO ZERO: PON1,dZ_NMrt + PON1,dM_NMrt + PON1,dG4_NMrt + PON1,dM_NSpDet + PON1,dG4_NSpDet + Zoopl_V,dZ_Vmor + Zoopl_R,dZ_Rmor + Zoopl_E,dZ_Emor' : [
+    #                                       'PON1,dZ_NMrt',      
+    #                                       'PON1,dM_NMrt',
+    #                                       'PON1,dG4_NMrt',
+    #                                       'PON1,dM_NSpDet',
+    #                                       'PON1,dG4_NSpDet',
+    #                                       'Zoopl_V,dZ_Vmor',  
+    #                                       'Zoopl_R,dZ_Rmor',  
+    #                                       'Zoopl_E,dZ_Emor'], 
+    #          'SUMS TO ZERO: DetNS1,dBurS1DetN + DetNS2,dBurS1DetN' : ['DetNS1,dBurS1DetN', 'DetNS2,dBurS1DetN'],  # these still sum to zero with benthic algae
+    #          'SUMS TO ZERO: Diat,dSedDiat + Green,dSedGreen + DetNS1,dSedAlgN' :  ['Diat,dSedDiat','Green,dSedGreen','DetNS1,dSedAlgN'], # these still sum to zero with benthic algae
+    #          'SUMS TO ZERO: PON1,dCnvPPON1 + PON2,dCnvPPON1' : ['PON1,dCnvPPON1','PON2,dCnvPPON1'],   #### NEW #### these are currently nonzero but sum to zero
+    #          'SUMS TO ZERO: NH4,dMinPON2 + PON2,dMinPON2' : ['NH4,dMinPON2','PON2,dMinPON2'],   #### NEW #### these are currently nonzero but sum to zero
+    #          'SUMS TO ZERO: PON2,dCnvPPON2 + DON,dCnvDPON2' : ['PON2,dCnvPPON2','DON,dCnvDPON2'], #### NEW #### each is zero for now (and I suspect they sum to zero anyway)
+    #          'EACH IS ZERO: PON1,dResS1DetN + PON1,dResS2DetN + PON1,dResS1DiDN + PON1,dResS2DiDN' : [ # each of these is zero
+    #                                       'PON1,dResS1DetN', 
+    #                                       'PON1,dResS2DetN', 
+    #                                       'PON1,dResS1DiDN', 
+    #                                       'PON1,dResS2DiDN'],   
+    #          'EACH IS ZERO: DetNS1,dZ_NMrtS1 + DetNS1,dZ_DNS1 + DetNS1,dM_DNS1 + DetNS1,dG4_DNS1' :   [
+    #                      'DetNS1,dZ_NMrtS1',
+    #                      'DetNS1,dZ_DNS1',
+    #                      'DetNS1,dM_DNS1',
+    #                      'DetNS1,dG4_DNS1'],
+    #          'EACH IS ZERO: DetNS1,dSWMinDNS1 + DetNS1,dResS1DetN + DetNS1,dSWBuS1DtN + DetNS1,dDigS1DetN' : [
+    #                      'DetNS1,dSWMinDNS1',
+    #                      'DetNS1,dResS1DetN',
+    #                      'DetNS1,dSWBuS1DtN',
+    #                      'DetNS1,dDigS1DetN'],
+    #          'EACH IS ZERO: DetNS2,dSWMinDNS2 + DetNS2,dResS2DetN + DetNS2,dDigS1DetN + DetNS2,dDigS2DetN' : [
+    #                      'DetNS2,dSWMinDNS2',
+    #                      'DetNS2,dResS2DetN',
+    #                      'DetNS2,dDigS1DetN',
+    #                      'DetNS2,dDigS2DetN'],
+    #          'EACH IS ZERO: Mussel_R,dM_SpwDet + Grazer4_R,dG4_SpwDet' : ['Mussel_R,dM_SpwDet','Grazer4_R,dG4_SpwDet'],
+    #          'EACH IS ZERO: DiatS1,dResS1Diat + DiatS1,dSWBuS1Dia + DiatS1,dDigS1Diat' : ['DiatS1,dResS1Diat', # new benthic algae terms, each one is zero
+    #                                                                                               'DiatS1,dSWBuS1Dia', 
+    #                                                                                               'DiatS1,dDigS1Diat'],              
+    #          'EACH IS ZERO: PON2,dCnvDPON2' : ['PON2,dCnvDPON2'], #### NEW #### each is zero 
+    #          'EACH IS ZERO: PON2,dMortOON' : ['PON2,dMortOON'], #### NEW #### each is zero for now 
+    #          'EACH IS ZERO: PON2,dResS1OON' : ['PON2,dResS1OON'], #### NEW #### each is zero for now 
+    #          'EACH IS ZERO: PON2,dResS2OON' : ['PON2,dResS2OON'] #### NEW #### each is zero for now 
              
-    },
-    'OONS12' : {    ###'OONS1,dSedPON2' : ['OONS1,dSedPON2'],  # source
-                    'OONS12,dMinOONS12' :  ['OONS1,dMinOONS1', 'OONS2,dMinOONS2','OONS1,doons1min','OONS2,doons2min'], # this is a source
-                    #'OONS1,dMinOONS1' : ['OONS1,dMinOONS1'], # sink
-                    #'OONS2,dMinOONS2' : ['OONS2,dMinOONS2'], # sink
-                    ###'OONS2,dBurS2OON' : ['OONS2,dBurS2OON'], # sink
-                    'SUMS TO ZERO: OONS1,dBurS1OON + OONS2,dBurS1OON' : ['OONS1,dBurS1OON', 'OONS2,dBurS1OON'],
-                    'SUMS TO ZERO: OONS1,dDigS1OON + OONS2,dDigS1OON' : ['OONS1,dDigS1OON', 'OONS2,dDigS1OON'],
-                    'EACH IS ZERO: OONS1,dSWMnOONS1 + OONS1,dResS1OON + OONS1,dSWBuS1OON' : ['OONS1,dSWMnOONS1','OONS1,dResS1OON','OONS1,dSWBuS1OON'],
-                    'EACH IS ZERO: OONS2,dSWMnOONS2 + OONS2,dResS2OON + OONS2,dDigS2OON' : ['OONS2,dSWMnOONS2','OONS2,dResS2OON', 'OONS2,dDigS2OON']},
-    'DetNS12' : {   ###'DetNS1,dMrtDetNS1' : ['DetNS1,dMrtDetNS1'], # source
-                    ###'DetNS1,dSedAlgN' : ['DetNS1,dSedAlgN'], # source
-                    ###'DetNS1,dSedPON1' : ['DetNS1,dSedPON1'], # source
-                    'DetNS12,dMinDetNS12' : ['DetNS1,dMinDetNS1', 'DetNS2,dMinDetNS2','DetNS1,ddetns1min','DetNS2,ddetns2min'],# this is a source
-                    ###'DetNS2,dBurS2DetN' : ['DetNS2,dBurS2DetN'], # sink
-                    'SUMS TO ZERO: DetNS1,dBurS1DetN + DetNS2,dBurS1DetN' : ['DetNS1,dBurS1DetN', 'DetNS2,dBurS1DetN'],
-                    'SUMS TO ZERO: DetNS2,dDigS1DetN + DetNS1,dDigS1DetN' : ['DetNS2,dDigS1DetN', 'DetNS1,dDigS1DetN'],
-                    'EACH IS ZERO: DetNS1,dSWMinDNS1 + DetNS1,dZ_NMrtS1 + DetNS1,dZ_DNS1 + DetNS1,dResS1DetN + DetNS1,dSWBuS1DtN' : ['DetNS1,dSWMinDNS1',
-                                                              'DetNS1,dZ_NMrtS1','DetNS1,dZ_DNS1','DetNS1,dResS1DetN','DetNS1,dSWBuS1DtN'],
-                    'EACH IS ZERO: DetNS2,dSWMinDNS2 + DetNS2,dResS2DetN + DetNS2,dDigS2DetN' : ['DetNS2,dSWMinDNS2', 'DetNS2,dResS2DetN', 'DetNS2,dDigS2DetN'],},
-    #'TotalDetNS' : {'DetNS1,dMrtDetNS1' : ['DetNS1,dMrtDetNS1'], # source
-    #                'DetNS1,dSedAlgN' : ['DetNS1,dSedAlgN'], # source
-    #                'DetNS1,dSedPON1' : ['DetNS1,dSedPON1'], # source
-    #                'OONS1,dSedPON2' : ['OONS1,dSedPON2'],  # source 
-    #                'DetNS1,dMinDetNS1' : ['DetNS1,dMinDetNS1'], # sink 
-    #                'DetNS2,dMinDetNS2' : ['DetNS2,dMinDetNS2'], # sink
-    #                'OONS1,dMinOONS1' : ['OONS1,dMinOONS1'], # sink
-    #                'OONS2,dMinOONS2' : ['OONS2,dMinOONS2'], # sink
-    #                'DetNS2,dBurS2DetN' : ['DetNS2,dBurS2DetN'], # sink
-    #                'OONS2,dBurS2OON' : ['OONS2,dBurS2OON'], # sink
-    #                'SUMS TO ZERO: DetNS1,dBurS1DetN + DetNS2,dBurS1DetN' : ['DetNS1,dBurS1DetN', 'DetNS2,dBurS1DetN'],
-    #                'SUMS TO ZERO: DetNS2,dDigS1DetN + DetNS1,dDigS1DetN' : ['DetNS2,dDigS1DetN', 'DetNS1,dDigS1DetN'],
-    #                'SUMS TO ZERO: OONS1,dBurS1OON + OONS2,dBurS1OON' : ['OONS1,dBurS1OON', 'OONS2,dBurS1OON'],
-    #                'SUMS TO ZERO: OONS1,dDigS1OON + OONS2,dDigS1OON' : ['OONS1,dDigS1OON', 'OONS2,dDigS1OON'],
-    #                'EACH IS ZERO: DetNS1,dSWMinDNS1 + DetNS1,dZ_NMrtS1 + DetNS1,dZ_DNS1 + DetNS1,dResS1DetN + DetNS1,dSWBuS1DtN' : ['DetNS1,dSWMinDNS1',
-    #                                                          'DetNS1,dZ_NMrtS1','DetNS1,dZ_DNS1','DetNS1,dResS1DetN','DetNS1,dSWBuS1DtN'],
-    #                'EACH IS ZERO: DetNS2,dSWMinDNS2 + DetNS2,dResS2DetN + DetNS2,dDigS2DetN' : ['DetNS2,dSWMinDNS2', 'DetNS2,dResS2DetN', 'DetNS2,dDigS2DetN'],
-    #                'EACH IS ZERO: OONS1,dSWMnOONS1 + OONS1,dResS1OON + OONS1,dSWBuS1OON' : ['OONS1,dSWMnOONS1','OONS1,dResS1OON','OONS1,dSWBuS1OON'],
-    #                'EACH IS ZERO: OONS2,dSWMnOONS2 + OONS2,dResS2OON + OONS2,dDigS2OON' : ['OONS2,dSWMnOONS2','OONS2,dResS2OON', 'OONS2,dDigS2OON'],},
+    # },
     # have not gotten to these yet, leaving reactions ungrouped...
-    'TP' : {},
     'TP_include_sediment' : {},
     'TotalDetPS' : {},
     'TotalDetSi' : {},
     'Grazer4' : {},
     'Mussel' : {},
     'Clams' : {}
+    # add total silica 
 }
 
 # which parameters to check for mass conservation? put them in a list
@@ -595,7 +711,9 @@ mass_cons_check_param_list = ['N-Algae',
                               'Zoopl',
                               'DIN',
                               'TN',
+                              'TSi',
                               'TN_plus_DiatS1_plus_DetNS12',
+                              'TP',
                               'DetNS12',
                               'OONS12']
 
@@ -608,6 +726,8 @@ mass_cons_check_normalize_by_dict = {'N-Algae' : 'Diat,dPPDiat',
                                      'DIN' : 'DIN,dDINUpt',
                                      'TN' : 'NH4,dMinDetNS12',
                                      'TN_plus_DiatS1_plus_DetNS12' : 'NH4,dMinOONS12',
+                                     'TP' : 'PO4,dMinDetPS12',
+                                     'TSi' : 'Si,dMinDetSiS12',
                                      'DetNS12' : 'DetNS1,dSedPON1',
                                      'OONS12' : 'OONS1,dSedPON2'}
 
