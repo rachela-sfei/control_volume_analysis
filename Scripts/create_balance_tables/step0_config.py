@@ -63,7 +63,7 @@ balance_table_dir = None       # will be placed inside run_dir unless otherwise 
 model_input_dir = '/richmondvol1/hpcshared'
 
 # stompy directory (stompy is called in step0_create_balance_tables.py to create dwaq_hist_bal.nc from the *-his.bal file if needed)
-stompy_dir = '/richmondvol1/jem/stompy'
+stompy_dir = '/opt/software/rusty/stompy/newest_commit/stompy'
 
 # base level substances to process. set to string 'all' or a list of substance strings -- warning, processing 
 # all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py),
@@ -100,7 +100,6 @@ plot_substance_list = ['continuity',
 # in Dec 2023 added Seasonal2 which defines 3 seasons (Oct,Nov,Dec,Jan + Feb,Mar,Apr,May + Jun,Jul,Aug,Sep)
 # in contrast to Seasonal which defines 4 seasons (Oct,Nov,Dec + Jan,Feb,Mar + Apr,May,Jun + Jul,Aug,Sep)
 tavg_list = ['Filtered','Cumulative','Annual','Seasonal']#,'Seasonal2','Seasonal3','Monthly','Weekly']
-
 
 # float format for csv files
 float_format = '%1.6e'
