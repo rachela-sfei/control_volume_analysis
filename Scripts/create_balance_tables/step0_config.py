@@ -16,33 +16,30 @@ alliek august 2022
 # leaves the model forever, so that SUMS TO ZERO: Diat,dSedDiat + DetNS1,dSedAlgN is not zero)
 abort_for_mass_cons_error = False
 
-# flag to indicate runs based on new hydro with straightened grid and calibrated temperature model
-is_v24 = True
+# important flags for various model configurations
 sedmod = True # the output from our sedmod is different than what is going on (for DIN and quadratic mortality), need to turn this on if that's the case
+is_v24 = True # flag to indicate runs based on new hydro with straightened grid and calibrated temperature model
+create_ncfile = True # this creates nc files of the hist and his-bal files
+
 
 # name of server and runid
 vol = 'vol2'
 
-#server = 'chicago'
-#runid = 'FR21_017'
-#hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
+server = 'chicago'
+runid = 'FR21_TR_093'
+hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
 
-server = 'boise'
-runid = 'G141_21_381'
-hydro_path = '/chicagovol2/hpcshared/open_bay/hydro/agg/wy2013-wy2022-v24/com-wy2013-wy2022-v24_agg_lp.hyd'
+# server = 'chicago'
+# runid = 'FR21_021'
+# hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
+
+# server = 'boise'
+# runid = 'G141_21_430'
+# hydro_path = '/chicagovol2/hpcshared/open_bay/hydro/agg/wy2013-wy2022-v24/com-wy2013-wy2022-v24_agg_lp.hyd'
 
 #runid = 'FR21_011_4deltares'
 #hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24-4deltares/runs/wy2021-v24-4deltares/DFM_DELWAQ_wy2021-v24-4deltares_bound_temp_salt/wy2021-v24-4deltares.hyd'
 
-
-#runid = 'G141_21_264'
-
-#runid='FR13_042'
-#runid='FR13_043'
-#runid='FR13_044' 
-#runid='FR13_045' 
-#runid='FR13_046'
-#runid='FR13_047' 
 
 
 model_run_base_dir = '/%s%s/hpcshared' % (server,vol)
@@ -116,7 +113,14 @@ delete_balance_tables = True
 #    but it is ok to run step6_aggregate_in_time.py without running step5_compile_balance_tables_into_groups.py
 # 3. originally, i added the capacity to process delta runs to make sure mass of N is conserved, and for the most part it is, 
 #    (there's a small leak when N is passed from DIN to algae because we're using an old version of DWAQ)
-is_delta = False
+is_delta = False # is this a delta run (old notes below ~line 110)
+
+# check if this is a tracer run, currently this is configured to only account for the tracers in the "all sources"
+# mode of the runs, it can be updated otherwise.
+if 'TR' in runid:
+    is_tracer = True # is this a tracer run
+else:
+    is_tracer = False
 
 # for some parameters, the dwaq_hist.nc file does not have the correct units ... use this to override the units
 # (this is used only in step1_create_balance_tables.py, where we compute dMass/dt from concentraitons in the *.his
@@ -884,7 +888,7 @@ def get_water_year(runid):
 
     return water_year
 
-def get_run_dir(model_run_base_dir, runid, is_delta):
+def get_run_dir(model_run_base_dir, runid, is_delta, is_tracer):
 
     '''
     run_dir = get_run_dir(model_run_base_dir, runid, is_delta)
@@ -911,7 +915,8 @@ def get_run_dir(model_run_base_dir, runid, is_delta):
     else:
         if is_delta:
             raise Exception('need to revise step0_config.py to accomodate delta runs on servers besides richmond')
-        elif 'FR' in runid:
+        elif ('FR' in runid) & (not is_tracer):
+            print('here')
             water_year = get_water_year(runid)
             run_dir = os.path.join(model_run_base_dir,'open_bay','bgc','full_res',water_year,runid)
         elif 'G673' in runid:
@@ -920,12 +925,16 @@ def get_run_dir(model_run_base_dir, runid, is_delta):
         elif 'G141' in runid:
             water_year = get_water_year(runid)
             run_dir = os.path.join(model_run_base_dir,'open_bay','bgc','agg',water_year,runid)
+        elif ('FR' in runid) & (is_tracer):
+            print('here2')
+            water_year = get_water_year(runid)
+            run_dir = os.path.join(model_run_base_dir,'open_bay','tracer','full_res',water_year,runid,'data_tracer')
         else:
             raise Exception('runid %s does not fit expected pattern' % runid)
             
     return run_dir
 
-def get_lsp_path(run_dir, is_delta):
+def get_lsp_path(run_dir, is_delta, is_tracer):
 
     '''
     lsp_path = get_lsp_path(run_dir, is_delta)
@@ -936,7 +945,9 @@ def get_lsp_path(run_dir, is_delta):
 
     if is_delta:
         lsp_path = os.path.join(run_dir,'%s.lsp' % water_year.lower()) 
-    elif 'FR' in runid:
+    elif is_tracer:
+        lsp_path = os.path.join(run_dir,'data_tracer','sfbay_dynamo000.lsp')
+    elif 'FR' in runid & (not is_tracer):
         lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
     elif 'G673' in runid:
         lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
@@ -946,10 +957,10 @@ def get_lsp_path(run_dir, is_delta):
         raise Exception('runid %s does not fit expected pattern' % runid)
     return lsp_path
 
-def get_balance_table_dir(run_dir, is_delta):
+def get_balance_table_dir(run_dir):
 
 	''' 
-	balance_table_dir = get_balance_table_dir(run_dir, is_delta)
+	balance_table_dir = get_balance_table_dir(run_dir)
 
 	unless user says otherwise, put the balance tables in the run directory, in a subfolder called "Balance_Tables"
 	'''
@@ -986,15 +997,15 @@ sed_conc_mult_path = get_sed_conc_mult_path(runid)
 
 # get the run directory
 if run_dir is None:
-	run_dir = get_run_dir(model_run_base_dir, runid, is_delta)
+	run_dir = get_run_dir(model_run_base_dir, runid, is_delta, is_tracer)
 
 # get the path to the lsp file
 if lsp_path is None:
-	lsp_path = get_lsp_path(run_dir, is_delta)
+	lsp_path = get_lsp_path(run_dir, is_delta, is_tracer)
 
 # get the balance table directory
 if balance_table_dir is None:
-	balance_table_dir = get_balance_table_dir(run_dir, is_delta)
+	balance_table_dir = get_balance_table_dir(run_dir)
 
 # create the balance table directory if it does not exist
 if not os.path.exists(balance_table_dir):

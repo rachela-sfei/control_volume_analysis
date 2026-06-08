@@ -144,10 +144,12 @@ except:
     if fn is None:
         raise Exception('Cannot find *.his file in %s' % step0_config.run_dir)
     else:
-        print('could not find dwaq_hist.nc, creating it now...')
+        print('could not find dwaq_hist.nc, loading is .his file, this may take a minute')
         hdata = step0_config.dio.his_file_xarray(os.path.join(step0_config.run_dir,fn))
-        hdata.to_netcdf(histfn)
-        hdata = xr.open_dataset(histfn)
+        if step0_config.create_ncfile:
+            print('option on to create dwaq_hist.nc, creating it now...')
+            hdata.to_netcdf(histfn)
+            hdata = xr.open_dataset(histfn)
 
 # added this in august 2023 to make non-nefis style dwaq_hist.nc work too
 if 'bal' in hdata.variables:
@@ -173,16 +175,18 @@ except:
     if fn is None:
         raise Exception('Cannot find *-bal.his file in %s' % step0_config.run_dir)
     else:
-        print('could not find dwaq_hist_bal.nc, creating it now...')
+        print('could not find dwaq_hist.nc, loading is .his file, this may take a minute')
         hbdata = step0_config.dio.bal_his_file_xarray(os.path.join(step0_config.run_dir,fn))
-        hbdata.to_netcdf(histbal_fn)
-        hbdata = xr.open_dataset(histbal_fn)
+        if step0_config.create_ncfile:
+            print('option on to create dwaq_hist_bal.nc, creating it now...')
+            hbdata.to_netcdf(histbal_fn)
+            hbdata = xr.open_dataset(histbal_fn)
 
 # open the map file
 hydro=step0_config.waq_scenario.HydroFiles(hyd_path=step0_config.hydro_path,enable_write_symlink=True)
 fn = None
 for fn1 in os.listdir(step0_config.run_dir):
-    if ('.map' in fn1) and (not ('res' in fn1)):
+    if ('.map' in fn1) and  (not ('res' in fn1)) and (not ('initials' in fn1)) : 
         fn = fn1
 mdata  = step0_config.dio.read_map(os.path.join(step0_config.run_dir,fn),hydro)
 
@@ -234,6 +238,7 @@ mdata_vol = mdata_depth * mdata_area
 
 # renumber the polygons and transects so they match the shape file -- 
 # newer version of stompy scrambles the numbers but does not scramble the order
+# this may need to be updated for the tracer runs
 polyc = 0
 tranc = 0
 for i in range(len(hdata.location_names.values[0])):
@@ -243,6 +248,7 @@ for i in range(len(hdata.location_names.values[0])):
     elif 'polygon' in hdata.location_names.values[0][i]:
         hdata.location_names.values[0][i]='polygon%d' % polyc
         polyc = polyc + 1 
+
 polyc = 0
 for i in range(len(hbdata.region.values)):
     if 'polygon' in hbdata.region.values[i]:
