@@ -4,6 +4,8 @@ Configuration module for ALL of the create_balance_table scripts
 This is where we set global variables that are used by all the scripts. 
 
 alliek august 2022
+
+updated by jordyn 2026
 '''
 
 ##############################
@@ -25,13 +27,13 @@ create_ncfile = True # this creates nc files of the hist and his-bal files
 # name of server and runid
 vol = 'vol2'
 
-server = 'chicago'
-runid = 'FR21_TR_093'
-hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
+#server = 'chicago'
+#runid = 'FR21_TR_093'
+#hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
 
-# server = 'chicago'
-# runid = 'FR21_021'
-# hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
+server = 'chicago'
+runid = 'FR21_023'
+hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
 
 # server = 'boise'
 # runid = 'G141_21_430'
@@ -62,34 +64,47 @@ model_input_dir = '/richmondvol1/hpcshared'
 # stompy directory (stompy is called in step0_create_balance_tables.py to create dwaq_hist_bal.nc from the *-his.bal file if needed)
 stompy_dir = '/opt/software/rusty/stompy/newest_commit/stompy'
 
-# base level substances to process. set to string 'all' or a list of substance strings -- warning, processing 
-# all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py),
-# substance_list = ['continuity', 'nh4', 'no3', 'pon1', 'pon2','pop1', 'pop2', 'don', 'dop', 'oxy', 'si', 'opal', 'po4',
-#                  'diat', 'green', 'diats1',
-#                  'zoopl_e', 'zoopl_r', 'zoopl_v', 
-#                  'mussel_v','mussel_e','mussel_r','grazer4_v','grazer4_e','grazer4_r',
-#                  'detns1', 'detns2', 'oons1', 'oons2',
-#                  'poc1', 'poc2','detcs1', 'detcs2', 'oocs1', 'oocs2']
-substance_list = ['continuity', 'doc', 'don', 'dop', 
-                  'detcs1', 'detcs2', 'detns1', 'detns2', 'detps1', 'detps2', 'detsis1', 'detsis2', 
-                  'diat', 'diats1', 'green', 
-                  'nh4', 'no3', 'oxy', 'opal', 'po4', 'si',
-                  'oocs1', 'oocs2', 'oons1', 'oons2', 'oops1', 'oops2', 'oosis1', 'oosis2', 
-                  'poc1', 'poc2', 'pon1', 'pon2', 'pop1', 'pop2', 
-                  'zoopl_e', 'zoopl_n', 'zoopl_r', 'zoopl_v']# turning all of these on for now because it seems like we need them for the composite parameters
+# check if this is a tracer run, currently this is configured to only account for the tracers in the "all sources"
+# mode of the runs, it can be updated otherwise.
+if 'TR' in runid:
+    is_tracer = True # is this a tracer run
+else:
+    is_tracer = False
 
-# list of substances we think we are actually going to want to plot -- to save space, the 
-# step5_compile_balance_tables_into_groups.py and step6_aggregate_in_time.py scripts will only process these substances
-plot_substance_list = ['continuity',
-                       'nh4','no3','pon1','pon2','detns1','detns2','detns12','din','tn',#'tn_plus_diats1_plus_detns12' # nitrogen plus composite parameters
-                       'po4','pop1','pop2','detps1','detps2','tp',                                                    # phosphorus plus composite parameters
-                       'si', 'opal', 'tsi',                                                                           # si plus composite parameters
-                       'diat','green','algae',#'n-algae',                                                              # algae
-                    #    'zoopl','mussel','grazer4','clams','n-zoopl',                                                  # grazers
-                    #    'oons1','oons2','oons12','oops1','oops2', 'oocs1','oocs2',                                     # refractory 
-                       'oxy',                                                                                         # oxygen
-                    #    'diats1',                                                                                      # microphytobenthos
-                       'poc1', 'poc2','detcs1', 'detcs2',]                                                            # carbon 
+
+# base level substances to process. set to string 'all' (DON'T) or a list of substance strings -- warning, processing 
+# all of them takes a long time and uses a lot of space (this is used in step1_create_balance_tables.py),
+if is_tracer:
+    # _all needs to be added to the relevant substances
+    # double check this list
+    substance_list = ['continuity','cons','dtr','agec','dep','temp',
+                      'lsb','sbrw','sbrc','sbre','sbwn','bm','cbnb',
+                      'spc','spse','spss','spr','sung','gb','sss',
+                      'di','oce']
+    plot_substance_list = substance_list # for now have these be the same, can change if necessary
+else:
+    # NOTE: setting to "all" currently does not work
+    #
+    substance_list = ['continuity', 'doc', 'don', 'dop', 
+                    'detcs1', 'detcs2', 'detns1', 'detns2', 'detps1', 'detps2', 'detsis1', 'detsis2', 
+                    'diat', 'diats1', 'green', 
+                    'nh4', 'no3', 'oxy', 'opal', 'po4', 'si',
+                    'oocs1', 'oocs2', 'oons1', 'oons2', 'oops1', 'oops2', 'oosis1', 'oosis2', 
+                    'poc1', 'poc2', 'pon1', 'pon2', 'pop1', 'pop2', 
+                    'zoopl_e', 'zoopl_n', 'zoopl_r', 'zoopl_v']# turning all of these on for now because it seems like we need them for the composite parameters
+
+    # list of substances we think we are actually going to want to plot -- to save space, the 
+    # step5_compile_balance_tables_into_groups.py and step6_aggregate_in_time.py scripts will only process these substances
+    plot_substance_list = ['continuity',
+                        'nh4','no3','pon1','pon2','detns1','detns2','detns12','din','tn',#'tn_plus_diats1_plus_detns12' # nitrogen plus composite parameters
+                        'po4','pop1','pop2','detps1','detps2','tp',                                                    # phosphorus plus composite parameters
+                        'si', 'opal', 'tsi',                                                                           # si plus composite parameters
+                        'diat','green','algae',#'n-algae',                                                              # algae
+                        #    'zoopl','mussel','grazer4','clams','n-zoopl',                                                  # grazers
+                        #    'oons1','oons2','oons12','oops1','oops2', 'oocs1','oocs2',                                     # refractory 
+                        'oxy',                                                                                         # oxygen
+                        #    'diats1',                                                                                      # microphytobenthos
+                        'poc1', 'poc2','detcs1', 'detcs2',]                                                            # carbon 
 
 
 # list of time averaging schemes to apply (saves space to skip some if we don't need them) 
@@ -115,16 +130,13 @@ delete_balance_tables = True
 #    (there's a small leak when N is passed from DIN to algae because we're using an old version of DWAQ)
 is_delta = False # is this a delta run (old notes below ~line 110)
 
-# check if this is a tracer run, currently this is configured to only account for the tracers in the "all sources"
-# mode of the runs, it can be updated otherwise.
-if 'TR' in runid:
-    is_tracer = True # is this a tracer run
-else:
-    is_tracer = False
 
 # for some parameters, the dwaq_hist.nc file does not have the correct units ... use this to override the units
 # (this is used only in step1_create_balance_tables.py, where we compute dMass/dt from concentraitons in the *.his
 # file, so we need to know if the concentraiton units are g/m3 or g/m3)
+
+### UPDATES FOR TRACER
+
 units_override = {'zoopl_e' : 'gC/m3',
                   'zoopl_r' : 'gC/m3',
                   'zoopl_v' : 'gC/m3',
@@ -143,6 +155,9 @@ units_override = {'zoopl_e' : 'gC/m3',
 # list of composite parameters -- include all possible component parameters, script will automatically 
 # check if they were included in this run and leave it out if needed (this is used in 
 # step2_create_balance_tables_for_composite_parameters.py)
+
+# set all dictionaries to empty for tracer run
+
 composite_parameters = {
     'N-Algae' : ['Diat', 'Green','DiatS1'],
     'N-Zoopl' : ['Zoopl_V', 'Zoopl_E', 'Zoopl_R'],
@@ -204,6 +219,7 @@ composite_bases = {
 # call out any sets of reactions you want to sum together to appear as one reaction 
 # in the composite parameter mass budgets, and give each composite reaction a name ...
 # (this is used in step3_group_reactions_for_composite_parameters.py)
+
 composite_reaction_dict = {
      'N-Algae' : {'Diat,dPPDiat' : ['Diat,dPPDiat', 'Diat,dcPPDiat'],
                   'Green,dPPGreen' : ['Green,dPPGreen', 'Green,dcPPGreen'], 
@@ -915,7 +931,7 @@ def get_run_dir(model_run_base_dir, runid, is_delta, is_tracer):
     else:
         if is_delta:
             raise Exception('need to revise step0_config.py to accomodate delta runs on servers besides richmond')
-        elif ('FR' in runid) & (not is_tracer):
+        elif ('FR' in runid) and (not is_tracer):
             print('here')
             water_year = get_water_year(runid)
             run_dir = os.path.join(model_run_base_dir,'open_bay','bgc','full_res',water_year,runid)
@@ -947,7 +963,7 @@ def get_lsp_path(run_dir, is_delta, is_tracer):
         lsp_path = os.path.join(run_dir,'%s.lsp' % water_year.lower()) 
     elif is_tracer:
         lsp_path = os.path.join(run_dir,'data_tracer','sfbay_dynamo000.lsp')
-    elif 'FR' in runid & (not is_tracer):
+    elif ('FR' in runid) and (not is_tracer):
         lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
     elif 'G673' in runid:
         lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
