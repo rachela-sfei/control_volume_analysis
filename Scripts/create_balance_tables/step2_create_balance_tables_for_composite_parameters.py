@@ -181,24 +181,40 @@ for substance in substances.copy():
         df_dict[substance] = df.copy(deep=True)    
 
 # find the number of adjacent polygons included in the fluxes, using the NH4 balance table
-logging.info('Using the NH4 balance table to check number of adjacent polygons included in the fluxes...')
-polymax = 0
-for column in df_dict['NH4'].columns:
-    if 'To_poly' in column:
-        n = int(column.strip('To_poly'))
-        if n>polymax:
-            polymax = n
+if step0_config.is_tracer:
+    logging.info('Using the conservative tracer balance table to check number of adjacent polygons included in the fluxes...')
+    polymax = 0
+    for column in df_dict['cons_all'].columns:
+        if 'To_poly' in column:
+            n = int(column.strip('To_poly'))
+            if n>polymax:
+                polymax = n
+else:
+    logging.info('Using the NH4 balance table to check number of adjacent polygons included in the fluxes...')
+    polymax = 0
+    for column in df_dict['NH4'].columns:
+        if 'To_poly' in column:
+            n = int(column.strip('To_poly'))
+            if n>polymax:
+                polymax = n
 logging.info('Tracking %d fluxes to adacent polygons' % (polymax+1))
 
-# make a base balance table from the NH4 balance tables, to reuse when initializing composite parameter tables
+# make a base balance table from the NH4 balance tables (or conservative tracer, for tracer runs), to reuse when initializing composite parameter tables
 # ... these columns have the same values in all balance tables
-df_base = df_dict['NH4'][['time', 'Control Volume', 'Volume',
-       'Volume (Mean)', 'Area']].copy(deep=True)
+if step0_config.is_tracer:
+    df_base = df_dict['cons_all'][['time', 'Control Volume', 'Volume',
+        'Volume (Mean)', 'Area']].copy(deep=True)
+else:
+    df_base = df_dict['NH4'][['time', 'Control Volume', 'Volume',
+        'Volume (Mean)', 'Area']].copy(deep=True)
 # ... initialize these columns at zero
 df_base['Concentration (mg/l)'] = 0.0
 df_base['dVar/dt'] = 0.0
 for n in range(polymax+1):
-    df_base['To_poly%d' % n] = df_dict['NH4']['To_poly%d' % n].values
+    if step0_config.is_tracer:
+        df_base['To_poly%d' % n] = df_dict['cons_all']['To_poly%d' % n].values
+    else:
+        df_base['To_poly%d' % n] = df_dict['NH4']['To_poly%d' % n].values
     df_base['Flux%d' % n] = 0.0
 
 # make a list of the flux columns to track when adding up the component parameters

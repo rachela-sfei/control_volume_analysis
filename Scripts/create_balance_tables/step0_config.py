@@ -27,13 +27,13 @@ create_ncfile = True # this creates nc files of the hist and his-bal files
 # name of server and runid
 vol = 'vol2'
 
-#server = 'chicago'
-#runid = 'FR21_TR_093'
-#hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
-
 server = 'chicago'
-runid = 'FR21_023'
+runid = 'FR21_TR_095'
 hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
+
+#server = 'chicago'
+#runid = 'FR21_023'
+#hydro_path = '/boisevol2/hpcshared/open_bay/hydro/full_res/wy2021-v24/runs/wy2021-v24/DFM_DELWAQ_wy2021-v24_bound_temp_salt/wy2021-v24.hyd'
 
 # server = 'boise'
 # runid = 'G141_21_430'
@@ -77,10 +77,10 @@ else:
 if is_tracer:
     # _all needs to be added to the relevant substances
     # double check this list
-    substance_list = ['continuity','cons','dtr','agec','dep','temp',
-                      'lsb','sbrw','sbrc','sbre','sbwn','bm','cbnb',
-                      'spc','spse','spss','spr','sung','gb','sss',
-                      'di','oce']
+    substance_list = ['continuity','cons_all','dtr_all','agec_all','dep_all','temp_all',
+                      'lsb_all','sbrw_all','sbrc_all','sbre_all','sbwn_all','bm_all','cbnb_all',
+                      'spc_all','spse_all','spss_all','spr_all','sung_all','gb_all','sss_all',
+                      'di_all','oce_all']
     plot_substance_list = substance_list # for now have these be the same, can change if necessary
 else:
     # NOTE: setting to "all" currently does not work
@@ -137,20 +137,47 @@ is_delta = False # is this a delta run (old notes below ~line 110)
 
 ### UPDATES FOR TRACER
 
-units_override = {'zoopl_e' : 'gC/m3',
-                  'zoopl_r' : 'gC/m3',
-                  'zoopl_v' : 'gC/m3',
-                  'zoopl_n' : '#/m3',
-                  # added all these too in august 2023 to make things work with non-nefis dwaq_hist.nc
-                  'diat' : 'gC/m3','green' : 'gC/m3','nh4' : 'gN/m3','no3' : 'gN/m3',
-                  'po4' : 'gP/m3','si' : 'gSi/m3','continuity' : 'g/m3','oxy' : 'g/m3',
-                  'poc1' : 'gC/m3','pon1' : 'gN/m3','pop1' : 'gP/m3','doc' : 'gC/m3',
-                  'don' : 'gN/m3','dop' : 'gP/m3','opal' : 'gSi/m3','poc2' : 'gC/m3',
-                  'pon2' : 'gN/m3','pop2' : 'gP/m3','detcs1' : 'gC/m2','detcs2' : 'gC/m2',
-                  'detns1' : 'gN/m2','detns2' : 'gN/m2','detps1' : 'gP/m2','detps2' : 'gP/m2',
-                  'detsis1' : 'gSi/m2','detsis2' : 'gSi/m2','diats1' : 'gC/m2','oocs1' : 'gC/m2',
-                  'oocs2' : 'gC/m2','oons1' : 'gN/m2','oons2' : 'gN/m2','oops1' : 'gP/m2',
-                  'oops2' : 'gP/m2','oosis1' : 'gSi/m2','oosis2' : 'gSi/m2','volume' : 'm3',}
+if is_tracer:
+    units_override = {'cons_all' : 'gN/m3', 
+        'dtr_all' : 'gN/m3',
+        'agec_all' : 'day-gN/m3',
+        'dep_all' : 'm-day-gN/m3',
+        'temp_all' : 'degC-day-gN/m3',
+        'lsb_all' : 'inLSB-day-gN/m3',
+        'sbrw_all' : 'inSBRw-day-gN/m3',
+        'sbrc_all' : 'inSBRc-day-gN/m3',
+        'sbre_all' : 'inSBRe-day-gN/m3',
+        'sbwn_all' : 'inSBWn-day-gN/m3',
+        'bm_all' : 'inBM-day-gN/m3',
+        'cbnb_all' : 'inCBnB-day-gN/m3',
+        'spc_all' : 'inSPc-day-gN/m3',
+        'spse_all' : 'inSPse-day-gN/m3',
+        'spss_all' : 'inSPss-day-gN/m3',
+        'spr_all' : 'inSPR-day-gN/m3',
+        'sung_all' : 'inSunG-day-gN/m3',
+        'gb_all' : 'inGB-day-gN/m3',
+        'sss_all' :' inSSs-day-gN/m3',
+        'di_all' : 'inDI-day-gN/m3',
+        'oce_all' : 'inOce-day-gN/m3',
+        'volume' : 'm3',
+        'continuity' : 'g/m3', # apparently continuity has units of g/m3?  (according to BGC runs)
+        }
+else:
+
+    units_override = {'zoopl_e' : 'gC/m3',
+                    'zoopl_r' : 'gC/m3',
+                    'zoopl_v' : 'gC/m3',
+                    'zoopl_n' : '#/m3',
+                    # added all these too in august 2023 to make things work with non-nefis dwaq_hist.nc
+                    'diat' : 'gC/m3','green' : 'gC/m3','nh4' : 'gN/m3','no3' : 'gN/m3',
+                    'po4' : 'gP/m3','si' : 'gSi/m3','continuity' : 'g/m3','oxy' : 'g/m3',
+                    'poc1' : 'gC/m3','pon1' : 'gN/m3','pop1' : 'gP/m3','doc' : 'gC/m3',
+                    'don' : 'gN/m3','dop' : 'gP/m3','opal' : 'gSi/m3','poc2' : 'gC/m3',
+                    'pon2' : 'gN/m3','pop2' : 'gP/m3','detcs1' : 'gC/m2','detcs2' : 'gC/m2',
+                    'detns1' : 'gN/m2','detns2' : 'gN/m2','detps1' : 'gP/m2','detps2' : 'gP/m2',
+                    'detsis1' : 'gSi/m2','detsis2' : 'gSi/m2','diats1' : 'gC/m2','oocs1' : 'gC/m2',
+                    'oocs2' : 'gC/m2','oons1' : 'gN/m2','oons2' : 'gN/m2','oops1' : 'gP/m2',
+                    'oops2' : 'gP/m2','oosis1' : 'gSi/m2','oosis2' : 'gSi/m2','volume' : 'm3',}
 
 # list of composite parameters -- include all possible component parameters, script will automatically 
 # check if they were included in this run and leave it out if needed (this is used in 
@@ -750,6 +777,15 @@ mass_cons_check_normalize_by_dict = {'N-Algae' : 'Diat,dPPDiat',
                                      'DetNS12' : 'DetNS1,dSedPON1',
                                      'OONS12' : 'OONS1,dSedPON2'}
 
+# set all composite parameters to empty for tracer runs
+if is_tracer:
+    composite_parameters = {}
+    composite_bases = {}
+    composite_reaction_dict = {}
+    mass_cons_check_param_list = []
+    mass_cons_check_normalize_by_dict = {}
+
+
 ##############################
 # import stuff
 ##############################
@@ -907,7 +943,7 @@ def get_water_year(runid):
 def get_run_dir(model_run_base_dir, runid, is_delta, is_tracer):
 
     '''
-    run_dir = get_run_dir(model_run_base_dir, runid, is_delta)
+    run_dir = get_run_dir(model_run_base_dir, runid, is_delta, is_tracer)
 
     given the path to the base directory for all our model input, the runid, and boolean saying whether or not this is a delta run,
     automatically find the path to the directory for the run, where all the input and output files are stored
@@ -941,7 +977,7 @@ def get_run_dir(model_run_base_dir, runid, is_delta, is_tracer):
         elif 'G141' in runid:
             water_year = get_water_year(runid)
             run_dir = os.path.join(model_run_base_dir,'open_bay','bgc','agg',water_year,runid)
-        elif ('FR' in runid) & (is_tracer):
+        elif ('FR' in runid) and (is_tracer):
             print('here2')
             water_year = get_water_year(runid)
             run_dir = os.path.join(model_run_base_dir,'open_bay','tracer','full_res',water_year,runid,'data_tracer')
@@ -950,7 +986,8 @@ def get_run_dir(model_run_base_dir, runid, is_delta, is_tracer):
             
     return run_dir
 
-def get_lsp_path(run_dir, is_delta, is_tracer):
+
+def get_lsp_path(run_dir, is_delta):  # don't need to modify this for is_tracer bc get_run_dir already did it
 
     '''
     lsp_path = get_lsp_path(run_dir, is_delta)
@@ -961,9 +998,7 @@ def get_lsp_path(run_dir, is_delta, is_tracer):
 
     if is_delta:
         lsp_path = os.path.join(run_dir,'%s.lsp' % water_year.lower()) 
-    elif is_tracer:
-        lsp_path = os.path.join(run_dir,'data_tracer','sfbay_dynamo000.lsp')
-    elif ('FR' in runid) and (not is_tracer):
+    elif ('FR' in runid):
         lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
     elif 'G673' in runid:
         lsp_path = os.path.join(run_dir,'sfbay_dynamo000.lsp')
@@ -1017,7 +1052,7 @@ if run_dir is None:
 
 # get the path to the lsp file
 if lsp_path is None:
-	lsp_path = get_lsp_path(run_dir, is_delta, is_tracer)
+	lsp_path = get_lsp_path(run_dir, is_delta)
 
 # get the balance table directory
 if balance_table_dir is None:
